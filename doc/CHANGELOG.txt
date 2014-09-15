@@ -1,0 +1,40 @@
+v0.8 07-Aug-2014
+----------------
+- merged ClientConnection and ServerConnection to a single Connection
+  class, to allow reverse communication for server
+- make Connection functions thread safe
+- removed slf4j dependency
+
+v0.6 24-Apr-2014
+----------------
+- added client support for automatic sending of S format APDUs to
+  confirm incoming I format APDUs
+- added client support for automatic sending of TESTFRCON
+  messages when TESTFR ACT messages are received.
+
+v0.5 10-Apr-2014
+----------------
+- Common address higher than 255 are now supported
+- added util functions to calculate common address and information
+  object address from individual bytes
+- added support for private range Type IDs
+
+v0.4 21-Mar-2014
+----------------
+- added SampleServer
+- added sendConfirmation(ASdu aSdu) to ServerConnection for easy
+  sending of confirmation messages that are simple mirrors of incoming
+  requests except for the causeOfTransmission field.
+- renamed ioException callback function of ASduListener
+- modified build.gradle file to work with gradle v1.11
+
+v0.3 14-Mar-2014
+----------------
+- improved javadoc and added user guide
+- added support for all possible Type Identifications
+- added toString() method for every possible Information Element
+- added runscripts for ClientApp
+
+v0.2 28-Feb-2014
+----------------
+- first release

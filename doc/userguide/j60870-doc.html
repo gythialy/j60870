@@ -1,0 +1,855 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+        "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8"/>
+<meta name="generator" content="AsciiDoc 8.6.9"/>
+<title>j60870 User Guide</title>
+<style type="text/css">
+/*
+ * AsciiDoc 'volnitsky' theme for xhtml11 and html5 backends.
+ * Based on css from http://volnitsky.com, which was in turn based on default
+ * theme from AsciiDoc
+ *
+ * FIXME: The styling is still a bit rough in places.
+ *
+ */
+
+/* Default font. */
+body {
+    font-family: Georgia, "Times New Roman", Times, serif;
+
+}
+
+/* Title font. */
+
+h3, h4, h5, h6 {
+    color: #010101;
+    size: 12px;
+}
+
+#toc a {
+    border-bottom: 1px dotted #999999;
+    color: #04392C !important;
+    text-decoration: none !important;
+}
+
+#toc a:hover {
+    border-bottom: 1px solid #049674;
+    color: #049674 !important;
+    text-decoration: none !important;
+}
+
+em {
+    font-style: italic;
+    /*  color: #0D6C55;*/
+    color: #4E4E4E;
+}
+
+strong {
+    font-weight: bold;
+    /*  color: #0D6C55;*/
+    color: #000000;
+}
+
+div.sectionbody {
+    margin-left: 0;
+}
+
+hr {
+    border: 1px solid #0D6C55;
+}
+
+pre {
+    padding: 0;
+    margin: 0;
+}
+
+#author {
+    color: #0D6C55;
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+#footer {
+    font-size: small;
+    border-top: 2px solid silver;
+    padding-top: 0.5em;
+    margin-top: 4.0em;
+}
+
+#footer-text {
+    float: left;
+    padding-bottom: 0.5em;
+}
+
+#footer-badges {
+    float: right;
+    padding-bottom: 0.5em;
+}
+
+#preamble {
+    margin-top: 1.5em;
+    margin-bottom: 1.5em;
+}
+
+div.tableblock, div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+    margin-top: 1.5em;
+    margin-bottom: 1.5em;
+}
+
+div.admonitionblock {
+    margin-top: 2.5em;
+    margin-bottom: 2.5em;
+}
+
+div.content {
+    /* Block element content. */
+    padding: 0;
+
+}
+
+/* Block element titles. */
+div.title, caption.title {
+    color: #0D6C55;
+    font-weight: bold;
+    text-align: left;
+    margin-top: 1.0em;
+    margin-bottom: 0.5em;
+}
+
+div.title + * {
+    margin-top: 0;
+}
+
+td div.title:first-child {
+    margin-top: 0.0em;
+}
+
+div.content div.title:first-child {
+    margin-top: 0.0em;
+}
+
+div.content + div.title {
+    margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+    background: #ffffee;
+    border: 1px solid silver;
+    padding: 0.5em;
+}
+
+div.listingblock > div.content {
+    border: 1px solid silver;
+    background: #f4f4f4;
+    padding: 0.5em;
+}
+
+div.quoteblock {
+    padding-left: 2.0em;
+    margin-right: 10%;
+}
+
+div.quoteblock > div.attribution {
+    padding-top: 0.5em;
+    text-align: right;
+}
+
+div.verseblock {
+    padding-left: 2.0em;
+    margin-right: 10%;
+}
+
+div.verseblock > pre.content {
+    font-family: inherit;
+}
+
+div.verseblock > div.attribution {
+    padding-top: 0.75em;
+    text-align: left;
+}
+
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+    text-align: left;
+}
+
+div.admonitionblock .icon {
+    vertical-align: top;
+    font-size: 1.1em;
+    font-weight: bold;
+    text-decoration: underline;
+    color: #0D6C55;
+    padding-right: 0.5em;
+}
+
+div.admonitionblock td.content {
+    padding-left: 0.5em;
+    border-left: 2px solid silver;
+}
+
+div.exampleblock > div.content {
+    border-left: 2px solid silver;
+    padding: 0.5em;
+}
+
+div.imageblock div.content {
+    padding-left: 0;
+}
+
+span.image img {
+    border-style: none;
+}
+
+a.image:visited {
+    color: white;
+}
+
+dl {
+    margin-top: 0.8em;
+    margin-bottom: 0.8em;
+}
+
+dt {
+    margin-top: 0.5em;
+    margin-bottom: 0;
+    font-style: normal;
+    color: #0D6C55;
+}
+
+dd > *:first-child {
+    margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+
+ol.arabic {
+    list-style-type: decimal;
+}
+
+ol.loweralpha {
+    list-style-type: lower-alpha;
+}
+
+ol.upperalpha {
+    list-style-type: upper-alpha;
+}
+
+ol.lowerroman {
+    list-style-type: lower-roman;
+}
+
+ol.upperroman {
+    list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+    margin-top: 0.1em;
+    margin-bottom: 0.1em;
+}
+
+div.tableblock > table {
+    border: 3px solid #0D6C55;
+}
+
+thead {
+    font-weight: bold;
+    color: #0D6C55;
+}
+
+tfoot {
+    font-weight: bold;
+}
+
+td > div.verse {
+    white-space: pre;
+}
+
+p.table {
+    margin-top: 0;
+}
+
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+    border-style: none;
+}
+
+div.tableblock > table[frame="hsides"] {
+    border-left-style: none;
+    border-right-style: none;
+}
+
+div.tableblock > table[frame="vsides"] {
+    border-top-style: none;
+    border-bottom-style: none;
+}
+
+div.hdlist {
+    margin-top: 0.8em;
+    margin-bottom: 0.8em;
+}
+
+div.hdlist tr {
+    padding-bottom: 15px;
+}
+
+dt.hdlist1.strong, td.hdlist1.strong {
+    font-weight: bold;
+}
+
+td.hdlist1 {
+    vertical-align: top;
+    font-style: normal;
+    padding-right: 0.8em;
+    color: #0D6C55;
+}
+
+td.hdlist2 {
+    vertical-align: top;
+}
+
+div.hdlist.compact tr {
+    margin: 0;
+    padding-bottom: 0;
+}
+
+.comment {
+    background: yellow;
+}
+
+@media print {
+    #footer-badges {
+        display: none;
+    }
+}
+
+#toctitle {
+    color: #049674;
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-top: 1.0em;
+    margin-bottom: 0.1em;
+}
+
+div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+div.toclevel1 {
+    margin-top: 0.3em;
+    margin-left: 0;
+    font-size: 1.0em;
+}
+
+div.toclevel2 {
+    margin-top: 0.25em;
+    margin-left: 2em;
+    font-size: 0.9em;
+}
+
+div.toclevel3 {
+    margin-left: 4em;
+    font-size: 0.8em;
+}
+
+div.toclevel4 {
+    margin-left: 6em;
+    font-size: 0.8em;
+}
+
+.monospaced, tt, div.listingblock > div.content {
+    font-family: Consolas, "Andale Mono", "Courier New", monospace;
+    color: #004400;
+    background: #f4f4f4;
+    max-width: 80em;
+    line-height: 1.2em;
+}
+
+.paragraph p {
+    line-height: 1.5em;
+    margin-top: 1em;
+}
+
+.paragraph p, li, dd, .content {
+    max-width: 45em;
+}
+
+.admonitionblock {
+    max-width: 35em;
+}
+
+div.sectionbody div.ulist > ul > li {
+    list-style-type: square;
+    color: #aaa;
+}
+
+div.sectionbody div.ulist > ul > li > * {
+    color: black;
+    /*font-size: 50%;*/
+}
+
+div.sectionbody div.ulist > ul > li div.ulist > ul > li {
+    color: #ccd;
+}
+
+div.sectionbody div.ulist > ul > li div.ulist > ul > li > * {
+    color: black;
+}
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+    margin-top: 1.0em;
+    margin-bottom: 1.5em;
+}
+
+thead, p.tableblock.header {
+    font-weight: bold;
+    color: #049674;
+}
+
+p.tableblock {
+    margin-top: 0;
+}
+
+table.tableblock {
+    border-width: 3px;
+    border-spacing: 0px;
+    border-style: solid;
+    border-color: #0D6C55;
+    border-collapse: collapse;
+}
+
+th.tableblock, td.tableblock {
+    border-width: 1px;
+    padding: 4px;
+    border-style: solid;
+    border-color: #0D6C55;
+}
+
+table.tableblock.frame-topbot {
+    border-left-style: hidden;
+    border-right-style: hidden;
+}
+
+table.tableblock.frame-sides {
+    border-top-style: hidden;
+    border-bottom-style: hidden;
+}
+
+table.tableblock.frame-none {
+    border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+    text-align: left;
+}
+
+th.tableblock.halign-center, td.tableblock.halign-center {
+    text-align: center;
+}
+
+th.tableblock.halign-right, td.tableblock.halign-right {
+    text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+    vertical-align: top;
+}
+
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+    vertical-align: middle;
+}
+
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+    vertical-align: bottom;
+}
+
+
+</style>
+<script type="text/javascript">
+    /*<![CDATA[*/
+    var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+        /* Author: Mihai Bazon, September 2002
+         * http://students.infoiasi.ro/~mishoo
+         *
+         * Table Of Content generator
+         * Version: 0.4
+         *
+         * Feel free to use this script under the terms of the GNU General Public
+         * License, as long as you do not remove or alter this notice.
+         */
+
+        /* modified by Troy D. Hanson, September 2006. License: GPL */
+        /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+        toc: function (toclevels) {
+
+            function getText(el) {
+                var text = "";
+                for (var i = el.firstChild; i != null; i = i.nextSibling) {
+                    if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+                        text += i.data;
+                    else if (i.firstChild != null)
+                        text += getText(i);
+                }
+                return text;
+            }
+
+            function TocEntry(el, text, toclevel) {
+                this.element = el;
+                this.text = text;
+                this.toclevel = toclevel;
+            }
+
+            function tocEntries(el, toclevels) {
+                var result = new Array;
+                var re = new RegExp('[hH]([1-' + (toclevels + 1) + '])');
+                // Function that scans the DOM tree for header elements (the DOM2
+                // nodeIterator API would be a better technique but not supported by all
+                // browsers).
+                var iterate = function (el) {
+                    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+                        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+                            var mo = re.exec(i.tagName);
+                            if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+                                result[result.length] = new TocEntry(i, getText(i), mo[1] - 1);
+                            }
+                            iterate(i);
+                        }
+                    }
+                }
+                iterate(el);
+                return result;
+            }
+
+            var toc = document.getElementById("toc");
+            if (!toc) {
+                return;
+            }
+
+            // Delete existing TOC entries in case we're reloading the TOC.
+            var tocEntriesToRemove = [];
+            var i;
+            for (i = 0; i < toc.childNodes.length; i++) {
+                var entry = toc.childNodes[i];
+                if (entry.nodeName.toLowerCase() == 'div'
+                        && entry.getAttribute("class")
+                        && entry.getAttribute("class").match(/^toclevel/))
+                    tocEntriesToRemove.push(entry);
+            }
+            for (i = 0; i < tocEntriesToRemove.length; i++) {
+                toc.removeChild(tocEntriesToRemove[i]);
+            }
+
+            // Rebuild TOC entries.
+            var entries = tocEntries(document.getElementById("content"), toclevels);
+            for (var i = 0; i < entries.length; ++i) {
+                var entry = entries[i];
+                if (entry.element.id == "")
+                    entry.element.id = "_toc_" + i;
+                var a = document.createElement("a");
+                a.href = "#" + entry.element.id;
+                a.appendChild(document.createTextNode(entry.text));
+                var div = document.createElement("div");
+                div.appendChild(a);
+                div.className = "toclevel" + entry.toclevel;
+                toc.appendChild(div);
+            }
+            if (entries.length == 0)
+                toc.parentNode.removeChild(toc);
+        },
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+        /* Based on footnote generation code from:
+         * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+         */
+
+        footnotes: function () {
+            // Delete existing footnote entries in case we're reloading the footnodes.
+            var i;
+            var noteholder = document.getElementById("footnotes");
+            if (!noteholder) {
+                return;
+            }
+            var entriesToRemove = [];
+            for (i = 0; i < noteholder.childNodes.length; i++) {
+                var entry = noteholder.childNodes[i];
+                if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+                    entriesToRemove.push(entry);
+            }
+            for (i = 0; i < entriesToRemove.length; i++) {
+                noteholder.removeChild(entriesToRemove[i]);
+            }
+
+            // Rebuild footnote entries.
+            var cont = document.getElementById("content");
+            var spans = cont.getElementsByTagName("span");
+            var refs = {};
+            var n = 0;
+            for (i = 0; i < spans.length; i++) {
+                if (spans[i].className == "footnote") {
+                    n++;
+                    var note = spans[i].getAttribute("data-note");
+                    if (!note) {
+                        // Use [\s\S] in place of . so multi-line matches work.
+                        // Because JavaScript has no s (dotall) regex flag.
+                        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+                        spans[i].innerHTML =
+                                "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+                                "' title='View footnote' class='footnote'>" + n + "</a>]";
+                        spans[i].setAttribute("data-note", note);
+                    }
+                    noteholder.innerHTML +=
+                            "<div class='footnote' id='_footnote_" + n + "'>" +
+                            "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+                            n + "</a>. " + note + "</div>";
+                    var id = spans[i].getAttribute("id");
+                    if (id != null) refs["#" + id] = n;
+                }
+            }
+            if (n == 0)
+                noteholder.parentNode.removeChild(noteholder);
+            else {
+                // Process footnoterefs.
+                for (i = 0; i < spans.length; i++) {
+                    if (spans[i].className == "footnoteref") {
+                        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+                        href = href.match(/#.*/)[0];  // Because IE return full URL.
+                        n = refs[href];
+                        spans[i].innerHTML =
+                                "[<a href='#_footnote_" + n +
+                                "' title='View footnote' class='footnote'>" + n + "</a>]";
+                    }
+                }
+            }
+        },
+
+        install: function (toclevels) {
+            var timerId;
+
+            function reinstall() {
+                asciidoc.footnotes();
+                if (toclevels) {
+                    asciidoc.toc(toclevels);
+                }
+            }
+
+            function reinstallAndRemoveTimer() {
+                clearInterval(timerId);
+                reinstall();
+            }
+
+            timerId = setInterval(reinstall, 500);
+            if (document.addEventListener)
+                document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+            else
+                window.onload = reinstallAndRemoveTimer;
+        }
+
+    }
+    asciidoc.install(2);
+    /*]]>*/
+</script>
+</head>
+<body class="article" style="max-width:55em">
+<div id="header">
+    <h1>j60870 User Guide</h1>
+
+    <div id="toc">
+        <div id="toctitle">Table of Contents</div>
+        <noscript><p><b>JavaScript must be enabled in your browser to display the table of
+            contents.</b></p></noscript>
+    </div>
+</div>
+<div id="content">
+    <div class="sect1">
+        <h2 id="_intro">1. Intro</h2>
+
+        <div class="sectionbody">
+            <div class="paragraph"><p>j60870 is an implementation of the IEC 60870-5-104 protocol
+                standard
+                for client (i.e. master or controlling station) and server (i.e. slave
+                or controlled station) applications.</p></div>
+            <div class="paragraph"><p>You can use j60870 to program your individual client or server
+                applications. A simple command line ClientApp is part of the
+                library. You can execute it using the scripts found in the folder
+                "runscripts".</p></div>
+        </div>
+    </div>
+    <div class="sect1">
+        <h2 id="_distribution">2. Distribution</h2>
+
+        <div class="sectionbody">
+            <div class="paragraph"><p>After extracting the distribution tar file the j60870 library
+                can be
+                found in the folder /build/libsdeps.</p></div>
+            <div class="paragraph"><p>The javadoc for j60870 can be found in the folder
+                build/javadoc.</p></div>
+        </div>
+    </div>
+    <div class="sect1">
+        <h2 id="_getting_started">3. Getting Started</h2>
+
+        <div class="sectionbody">
+            <div class="sect2">
+                <h3 id="_client">3.1. Client</h3>
+
+                <div class="paragraph"><p>The easiest way to get started is by taking a look at the
+                    code of the
+                    ClientApp which can be found here:
+                    src/main/java/org/openmuc/j60870/app/ClientApp.java . This application
+                    in combination with the javadoc should satisfy most of your
+                    documentation needs.</p></div>
+                <div class="paragraph"><p>Here is a short summary of the steps to get a client
+                    running:</p></div>
+                <div class="ulist">
+                    <ul>
+                        <li>
+                            <p>
+                                Create an instance of ClientSap.
+                            </p>
+                        </li>
+                        <li>
+                            <p>
+                                Configure the ClientSap.
+                            </p>
+                        </li>
+                        <li>
+                            <p>
+                                Connect to the server using ClientSap.connect which returns the
+                                connection. The client is now connected to the server via
+                                TCP/IP.
+                            </p>
+                        </li>
+                        <li>
+                            <p>
+                                Initialize the data transfer by calling
+                                Connection.startDataTransfer.
+                            </p>
+                        </li>
+                        <li>
+                            <p>
+                                Now all incoming ASDUs (except for confirmation messages) will be
+                                forwarded to the ASduListener you registered. Every ASDU contains a
+                                number of Information Objects. The information objects contain
+                                information elements that make up the actual data. You will have to
+                                cast the InformationElements of the ASDU to a concrete
+                                implementation in order to access the data inside them. Every
+                                standardized Information Element is implemented by a class starting
+                                with the letters "Ie". The Type Identifier allows you to figure what
+                                to cast a particular Information Element to.
+                            </p>
+                        </li>
+                        <li>
+                            <p>
+                                You can use the Connection instance to send commands.
+                            </p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="sect2">
+                <h3 id="_server">3.2. Server</h3>
+
+                <div class="paragraph"><p>The easiest way to get started programming an IEC
+                    60870-5-104 server
+                    is by taking a look at the SampleServer located at:
+                    src/sample/java/SampleServer.java . The easiest way to run the sample
+                    server is by importing the project into Eclipse and run it from
+                    there. This is explained here:
+                    <a href="http://www.openmuc.org/index.php?id=72#faq_gradle">http://www.openmuc.org/index.php?id=72#faq_gradle</a>
+                </p></div>
+            </div>
+        </div>
+    </div>
+    <div class="sect1">
+        <h2 id="_terminology">4. Terminology</h2>
+
+        <div class="sectionbody">
+            <div class="ulist">
+                <ul>
+                    <li>
+                        <p>
+                            <strong>OA</strong> - Originator Address
+                        </p>
+                    </li>
+                    <li>
+                        <p>
+                            <strong>Monitor direction</strong> - direction from server to client
+                        </p>
+                    </li>
+                    <li>
+                        <p>
+                            <strong>Control direction</strong> - direction from client to server
+                        </p>
+                    </li>
+                    <li>
+                        <p>
+                            <strong>CON</strong> - confirmation message
+                        </p>
+                    </li>
+                    <li>
+                        <p>
+                            <strong>COT</strong> - Cause of transmission
+                        </p>
+                    </li>
+                    <li>
+                        <p>
+                            <strong>STARTDT ACT</strong> - Start data tranfer message. Needs to be
+                            sent by the
+                            client before information messages may be exchanged between client
+                            and server.
+                        </p>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="sect1">
+        <h2 id="_develop_j60870">5. Develop j60870</h2>
+
+        <div class="sectionbody">
+            <div class="paragraph"><p>We use the Gradle build automation tool. The distribution
+                contains a
+                fully functional gradle build file ("build.gradle"). Thus if you
+                changed code and want to rebuild a library you can do it easily with
+                Gradle. Also if you want to import our software into Eclipse you can
+                easily create Eclipse project files using Gradle. Just follow the
+                instructions on our FAQ site:
+                <a href="http://www.openmuc.org/index.php?id=72#faq_gradle">http://www.openmuc.org/index.php?id=72#faq_gradle</a>
+            </p></div>
+        </div>
+    </div>
+</div>
+<div id="footnotes">
+    <hr/>
+</div>
+<div id="footer">
+    <div id="footer-text">
+        Last updated 2014-08-07 10:53:49 CEST
+    </div>
+</div>
+</body>
+</html>

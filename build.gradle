@@ -1,0 +1,150 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'osgi'
+apply plugin: 'maven'
+apply plugin: 'signing'
+
+version = '0.8'
+group = 'org.openmuc'
+def projectName = 'j60870'
+def projectNameLowerCase = 'j60870'
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+repositories { mavenCentral() }
+
+sourceSets {
+    sample
+    itest {
+        compileClasspath += sourceSets.main.runtimeClasspath
+    }
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+    itestCompile group: 'junit', name: 'junit', version: '4.11'
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+            repository(url: project.properties.sonatypeRepository) {
+                authentication(userName: project.properties.sonatypeUser, password: project.properties.sonatypePass)
+            }
+            snapshotRepository(url: project.properties.sonatypeSnapshotRepository) {
+                authentication(userName: project.properties.sonatypeUser, password: project.properties.sonatypePass)
+            }
+
+            pom.project {
+                name projectName
+                packaging 'jar'
+                description 'j60870 is an IEC 60870-5-104 client and server library.'
+                url 'http://www.openmuc.org/'
+
+                licenses {
+                    license {
+                        name 'GNU General Public License'
+                        url 'http://www.gnu.org/copyleft/gpl-3.0.html'
+                        distribution 'repo'
+                    }
+                }
+
+                scm {
+                    url 'none'
+                    connection 'none'
+                }
+
+                developers {
+                    developer {
+                        id 'sfeuerhahn'
+                        name 'Stefan Feuerhahn'
+                    }
+                }
+            }
+        }
+    }
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}
+
+signing {
+    if (project.hasProperty('signing.keyId')) {
+        sign configurations.archives
+    }
+}
+
+task copyLibs(type: Copy) {
+    dependsOn(configurations.default.getAllArtifacts().getBuildDependencies())
+    dependsOn(sourcesJar)
+
+    into "build/libsdeps"
+    from configurations.default
+    from configurations.archives.getAllArtifacts().getFiles()
+}
+
+build.dependsOn(copyLibs)
+
+jar {
+    manifest {
+        version = project.version.replace('-', '.');
+        name = projectName
+        instruction 'Export-Package', '!*.internal.*,*'
+    }
+}
+
+task itest(type: Test) {
+    testClassesDir = sourceSets.itest.output.classesDir
+    classpath += sourceSets.itest.runtimeClasspath
+}
+
+eclipse.pathVariables([GRADLE_USER_HOME: file(gradle.gradleUserHomeDir)])
+tasks.eclipse.dependsOn(cleanEclipse)
+
+task javadocs(type: Javadoc) {
+    source sourceSets.main.allJava
+
+    exclude '**/internal/**'
+
+    destinationDir = new File(buildDir, 'javadoc')
+
+    classpath = sourceSets.main.compileClasspath
+    classpath += sourceSets.main.output
+}
+
+task(tar, type: Tar) {
+    dependsOn(build)
+    dependsOn(javadocs)
+
+    compression = Compression.GZIP
+
+    into(project.archivesBaseName) {
+        from('./') {
+            include 'doc/*.txt'
+            include 'doc/userguide/' + projectNameLowerCase + '-doc.html'
+            include 'doc/userguide/' + projectNameLowerCase + '-doc_img/**'
+            include 'licenses/**'
+            include 'build/libsdeps/**'
+            include 'build/javadoc/**'
+            include 'build.gradle'
+            include 'dependencies/**'
+            include 'src/**'
+            include 'runscripts/**'
+        }
+    }
+}
