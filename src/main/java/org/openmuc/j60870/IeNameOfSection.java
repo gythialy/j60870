@@ -32,9 +32,6 @@ public class IeNameOfSection extends InformationElement {
 
     private final int value;
 
-    /**
-     * Creates an NOS (name of section) information element.
-     */
     public IeNameOfSection(int value) {
         this.value = value;
     }

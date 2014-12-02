@@ -7,21 +7,11 @@
  *
  */
 
+import org.openmuc.j60870.*;
+
 import java.io.EOFException;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
-
-import org.openmuc.j60870.ASdu;
-import org.openmuc.j60870.CauseOfTransmission;
-import org.openmuc.j60870.Connection;
-import org.openmuc.j60870.ConnectionEventListener;
-import org.openmuc.j60870.IeQuality;
-import org.openmuc.j60870.IeScaledValue;
-import org.openmuc.j60870.InformationElement;
-import org.openmuc.j60870.InformationObject;
-import org.openmuc.j60870.ServerSap;
-import org.openmuc.j60870.ServerSapListener;
-import org.openmuc.j60870.TypeId;
 
 public class SampleServer implements ServerSapListener, ConnectionEventListener {
 
@@ -58,7 +48,7 @@ public class SampleServer implements ServerSapListener, ConnectionEventListener 
                 + myConnectionId);
 
         try {
-            connection.waitForStartDT(5000, new SampleServer(connection, myConnectionId));
+            connection.waitForStartDT(new SampleServer(connection, myConnectionId), 5000);
         }
         catch (IOException e) {
             System.out.println("Connection ("

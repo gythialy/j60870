@@ -1,3 +1,9 @@
+v0.9 19-Nov-2014
+----------------
+- added full support for timers t1,t2 and t3
+- fixed bug in information element IeTime56
+- improved documentation
+
 v0.8 07-Aug-2014
 ----------------
 - merged ClientConnection and ServerConnection to a single Connection

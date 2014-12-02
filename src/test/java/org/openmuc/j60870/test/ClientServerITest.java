@@ -20,45 +20,15 @@
  */
 package org.openmuc.j60870.test;
 
-import java.io.IOException;
-import java.net.InetAddress;
-
 import org.junit.Assert;
 import org.junit.Test;
-import org.openmuc.j60870.ASdu;
-import org.openmuc.j60870.CauseOfTransmission;
-import org.openmuc.j60870.ClientSap;
-import org.openmuc.j60870.Connection;
-import org.openmuc.j60870.ConnectionEventListener;
-import org.openmuc.j60870.IeBinaryCounterReading;
-import org.openmuc.j60870.IeBinaryStateInformation;
-import org.openmuc.j60870.IeDoubleCommand;
+import org.openmuc.j60870.*;
 import org.openmuc.j60870.IeDoubleCommand.DoubleCommandState;
-import org.openmuc.j60870.IeDoublePointWithQuality;
 import org.openmuc.j60870.IeDoublePointWithQuality.DoublePointInformation;
-import org.openmuc.j60870.IeNormalizedValue;
-import org.openmuc.j60870.IeProtectionQuality;
-import org.openmuc.j60870.IeProtectionStartEvent;
-import org.openmuc.j60870.IeQualifierOfInterrogation;
-import org.openmuc.j60870.IeQualifierOfSetPointCommand;
-import org.openmuc.j60870.IeQuality;
-import org.openmuc.j60870.IeScaledValue;
-import org.openmuc.j60870.IeShortFloat;
-import org.openmuc.j60870.IeSingleCommand;
-import org.openmuc.j60870.IeSinglePointWithQuality;
-import org.openmuc.j60870.IeSingleProtectionEvent;
 import org.openmuc.j60870.IeSingleProtectionEvent.EventState;
-import org.openmuc.j60870.IeStatusAndStatusChanges;
-import org.openmuc.j60870.IeTime16;
-import org.openmuc.j60870.IeTime24;
-import org.openmuc.j60870.IeTime56;
-import org.openmuc.j60870.IeValueWithTransientState;
-import org.openmuc.j60870.InformationElement;
-import org.openmuc.j60870.InformationObject;
-import org.openmuc.j60870.ServerSap;
-import org.openmuc.j60870.ServerSapListener;
-import org.openmuc.j60870.TypeId;
-import org.openmuc.j60870.Util;
+
+import java.io.IOException;
+import java.net.InetAddress;
 
 public class ClientServerITest implements ServerSapListener, ConnectionEventListener {
 
@@ -67,9 +37,9 @@ public class ClientServerITest implements ServerSapListener, ConnectionEventList
     String host = "127.0.0.1";
     ClientSap clientSap = new ClientSap();
     ServerSap serverSap = null;
-    int counter = -1;
+    int counter = 0;
     int serverCounter = 0;
-    int counter2 = -1;
+    int counter2 = 0;
     Connection serverConnection;
     Exception exception = null;
     volatile long clientTimestamp = 0;
@@ -124,7 +94,7 @@ public class ClientServerITest implements ServerSapListener, ConnectionEventList
                     Assert.assertEquals(TypeId.C_CS_NA_1, aSdu.getTypeIdentification());
 
                     Assert.assertTrue(clientTimestamp <= ((IeTime56) aSdu.getInformationObjects()[0]
-                            .getInformationElements()[0][0]).getTimestamp(1970));
+                            .getInformationElements()[0][0]).getTimestamp());
 
                     serverTimestamp = System.currentTimeMillis();
 
@@ -644,17 +614,15 @@ public class ClientServerITest implements ServerSapListener, ConnectionEventList
 
         @Override
         public void connectionClosed(IOException e) {
-            // TODO Auto-generated method stub
-
         }
 
     }
 
-    public static void main(String[] args) throws IOException {
-        ServerSap serverSap;
-        serverSap = new ServerSap(new ClientServerITest());
-        serverSap.startListening();
-    }
+    // public static void main(String[] args) throws IOException {
+    // ServerSap serverSap;
+    // serverSap = new ServerSap(new ClientServerITest());
+    // serverSap.startListening();
+    // }
 
     @Test
     public void testClientServerCom() throws Exception {
@@ -662,12 +630,11 @@ public class ClientServerITest implements ServerSapListener, ConnectionEventList
         serverSap = new ServerSap(port, this);
         serverSap.startListening();
 
-        clientSap.setWaitForConfirmation(false);
         Connection clientConnection = clientSap.connect(InetAddress.getByName("127.0.0.1"), port);
 
         try {
 
-            clientConnection.startDataTransfer(this);
+            clientConnection.startDataTransfer(this, 5000);
 
             clientTimestamp = System.currentTimeMillis();
 
@@ -677,15 +644,8 @@ public class ClientServerITest implements ServerSapListener, ConnectionEventList
                                            1,
                                            new IeSingleCommand(true, 3, true));
 
-            clientConnection.setWaitForConfirmation(true);
-
-            long receivedTimestamp = clientConnection.synchronizeClocks(commonAddress,
-                                                                        new IeTime56(System.currentTimeMillis()))
-                                                     .getTimestamp(1970);
-
-            Assert.assertTrue(receivedTimestamp >= clientTimestamp);
-            Assert.assertTrue((receivedTimestamp - 1000) < clientTimestamp);
-            Assert.assertEquals(serverTimestamp, receivedTimestamp);
+            clientConnection.synchronizeClocks(commonAddress,
+                                               new IeTime56(System.currentTimeMillis()));
 
             clientConnection.doubleCommandWithTimeTag(commonAddress,
                                                       CauseOfTransmission.ACTIVATION,
@@ -759,7 +719,7 @@ public class ClientServerITest implements ServerSapListener, ConnectionEventList
 
             try {
                 this.serverConnection = connection;
-                connection.waitForStartDT(0, new ServerReceiver());
+                connection.waitForStartDT(new ServerReceiver(), 5000);
             }
             catch (IOException e) {
                 System.err.println("IOException waiting for StartDT");
@@ -776,12 +736,14 @@ public class ClientServerITest implements ServerSapListener, ConnectionEventList
 
     @Override
     public void serverStoppedListeningIndication(IOException e) {
-        // TODO Auto-generated method stub
-
     }
 
     @Override
     public void newASdu(ASdu aSdu) {
+
+        if (aSdu.getCauseOfTransmission() == CauseOfTransmission.ACTIVATION_CON) {
+            return;
+        }
 
         // try {
         // logger.debug("\n" + aSdu.toString() + "\n");
@@ -793,28 +755,7 @@ public class ClientServerITest implements ServerSapListener, ConnectionEventList
 
             counter++;
 
-            if (counter == 0) {
-                // IeSinglePointWithQuality pointWithQuality = (IeSinglePointWithQuality)
-                // aSdu.getInformationObjects()[0]
-                // .getInformationElements()[0][0];
-                //
-                // Assert.assertEquals(true, pointWithQuality.isOn());
-                // Assert.assertEquals(true, pointWithQuality.isBlocked());
-                // Assert.assertEquals(true, pointWithQuality.isInvalid());
-                // Assert.assertEquals(true, pointWithQuality.isNotTopical());
-                // Assert.assertEquals(true, pointWithQuality.isSubstituted());
-                //
-                // IeSinglePointWithQuality io2 = (IeSinglePointWithQuality) aSdu.getInformationObjects()[0]
-                // .getInformationElements()[1][0];
-                //
-                // Assert.assertEquals(false, io2.isOn());
-                // Assert.assertEquals(false, io2.isBlocked());
-                // Assert.assertEquals(false, io2.isInvalid());
-                // Assert.assertEquals(false, io2.isNotTopical());
-                // Assert.assertEquals(false, io2.isSubstituted());
-
-                counter2++;
-            } else if (counter == 1) {
+            if (counter == 1) {
                 IeSinglePointWithQuality pointWithQuality = (IeSinglePointWithQuality) aSdu.getInformationObjects()[0]
                         .getInformationElements()[0][0];
 
@@ -1052,7 +993,7 @@ public class ClientServerITest implements ServerSapListener, ConnectionEventList
 
                 IeTime56 time56 = (IeTime56) aSdu.getInformationObjects()[0].getInformationElements()[0][1];
 
-                Assert.assertEquals(serverTimestamp, time56.getTimestamp(2000));
+                Assert.assertEquals(serverTimestamp, time56.getTimestamp());
 
                 counter2++;
             } else if (counter == 16) {
@@ -1088,13 +1029,11 @@ public class ClientServerITest implements ServerSapListener, ConnectionEventList
 
     @Override
     public void connectionClosed(IOException e) {
-        // TODO Auto-generated method stub
 
     }
 
     @Override
     public void connectionAttemptFailed(IOException e) {
-        // TODO Auto-generated method stub
 
     }
 

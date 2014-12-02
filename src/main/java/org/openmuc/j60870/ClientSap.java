@@ -20,11 +20,10 @@
  */
 package org.openmuc.j60870;
 
+import javax.net.SocketFactory;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
-
-import javax.net.SocketFactory;
 
 /**
  * The Client Service Access Point is used to connect to IEC 60870-5-104 servers. A client application that wants to
@@ -55,25 +54,11 @@ public class ClientSap {
     /**
      * Use this constructor to create a client SAP that uses the given <code>SocketFactory</code> to connect to servers.
      * You could pass an SSLSocketFactory to enable SSL.
+     *
+     * @param socketFactory the socket factory
      */
     public ClientSap(SocketFactory socketFactory) {
         this.socketFactory = socketFactory;
-    }
-
-    /**
-     * Sets the default response timeout of the {@link Connection connections} created using this ClientSap. The
-     * response timeout is the maximum time that the client will wait for the confirmation message (CON) after sending a
-     * command. If such a timeout occurs the corresponding command function (e.g.
-     * {@link Connection#interrogation(int, CauseOfTransmission, IeQualifierOfInterrogation) interrogation}) will throw
-     * a TimeoutException.
-     *
-     * @param timeout the response timeout in milliseconds. The default is 10000 (10s).
-     */
-    public void setResponseTimeout(int timeout) {
-        if (timeout < 0) {
-            throw new IllegalArgumentException("invalid response timeout");
-        }
-        settings.responseTimeout = timeout;
     }
 
     /**
@@ -83,11 +68,11 @@ public class ClientSap {
      * an IOException if the socket throws this timeout. In addition any ASDU listener will be notified of the
      * IOException. Usually the connection cannot recover from this kind of error.
      *
-     * @param timeout the timeout in milliseconds. The default is 10000.
+     * @param timeout the timeout in milliseconds. The default is 5000.
      */
     public void setMessageFragmentTimeout(int timeout) {
         if (timeout < 0) {
-            throw new IllegalArgumentException("invalid message fragment timeout");
+            throw new IllegalArgumentException("invalid message fragment timeout: " + timeout);
         }
         settings.messageFragmentTimeout = timeout;
     }
@@ -125,48 +110,71 @@ public class ClientSap {
      */
     public void setIoaFieldLength(int length) {
         if (length < 1 || length > 3) {
-            throw new IllegalArgumentException("invalid length");
+            throw new IllegalArgumentException("invalid length: " + length);
         }
         settings.ioaFieldLength = length;
     }
 
     /**
-     * Sets the maximum time in ms before confirming received messages using an S format APDU.
+     * Sets the maximum time in ms that no acknowledgement has been received (for I-Frames or Test-Frames) before
+     * actively closing the connection. This timeout is called t1 by the standard. Default is 15s, minimum is 1s,
+     * maximum is 255s.
      *
-     * @param time the maximum time in ms before confirming received messages using an S format APDU. Default is 10000.
+     * @param time the maximum time in ms that no acknowledgement has been received before actively closing the
+     *             connection.
      */
-    public void setMaxTimeWithoutAck(int time) {
-        if (time < 1) {
-            throw new IllegalArgumentException("invalid time");
+    public void setMaxTimeNoAckReceived(int time) {
+        if (time < 1000 || time > 255000) {
+            throw new IllegalArgumentException("invalid timeout: " + time
+                                               + ", time must be between 1000ms and 255000ms");
         }
-        settings.maxTimeWithoutAck = time;
+        settings.maxTimeNoAckReceived = time;
     }
 
     /**
-     * Sets the maximum number of I format APDUs frames after which the client connection will automatically send an S
-     * format APDU to confirm them.
+     * Sets the maximum time in ms before confirming received messages that have not yet been acknowledged using an S
+     * format APDU. This timeout is called t2 by the standard. Default is 10s, minimum is 1s, maximum is 255s.
      *
-     * @param maxNum the maximum number of I format APDUs frames after which the client connection will automatically send
-     *               an S format APDU to confirm them. Default is 10.
+     * @param time the maximum time in ms before confirming received messages that have not yet been acknowledged using
+     *             an S format APDU.
      */
-    public void setMaxIPdusReceivedWithoutAck(int maxNum) {
-        if (maxNum < 1) {
-            throw new IllegalArgumentException("invalid maxNum");
+    public void setMaxTimeNoAckSent(int time) {
+        if (time < 1000 || time > 255000) {
+            throw new IllegalArgumentException("invalid timeout: " + time
+                                               + ", time must be between 1000ms and 255000ms");
         }
-        settings.maxIPdusReceivedWithoutAck = maxNum;
+        settings.maxTimeNoAckSent = time;
     }
 
     /**
-     * Sets whether the different command methods of {@link Connection} shall wait for confirmation messages or not
-     * before returning. If set to true the command message will only return after a confirmation message was received
-     * or a timeout is thrown. If set to false the command functions will return immediately after the command message
-     * was sent.
+     * Sets the maximum time in ms that the connection may be idle before sending a test frame. This timeout is called
+     * t3 by the standard. Default is 20s, minimum is 1s, maximum is 172800s (48h).
      *
-     * @param wait whether the different command methods of <code>ClientSap</code> shall wait for confirmation messages
-     *             or not. Default is true.
+     * @param time the maximum time in ms that the connection may be idle before sending a test frame.
      */
-    public void setWaitForConfirmation(boolean wait) {
-        settings.waitForConfirmation = wait;
+    public void setMaxIdleTime(int time) {
+        if (time < 1000 || time > 172800000) {
+            throw new IllegalArgumentException("invalid timeout: " + time
+                                               + ", time must be between 1000ms and 172800000ms");
+        }
+        settings.maxIdleTime = time;
+    }
+
+    /**
+     * Sets the number of unacknowledged I format APDUs received before the connection will automatically send an S
+     * format APDU to confirm them. This parameter is called w by the standard. Default is 8, minimum is 1, maximum is
+     * 32767.
+     *
+     * @param maxNum the number of unacknowledged I format APDUs received before the connection will automatically send an
+     *               S format APDU to confirm them.
+     */
+    public void setMaxUnconfirmedIPdusReceived(int maxNum) {
+        if (maxNum < 1 || maxNum > 32767) {
+            throw new IllegalArgumentException("invalid maxNum: "
+                                               + maxNum
+                                               + ", must be a value between 1 and 32767");
+        }
+        settings.maxUnconfirmedIPdusReceived = maxNum;
     }
 
     /**
@@ -178,7 +186,6 @@ public class ClientSap {
      * @throws IOException if any kind of error occurs during connection build up.
      */
     public Connection connect(InetAddress address) throws IOException {
-
         return connect(address, 2404, null, 0);
     }
 

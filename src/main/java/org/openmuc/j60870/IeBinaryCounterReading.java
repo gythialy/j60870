@@ -36,9 +36,6 @@ public class IeBinaryCounterReading extends InformationElement {
     private final boolean counterAdjusted;
     private final boolean invalid;
 
-    /**
-     * Creates a BCR (binary counter reading) information element.
-     */
     public IeBinaryCounterReading(int counterReading,
                                   int sequenceNumber,
                                   boolean carry,

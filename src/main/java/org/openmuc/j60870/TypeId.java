@@ -21,8 +21,8 @@
 package org.openmuc.j60870;
 
 /**
- * Every ASDU contains a Type Identification field that defines the purpose and contents of the ASDU. Every Type
- * Identifier is of the form A_BB_CC_1 with the following meanigs:
+ * Every ASDU contains a type identification field that defines the purpose and contents of the ASDU. Every Type
+ * Identifier is of the form A_BB_CC_1 with the following meanings:
  * <ul>
  * <li>A - can be 'M' for information in monitor direction, 'C' for system information in control direction, 'P' for
  * parameter in control direction or 'F' for file transfer.</li>

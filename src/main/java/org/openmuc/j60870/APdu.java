@@ -65,7 +65,7 @@ final class APdu {
             apciType = APCI_TYPE.S_FORMAT;
             receiveSeqNum = ((aPduHeader[2] & 0xfe) >> 1) + ((aPduHeader[3] & 0xff) << 7);
         } else {
-            if (aPduHeader[0] == 0x83) {
+            if (aPduHeader[0] == (byte) 0x83) {
                 apciType = APCI_TYPE.TESTFR_CON;
             } else if (aPduHeader[0] == 0x43) {
                 apciType = APCI_TYPE.TESTFR_ACT;

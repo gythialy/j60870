@@ -32,9 +32,6 @@ public class IeNameOfFile extends InformationElement {
 
     private final int value;
 
-    /**
-     * Creates an NOF (name of file) information element.
-     */
     public IeNameOfFile(int value) {
         this.value = value;
     }

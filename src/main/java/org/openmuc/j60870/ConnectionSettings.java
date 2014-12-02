@@ -22,31 +22,32 @@ package org.openmuc.j60870;
 
 final class ConnectionSettings {
 
-    public int messageFragmentTimeout = 10000;
-    public int responseTimeout = 10000;
+    public int messageFragmentTimeout = 5000;
 
     public int cotFieldLength = 2;
     public int commonAddressFieldLength = 2;
     public int ioaFieldLength = 3;
 
-    public int maxTimeWithoutAck = 10000;
-    public int maxIPdusReceivedWithoutAck = 10;
+    public int maxTimeNoAckReceived = 15000;
+    public int maxTimeNoAckSent = 10000;
+    public int maxIdleTime = 20000;
 
-    public boolean waitForConfirmation = true;
+    public int maxUnconfirmedIPdusReceived = 8;
 
     public ConnectionSettings getCopy() {
         ConnectionSettings settings = new ConnectionSettings();
+
         settings.messageFragmentTimeout = messageFragmentTimeout;
-        settings.responseTimeout = responseTimeout;
 
         settings.cotFieldLength = cotFieldLength;
         settings.commonAddressFieldLength = commonAddressFieldLength;
         settings.ioaFieldLength = ioaFieldLength;
 
-        settings.maxTimeWithoutAck = maxTimeWithoutAck;
-        settings.maxIPdusReceivedWithoutAck = maxIPdusReceivedWithoutAck;
+        settings.maxTimeNoAckReceived = maxTimeNoAckReceived;
+        settings.maxTimeNoAckSent = maxTimeNoAckSent;
+        settings.maxIdleTime = maxIdleTime;
 
-        settings.waitForConfirmation = waitForConfirmation;
+        settings.maxUnconfirmedIPdusReceived = maxUnconfirmedIPdusReceived;
 
         return settings;
     }

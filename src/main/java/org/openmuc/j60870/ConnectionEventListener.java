@@ -25,8 +25,8 @@ import java.io.IOException;
 /**
  * The listener interface for receiving incoming ASDUs and connection closed events. The class that is interested in
  * incoming ASDUs implements this interface. The object of that class is registered as a listener through the
- * {@link Connection#startDataTransfer(ConnectionEventListener)} or
- * {@link Connection#waitForStartDT(int, ConnectionEventListener)} method. Incoming ASDUs are queued so that
+ * {@link Connection#startDataTransfer(ConnectionEventListener, int)} or
+ * {@link Connection#waitForStartDT(ConnectionEventListener, int)} method. Incoming ASDUs are queued so that
  * {@link #newASdu(ASdu)} is never called simultaneously for the same connection.
  *
  * @author Stefan Feuerhahn

@@ -20,39 +20,25 @@
  */
 package org.openmuc.j60870;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.EOFException;
-import java.io.IOException;
-import java.net.Socket;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
 import org.openmuc.j60870.APdu.APCI_TYPE;
+
+import java.io.*;
+import java.net.Socket;
+import java.util.concurrent.*;
 
 /**
  * Represents a connection between a client and a server. It is created either through an instance of {@link ClientSap}
  * or passed to {@link ServerSapListener}. Once it has been closed it cannot be opened again. A newly created connection
  * has successfully build up a TCP/IP connection to the server. Before receiving ASDUs or sending commands one has to
- * call {@link Connection#startDataTransfer(ConnectionEventListener)} or
- * {@link Connection#waitForStartDT(int, ConnectionEventListener)}. Afterwards incoming ASDUs are forwarded to the
+ * call {@link Connection#startDataTransfer(ConnectionEventListener, int)} or
+ * {@link Connection#waitForStartDT(ConnectionEventListener, int)}. Afterwards incoming ASDUs are forwarded to the
  * {@link ConnectionEventListener}. Incoming ASDUs are queued so that {@link ConnectionEventListener#newASdu(ASdu)} is
  * never called simultaneously for the same connection. Note that the ASduListener is not notified of incoming
  * confirmation messages (CONs).
  * <p/>
- * Connection offers a method for every possible command defined by IEC 60870 (e.g. singleCommand). Every command method
- * will block until a the corresponding confirmation message was received. Every command function may throw an
- * IOException indicating a fatal connection error. In this case the connection will be automatically closed and a new
- * connection will have to be built up.
+ * Connection offers a method for every possible command defined by IEC 60870 (e.g. singleCommand). Every command
+ * function may throw an IOException indicating a fatal connection error. In this case the connection will be
+ * automatically closed and a new connection will have to be built up.
  *
  * @author Stefan Feuerhahn
  */
@@ -65,14 +51,13 @@ public class Connection {
 
     private boolean closed = false;
 
-    private final List<RequestMonitor> requestMonitors = new LinkedList<RequestMonitor>();
-
     private final ConnectionSettings settings;
     private ConnectionEventListener aSduListener = null;
 
     private int sendSequenceNumber = 0;
     private int receiveSequenceNumber = 0;
     private int acknowledgedReceiveSequenceNumber = 0;
+    private int acknowledgedSendSequenceNumber = 0;
 
     private int originatorAddress = 0;
 
@@ -84,17 +69,34 @@ public class Connection {
                                                                0x00,
                                                                0x00,
                                                                0x00};
+    private static final byte[] TESTFR_ACT_BUFFER = new byte[]{0x68,
+                                                               0x04,
+                                                               (byte) 0x43,
+                                                               0x00,
+                                                               0x00,
+                                                               0x00};
+    private static final byte[] STARTDT_ACT_BUFFER = new byte[]{0x68, 0x04, 0x07, 0x00, 0x00, 0x00};
+    private static final byte[] STARTDT_CON_BUFFER = new byte[]{0x68, 0x04, 0x0b, 0x00, 0x00, 0x00};
 
-    Timer timer = null;
+    private final ScheduledExecutorService maxTimeNoAckSentTimer = Executors.newSingleThreadScheduledExecutor();
+    private ScheduledFuture<?> maxTimeNoAckSentFuture = null;
+
+    private final ScheduledExecutorService maxTimeNoAckReceivedTimer = Executors.newSingleThreadScheduledExecutor();
+    private ScheduledFuture<?> maxTimeNoAckReceivedFuture = null;
+
+    private final ScheduledExecutorService maxIdleTimeTimer = Executors.newSingleThreadScheduledExecutor();
+    private ScheduledFuture<?> maxIdleTimeTimerFuture = null;
+
+    private final ScheduledExecutorService maxTimeNoTestConReceivedTimer = Executors.newSingleThreadScheduledExecutor();
+    private ScheduledFuture<?> maxTimeNoTestConReceivedFuture = null;
 
     private IOException closedIOException = null;
 
     private CountDownLatch startdtactSignal;
+    private CountDownLatch startdtConSignal;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     private class ConnectionReader extends Thread {
-
-        Connection outerClientConnection = Connection.this;
 
         @Override
         public void run() {
@@ -112,31 +114,21 @@ public class Connection {
 
                     final APdu aPdu = new APdu(is, settings);
 
-                    switch (aPdu.getApciType()) {
-                    case I_FORMAT:
-                        receiveSequenceNumber = (aPdu.getSendSeqNumber() + 1) % 32768;
+                    synchronized (Connection.this) {
 
-                        CauseOfTransmission cot = aPdu.getASdu().getCauseOfTransmission();
+                        switch (aPdu.getApciType()) {
+                        case I_FORMAT:
 
-                        boolean isConfirmation = false;
-                        if (settings.waitForConfirmation
-                            && (cot == CauseOfTransmission.ACTIVATION_CON
-                                || cot == CauseOfTransmission.DEACTIVATION_CON)) {
-                            synchronized (requestMonitors) {
-                                for (RequestMonitor requestAndThread : requestMonitors) {
-                                    if (requestAndThread.requestAPdu.getASdu()
-                                                                    .isConfirmation(aPdu.getASdu(),
-                                                                                    settings)) {
-                                        isConfirmation = true;
-                                        requestAndThread.responseAPdu = aPdu;
-                                        requestAndThread.confirmationSignal.countDown();
-                                        break;
-                                    }
-                                }
+                            if (receiveSequenceNumber != aPdu.getSendSeqNumber()) {
+                                throw new IOException("Got unexpected send sequence number: " + aPdu
+                                        .getSendSeqNumber()
+                                                      + ", expected: " + receiveSequenceNumber);
                             }
-                        }
 
-                        if (isConfirmation == false) {
+                            receiveSequenceNumber = (aPdu.getSendSeqNumber() + 1) % 32768;
+
+                            handleReceiveSequenceNumber(aPdu);
+
                             if (aSduListener != null) {
                                 executor.execute(new Runnable() {
                                     @Override
@@ -145,71 +137,76 @@ public class Connection {
                                     }
                                 });
                             }
-                        }
 
-                        synchronized (Connection.this) {
+                            int numUnconfirmedIPdusReceived = getSequenceNumberDifference(
+                                    receiveSequenceNumber,
+                                    acknowledgedReceiveSequenceNumber);
 
-                            int numNotAcknowledged = receiveSequenceNumber
-                                                     - acknowledgedReceiveSequenceNumber;
-                            if (numNotAcknowledged < 0) {
-                                numNotAcknowledged += 32768;
-                            }
-
-                            if (numNotAcknowledged > settings.maxIPdusReceivedWithoutAck) {
-                                encodeWriteReadDecode(APCI_TYPE.S_FORMAT, null, false);
-
+                            if (numUnconfirmedIPdusReceived
+                                > settings.maxUnconfirmedIPdusReceived) {
+                                sendSFormatPdu();
+                                if (maxTimeNoAckSentFuture != null) {
+                                    maxTimeNoAckSentFuture.cancel(true);
+                                    maxTimeNoAckSentFuture = null;
+                                }
                             } else {
 
-                                if (timer == null) {
+                                if (maxTimeNoAckSentFuture == null) {
 
-                                    timer = new Timer();
-
-                                    TimerTask tt = new TimerTask() {
+                                    maxTimeNoAckSentFuture = maxTimeNoAckSentTimer.schedule(new Runnable() {
                                         @Override
                                         public void run() {
-                                            try {
-                                                outerClientConnection.encodeWriteReadDecode(
-                                                        APCI_TYPE.S_FORMAT,
-                                                        null,
-                                                        false);
-                                            }
-                                            catch (IOException e) {
-                                            }
-                                            catch (TimeoutException e) {
+
+                                            synchronized (Connection.this) {
+                                                if (Thread.interrupted()) {
+                                                    return;
+                                                }
+                                                try {
+                                                    sendSFormatPdu();
+                                                }
+                                                catch (IOException e) {
+                                                }
+                                                maxTimeNoAckSentFuture = null;
                                             }
                                         }
-                                    };
-                                    timer.schedule(tt, settings.maxTimeWithoutAck);
-
+                                    }, settings.maxTimeNoAckSent, TimeUnit.MILLISECONDS);
                                 }
                             }
+                            resetMaxIdleTimeTimer();
 
-                        }
-
-                        break;
-                    case STARTDT_CON:
-                        synchronized (requestMonitors) {
-                            for (RequestMonitor requestAndThread : requestMonitors) {
-                                if (requestAndThread.requestAPdu.getApciType()
-                                    == APCI_TYPE.STARTDT_ACT) {
-                                    requestAndThread.responseAPdu = aPdu;
-                                    requestAndThread.confirmationSignal.countDown();
-                                }
+                            break;
+                        case STARTDT_CON:
+                            if (startdtConSignal != null) {
+                                startdtConSignal.countDown();
                             }
+                            resetMaxIdleTimeTimer();
+                            break;
+                        case STARTDT_ACT:
+                            if (startdtactSignal != null) {
+                                startdtactSignal.countDown();
+                            }
+                            break;
+                        case S_FORMAT:
+                            handleReceiveSequenceNumber(aPdu);
+                            resetMaxIdleTimeTimer();
+                            break;
+                        case TESTFR_ACT:
+                            os.write(TESTFR_CON_BUFFER, 0, TESTFR_CON_BUFFER.length);
+                            os.flush();
+                            resetMaxIdleTimeTimer();
+                            break;
+                        case TESTFR_CON:
+                            if (maxTimeNoTestConReceivedFuture != null) {
+                                maxTimeNoTestConReceivedFuture.cancel(true);
+                                maxTimeNoTestConReceivedFuture = null;
+                            }
+                            resetMaxIdleTimeTimer();
+                            break;
+                        default:
+                            throw new IOException("Got unexpected message with APCI Type: "
+                                                  + aPdu.getApciType());
                         }
-                        break;
-                    case STARTDT_ACT:
-                        startdtactSignal.countDown();
-                        break;
-                    case S_FORMAT:
-                        // receiveSequenceNumber = aPdu.getSendSeqNumber() + 1;
-                        break;
-                    case TESTFR_ACT:
-                        writeTestFrCon();
-                        break;
-                    default:
-                        throw new IOException("Got unexpected message with APCI Type: "
-                                              + aPdu.getApciType());
+
                     }
 
                 }
@@ -234,13 +231,38 @@ public class Connection {
                         aSduListener.connectionClosed(closedIOException);
                     }
                 }
+                maxTimeNoAckSentTimer.shutdownNow();
+                maxTimeNoAckReceivedTimer.shutdownNow();
+                maxIdleTimeTimer.shutdownNow();
+                maxTimeNoTestConReceivedTimer.shutdownNow();
+            }
+        }
 
-                synchronized (requestMonitors) {
-                    for (RequestMonitor requestAndThread : requestMonitors) {
-                        requestAndThread.ioException = closedIOException;
-                        requestAndThread.confirmationSignal.countDown();
-                    }
+        private void handleReceiveSequenceNumber(final APdu aPdu) throws IOException {
+            if (acknowledgedSendSequenceNumber != aPdu.getReceiveSeqNumber()) {
+
+                if (getSequenceNumberDifference(aPdu.getReceiveSeqNumber(),
+                                                acknowledgedSendSequenceNumber)
+                    > getNumUnconfirmedIPdusSent()) {
+                    throw new IOException("Got unexpected receive sequence number: "
+                                          + aPdu.getReceiveSeqNumber()
+                                          + ", expected a number between: "
+                                          + acknowledgedSendSequenceNumber
+                                          + " and "
+                                          + sendSequenceNumber);
                 }
+
+                if (maxTimeNoAckReceivedFuture != null) {
+                    maxTimeNoAckReceivedFuture.cancel(true);
+                    maxTimeNoAckReceivedFuture = null;
+                }
+
+                acknowledgedSendSequenceNumber = aPdu.getReceiveSeqNumber();
+
+                if (sendSequenceNumber != acknowledgedSendSequenceNumber) {
+                    scheduleMaxTimeNoAckReceivedFuture();
+                }
+
             }
         }
     }
@@ -285,13 +307,41 @@ public class Connection {
      * that listens for incoming ASDUs and notifies the given ASduListener.
      *
      * @param listener the listener that is notified of incoming ASDUs
+     * @param timeout  the maximum time in ms to wait for a STARDT CON message after sending the STARTDT ACT message. If set
+     *                 to zero, timeout is disabled.
      * @throws IOException      if any kind of IOException occurs
      * @throws TimeoutException if the configured response timeout runs out
      */
-    public void startDataTransfer(ConnectionEventListener listener)
+    public void startDataTransfer(ConnectionEventListener listener, int timeout)
             throws IOException, TimeoutException {
+        if (timeout < 0) {
+            throw new IllegalArgumentException("timeout may not be negative");
+        }
 
-        encodeWriteReadDecode(APCI_TYPE.STARTDT_ACT, null, true);
+        startdtConSignal = new CountDownLatch(1);
+
+        synchronized (this) {
+            os.write(STARTDT_ACT_BUFFER, 0, STARTDT_ACT_BUFFER.length);
+        }
+        os.flush();
+
+        if (timeout == 0) {
+            try {
+                startdtConSignal.await();
+            }
+            catch (InterruptedException e) {
+            }
+        } else {
+            boolean success = true;
+            try {
+                success = startdtConSignal.await(timeout, TimeUnit.MILLISECONDS);
+            }
+            catch (InterruptedException e) {
+            }
+            if (!success) {
+                throw new TimeoutException();
+            }
+        }
 
         this.aSduListener = listener;
     }
@@ -300,13 +350,13 @@ public class Connection {
      * Waits for incoming STARTDT ACT message and response with a STARTDT CON message. Throws a TimeoutException if no
      * STARTDT message is received within the specified timeout span.
      *
-     * @param timeout  the maximum time to wait for STARTDT ACT message before throwing a TimeoutException. If set to zero,
-     *                 timeout is disabled.
      * @param listener the listener that is to be notified of incoming ASDUs and disconnect events
+     * @param timeout  the maximum time in ms to wait for STARTDT ACT message before throwing a TimeoutException. If set to
+     *                 zero, timeout is disabled.
      * @throws IOException      if a fatal communication error occurred
      * @throws TimeoutException if the given timeout runs out before the STARTDT ACT message is received.
      */
-    public void waitForStartDT(int timeout, ConnectionEventListener listener)
+    public void waitForStartDT(ConnectionEventListener listener, int timeout)
             throws IOException, TimeoutException {
 
         if (timeout < 0) {
@@ -331,124 +381,26 @@ public class Connection {
             }
         }
 
-        encodeWriteReadDecode(APCI_TYPE.STARTDT_CON, null, false);
+        synchronized (this) {
+            os.write(STARTDT_CON_BUFFER, 0, STARTDT_CON_BUFFER.length);
+        }
+        os.flush();
+
         this.aSduListener = listener;
+
+        resetMaxIdleTimeTimer();
     }
 
-    private APdu encodeWriteReadDecode(ASdu requestASdu) throws IOException, TimeoutException {
+    private void sendSFormatPdu() throws IOException {
+        APdu requestAPdu = new APdu(0, receiveSequenceNumber, APCI_TYPE.S_FORMAT, null);
+        requestAPdu.encode(buffer, settings);
 
-        return encodeWriteReadDecode(APCI_TYPE.I_FORMAT, requestASdu, settings.waitForConfirmation);
+        os.write(buffer, 0, 6);
+        os.flush();
 
-    }
+        acknowledgedReceiveSequenceNumber = receiveSequenceNumber;
 
-    private APdu encodeWriteReadDecode(APCI_TYPE apciType, ASdu requestASdu, boolean waitForCon)
-            throws IOException,
-            TimeoutException {
-
-        APdu requestAPdu = null;
-        CountDownLatch confirmationSignal;
-        RequestMonitor requestMonitor;
-
-        synchronized (this) {
-
-            if (apciType == APCI_TYPE.STARTDT_ACT) {
-                requestAPdu = new APdu(0, 0, APCI_TYPE.STARTDT_ACT, null);
-            } else if (apciType == APCI_TYPE.STARTDT_CON) {
-                requestAPdu = new APdu(0, 0, APCI_TYPE.STARTDT_CON, null);
-            } else {
-                acknowledgedReceiveSequenceNumber = receiveSequenceNumber;
-                requestAPdu = new APdu((sendSequenceNumber++) % 32768,
-                                       receiveSequenceNumber,
-                                       apciType,
-                                       requestASdu);
-            }
-
-            if (timer != null) {
-                timer.cancel();
-                timer = null;
-            }
-
-            int length = requestAPdu.encode(buffer, settings);
-
-            if (!waitForCon) {
-                os.write(buffer, 0, length);
-                os.flush();
-                return null;
-            }
-
-            confirmationSignal = new CountDownLatch(1);
-            requestMonitor = new RequestMonitor(requestAPdu, confirmationSignal);
-
-            synchronized (requestMonitors) {
-                requestMonitors.add(requestMonitor);
-            }
-            try {
-                os.write(buffer, 0, length);
-                os.flush();
-            }
-            catch (IOException e) {
-                synchronized (requestMonitors) {
-                    requestMonitors.remove(requestMonitor);
-                }
-                throw e;
-            }
-
-        }
-
-        if (settings.responseTimeout == 0) {
-            try {
-                confirmationSignal.await();
-            }
-            catch (InterruptedException e) {
-            }
-        } else {
-            boolean success = true;
-            try {
-                success = confirmationSignal.await(settings.responseTimeout, TimeUnit.MILLISECONDS);
-            }
-            catch (InterruptedException e) {
-            }
-            if (!success) {
-                throw new TimeoutException();
-            }
-        }
-
-        synchronized (requestMonitors) {
-            requestMonitors.remove(requestMonitor);
-        }
-
-        if (requestMonitor.ioException != null) {
-            throw new IOException(requestMonitor.ioException);
-        }
-        if (requestMonitor.responseAPdu == null) {
-            throw new TimeoutException();
-        }
-
-        return requestMonitor.responseAPdu;
-
-    }
-
-    private void writeTestFrCon() throws IOException {
-        synchronized (this) {
-            os.write(TESTFR_CON_BUFFER, 0, TESTFR_CON_BUFFER.length);
-            os.flush();
-        }
-    }
-
-    /**
-     * The response timeout is the maximum time that the client will wait for the confirmation message after sending a
-     * command. If such a timeout occurs the corresponding command function (e.g.
-     * {@link Connection#interrogation(int, CauseOfTransmission, IeQualifierOfInterrogation) interrogation}) will throw
-     * a TimeoutException.
-     *
-     * @param timeout the response timeout in milliseconds. The initial value is configured through {@link ClientSap} or
-     *                {@link ServerSap}.
-     */
-    public void setResponseTimeout(int timeout) {
-        if (timeout < 0) {
-            throw new IllegalArgumentException("invalid response timeout");
-        }
-        settings.responseTimeout = timeout;
+        resetMaxIdleTimeTimer();
     }
 
     /**
@@ -475,17 +427,10 @@ public class Connection {
         return originatorAddress;
     }
 
-    /**
-     * Sets whether the different command methods of <code>ClientConnection</code> shall wait for confirmation messages
-     * or not before returning. If set to true the command message will only return after a confirmation message was
-     * received or a timeout is thrown. If set to false the command functions will return immediately after the command
-     * message was sent.
-     *
-     * @param wait whether the different command methods of <code>ClientSap</code> shall wait for confirmation messages
-     *             or not. The initial value is configured through <code>ClientSap</code>.
-     */
-    public void setWaitForConfirmation(boolean wait) {
-        settings.waitForConfirmation = wait;
+    public int getNumUnconfirmedIPdusSent() {
+        synchronized (this) {
+            return getSequenceNumberDifference(sendSequenceNumber, acknowledgedSendSequenceNumber);
+        }
     }
 
     /**
@@ -512,11 +457,105 @@ public class Connection {
     }
 
     public void send(ASdu aSdu) throws IOException {
-        try {
-            encodeWriteReadDecode(APCI_TYPE.I_FORMAT, aSdu, false);
+
+        synchronized (this) {
+
+            acknowledgedReceiveSequenceNumber = receiveSequenceNumber;
+            APdu requestAPdu = new APdu(sendSequenceNumber,
+                                        receiveSequenceNumber,
+                                        APCI_TYPE.I_FORMAT,
+                                        aSdu);
+            sendSequenceNumber = (sendSequenceNumber + 1) % 32768;
+
+            if (maxTimeNoAckSentFuture != null) {
+                maxTimeNoAckSentFuture.cancel(true);
+                maxTimeNoAckSentFuture = null;
+            }
+
+            if (maxTimeNoAckReceivedFuture == null) {
+                scheduleMaxTimeNoAckReceivedFuture();
+            }
+
+            int length = requestAPdu.encode(buffer, settings);
+            os.write(buffer, 0, length);
+            os.flush();
+            resetMaxIdleTimeTimer();
         }
-        catch (TimeoutException e) {
+    }
+
+    private void scheduleMaxTimeNoAckReceivedFuture() {
+        maxTimeNoAckReceivedFuture = maxTimeNoAckReceivedTimer.schedule(new Runnable() {
+            @Override
+            public void run() {
+
+                synchronized (Connection.this) {
+                    if (Thread.interrupted()) {
+                        return;
+                    }
+                    close();
+                    maxTimeNoAckReceivedFuture = null;
+                    if (aSduListener != null) {
+                        aSduListener.connectionClosed(new IOException(
+                                "The maximum time that no confirmation was received (t1) has been exceeded. t1 = "
+                                + settings.maxTimeNoAckReceived + "ms"));
+                    }
+                }
+            }
+        }, settings.maxTimeNoAckReceived, TimeUnit.MILLISECONDS);
+    }
+
+    private void scheduleMaxTimeNoTestConReceivedFuture() {
+        maxTimeNoTestConReceivedFuture = maxTimeNoTestConReceivedTimer.schedule(new Runnable() {
+            @Override
+            public void run() {
+
+                synchronized (Connection.this) {
+                    if (Thread.interrupted()) {
+                        return;
+                    }
+                    close();
+                    maxTimeNoTestConReceivedFuture = null;
+                    if (aSduListener != null) {
+                        aSduListener.connectionClosed(new IOException(
+                                "The maximum time that no test frame confirmation was received (t1) has been exceeded. t1 = "
+                                + settings.maxTimeNoAckReceived + "ms"));
+                    }
+                }
+            }
+        }, settings.maxTimeNoAckReceived, TimeUnit.MILLISECONDS);
+    }
+
+    private int getSequenceNumberDifference(int x, int y) {
+        int difference = x - y;
+        if (difference < 0) {
+            difference += 32768;
         }
+        return difference;
+    }
+
+    private void resetMaxIdleTimeTimer() {
+        if (maxIdleTimeTimerFuture != null) {
+            maxIdleTimeTimerFuture.cancel(true);
+        }
+        maxIdleTimeTimerFuture = maxIdleTimeTimer.schedule(new Runnable() {
+            @Override
+            public void run() {
+
+                synchronized (Connection.this) {
+                    if (Thread.interrupted()) {
+                        return;
+                    }
+                    try {
+                        os.write(TESTFR_ACT_BUFFER, 0, TESTFR_ACT_BUFFER.length);
+                        os.flush();
+                    }
+                    catch (IOException e) {
+                    }
+                    maxIdleTimeTimerFuture = null;
+                    scheduleMaxTimeNoTestConReceivedFuture();
+                }
+            }
+        }, settings.maxIdleTime, TimeUnit.MILLISECONDS);
     }
 
     public void sendConfirmation(ASdu aSdu) throws IOException {
@@ -537,18 +576,17 @@ public class Connection {
     }
 
     /**
-     * Sends a single command (C_SC_NA_1, TI: 45) and blocks until a confirmation is received.
+     * Sends a single command (C_SC_NA_1, TI: 45).
      *
      * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
      * @param informationObjectAddress the information object address.
      * @param singleCommand            the command to be sent.
-     * @throws IOException      if a fatal communication error occurred.
-     * @throws TimeoutException if the configured response timeout runs out before the confirmation message is received.
+     * @throws IOException if a fatal communication error occurred.
      */
     public void singleCommand(int commonAddress,
                               int informationObjectAddress,
                               IeSingleCommand singleCommand)
-            throws IOException, TimeoutException {
+            throws IOException {
         CauseOfTransmission cot;
         if (singleCommand.isCommandStateOn()) {
             cot = CauseOfTransmission.ACTIVATION;
@@ -565,22 +603,21 @@ public class Connection {
                              new InformationObject[]{new InformationObject(informationObjectAddress,
                                                                            new InformationElement[][]{
                                                                                    {singleCommand}})});
-        encodeWriteReadDecode(aSdu);
+        send(aSdu);
     }
 
     /**
-     * Sends a single command with time tag CP56Time2a (C_SC_TA_1, TI: 58) and blocks until a confirmation is received.
+     * Sends a single command with time tag CP56Time2a (C_SC_TA_1, TI: 58).
      *
      * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
      * @param informationObjectAddress the information object address.
      * @param singleCommand            the command to be sent.
      * @param timeTag                  the time tag to be sent.
-     * @throws IOException      if a fatal communication error occurred.
-     * @throws TimeoutException if the configured response timeout runs out before the confirmation message is received.
+     * @throws IOException if a fatal communication error occurred.
      */
     public void singleCommandWithTimeTag(int commonAddress, int informationObjectAddress,
                                          IeSingleCommand singleCommand, IeTime56 timeTag)
-            throws IOException, TimeoutException {
+            throws IOException {
         CauseOfTransmission cot;
         if (singleCommand.isCommandStateOn()) {
             cot = CauseOfTransmission.ACTIVATION;
@@ -598,23 +635,22 @@ public class Connection {
                                                                            new InformationElement[][]{
                                                                                    {singleCommand,
                                                                                     timeTag}})});
-        encodeWriteReadDecode(aSdu);
+        send(aSdu);
     }
 
     /**
-     * Sends a double command (C_DC_NA_1, TI: 46) and blocks until a confirmation is received.
+     * Sends a double command (C_DC_NA_1, TI: 46).
      *
      * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
      * @param cot                      the cause of transmission. Allowed are activation and deactivation.
      * @param informationObjectAddress the information object address.
      * @param doubleCommand            the command to be sent.
-     * @throws IOException      if a fatal communication error occurred.
-     * @throws TimeoutException if the configured response timeout runs out before the confirmation message is received.
+     * @throws IOException if a fatal communication error occurred.
      */
     public void doubleCommand(int commonAddress,
                               CauseOfTransmission cot,
                               int informationObjectAddress,
-                              IeDoubleCommand doubleCommand) throws IOException, TimeoutException {
+                              IeDoubleCommand doubleCommand) throws IOException {
 
         ASdu aSdu = new ASdu(TypeId.C_DC_NA_1,
                              false,
@@ -626,25 +662,24 @@ public class Connection {
                              new InformationObject[]{new InformationObject(informationObjectAddress,
                                                                            new InformationElement[][]{
                                                                                    {doubleCommand}})});
-        encodeWriteReadDecode(aSdu);
+        send(aSdu);
     }
 
     /**
-     * Sends a double command with time tag CP56Time2a (C_DC_TA_1, TI: 59) and blocks until a confirmation is received.
+     * Sends a double command with time tag CP56Time2a (C_DC_TA_1, TI: 59).
      *
      * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
      * @param cot                      the cause of transmission. Allowed are activation and deactivation.
      * @param informationObjectAddress the information object address.
      * @param doubleCommand            the command to be sent.
      * @param timeTag                  the time tag to be sent.
-     * @throws IOException      if a fatal communication error occurred.
-     * @throws TimeoutException if the configured response timeout runs out before the confirmation message is received.
+     * @throws IOException if a fatal communication error occurred.
      */
     public void doubleCommandWithTimeTag(int commonAddress,
                                          CauseOfTransmission cot,
                                          int informationObjectAddress,
                                          IeDoubleCommand doubleCommand,
-                                         IeTime56 timeTag) throws IOException, TimeoutException {
+                                         IeTime56 timeTag) throws IOException {
 
         ASdu aSdu = new ASdu(TypeId.C_DC_TA_1,
                              false,
@@ -657,24 +692,23 @@ public class Connection {
                                                                            new InformationElement[][]{
                                                                                    {doubleCommand,
                                                                                     timeTag}})});
-        encodeWriteReadDecode(aSdu);
+        send(aSdu);
     }
 
     /**
-     * Sends a regulating step command (C_RC_NA_1, TI: 47) and blocks until a confirmation is received.
+     * Sends a regulating step command (C_RC_NA_1, TI: 47).
      *
      * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
      * @param cot                      the cause of transmission. Allowed are activation and deactivation.
      * @param informationObjectAddress the information object address.
      * @param regulatingStepCommand    the command to be sent.
-     * @throws IOException      if a fatal communication error occurred.
-     * @throws TimeoutException if the configured response timeout runs out before the confirmation message is received.
+     * @throws IOException if a fatal communication error occurred.
      */
     public void regulatingStepCommand(int commonAddress,
                                       CauseOfTransmission cot,
                                       int informationObjectAddress,
                                       IeRegulatingStepCommand regulatingStepCommand)
-            throws IOException, TimeoutException {
+            throws IOException {
 
         ASdu aSdu = new ASdu(TypeId.C_RC_NA_1,
                              false,
@@ -686,27 +720,25 @@ public class Connection {
                              new InformationObject[]{new InformationObject(informationObjectAddress,
                                                                            new InformationElement[][]{
                                                                                    {regulatingStepCommand}})});
-        encodeWriteReadDecode(aSdu);
+        send(aSdu);
     }
 
     /**
-     * Sends a regulating step command with time tag CP56Time2a (C_RC_TA_1, TI: 60) and blocks until a confirmation is
-     * received.
+     * Sends a regulating step command with time tag CP56Time2a (C_RC_TA_1, TI: 60).
      *
      * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
      * @param cot                      the cause of transmission. Allowed are activation and deactivation.
      * @param informationObjectAddress the information object address.
      * @param regulatingStepCommand    the command to be sent.
      * @param timeTag                  the time tag to be sent.
-     * @throws IOException      if a fatal communication error occurred.
-     * @throws TimeoutException if the configured response timeout runs out before the confirmation message is received.
+     * @throws IOException if a fatal communication error occurred.
      */
     public void regulatingStepCommandWithTimeTag(int commonAddress,
                                                  CauseOfTransmission cot,
                                                  int informationObjectAddress,
                                                  IeRegulatingStepCommand regulatingStepCommand,
                                                  IeTime56 timeTag)
-            throws IOException, TimeoutException {
+            throws IOException {
 
         ASdu aSdu = new ASdu(TypeId.C_RC_TA_1,
                              false,
@@ -719,27 +751,25 @@ public class Connection {
                                                                            new InformationElement[][]{
                                                                                    {regulatingStepCommand,
                                                                                     timeTag}})});
-        encodeWriteReadDecode(aSdu);
+        send(aSdu);
     }
 
     /**
-     * Sends a set-point command, normalized value (C_SE_NA_1, TI: 48) and blocks until a confirmation is received.
+     * Sends a set-point command, normalized value (C_SE_NA_1, TI: 48).
      *
      * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
      * @param cot                      the cause of transmission. Allowed are activation and deactivation.
      * @param informationObjectAddress the information object address.
      * @param normalizedValue          the value to be sent.
      * @param qualifier                the qualifier to be sent.
-     * @throws IOException      if a fatal communication error occurred.
-     * @throws TimeoutException if the configured response timeout runs out before the confirmation message is received.
+     * @throws IOException if a fatal communication error occurred.
      */
     public void setNormalizedValueCommand(int commonAddress,
                                           CauseOfTransmission cot,
                                           int informationObjectAddress,
                                           IeNormalizedValue normalizedValue,
                                           IeQualifierOfSetPointCommand qualifier)
-            throws IOException,
-            TimeoutException {
+            throws IOException {
 
         ASdu aSdu = new ASdu(TypeId.C_SE_NA_1,
                              false,
@@ -752,12 +782,11 @@ public class Connection {
                                                                            new InformationElement[][]{
                                                                                    {normalizedValue,
                                                                                     qualifier}})});
-        encodeWriteReadDecode(aSdu);
+        send(aSdu);
     }
 
     /**
-     * Sends a set-point command with time tag CP56Time2a, normalized value (C_SE_TA_1, TI: 61) and blocks until a
-     * confirmation is received.
+     * Sends a set-point command with time tag CP56Time2a, normalized value (C_SE_TA_1, TI: 61).
      *
      * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
      * @param cot                      the cause of transmission. Allowed are activation and deactivation.
@@ -765,16 +794,14 @@ public class Connection {
      * @param normalizedValue          the value to be sent.
      * @param qualifier                the qualifier to be sent.
      * @param timeTag                  the time tag to be sent.
-     * @throws IOException      if a fatal communication error occurred.
-     * @throws TimeoutException if the configured response timeout runs out before the confirmation message is received.
+     * @throws IOException if a fatal communication error occurred.
      */
     public void setNormalizedValueCommandWithTimeTag(int commonAddress,
                                                      CauseOfTransmission cot,
                                                      int informationObjectAddress,
                                                      IeNormalizedValue normalizedValue,
                                                      IeQualifierOfSetPointCommand qualifier,
-                                                     IeTime56 timeTag)
-            throws IOException, TimeoutException {
+                                                     IeTime56 timeTag) throws IOException {
 
         ASdu aSdu = new ASdu(TypeId.C_SE_TA_1,
                              false,
@@ -788,26 +815,24 @@ public class Connection {
                                                                                    {normalizedValue,
                                                                                     qualifier,
                                                                                     timeTag}})});
-        encodeWriteReadDecode(aSdu);
+        send(aSdu);
     }
 
     /**
-     * Sends a set-point command, scaled value (C_SE_NB_1, TI: 49) and blocks until a confirmation is received.
+     * Sends a set-point command, scaled value (C_SE_NB_1, TI: 49).
      *
      * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
      * @param cot                      the cause of transmission. Allowed are activation and deactivation.
      * @param informationObjectAddress the information object address.
      * @param scaledValue              the value to be sent.
      * @param qualifier                the qualifier to be sent.
-     * @throws IOException      if a fatal communication error occurred.
-     * @throws TimeoutException if the configured response timeout runs out before the confirmation message is received.
+     * @throws IOException if a fatal communication error occurred.
      */
     public void setScaledValueCommand(int commonAddress,
                                       CauseOfTransmission cot,
                                       int informationObjectAddress,
                                       IeScaledValue scaledValue,
-                                      IeQualifierOfSetPointCommand qualifier)
-            throws IOException, TimeoutException {
+                                      IeQualifierOfSetPointCommand qualifier) throws IOException {
 
         ASdu aSdu = new ASdu(TypeId.C_SE_NB_1,
                              false,
@@ -820,12 +845,11 @@ public class Connection {
                                                                            new InformationElement[][]{
                                                                                    {scaledValue,
                                                                                     qualifier}})});
-        encodeWriteReadDecode(aSdu);
+        send(aSdu);
     }
 
     /**
-     * Sends a set-point command with time tag CP56Time2a, scaled value (C_SE_TB_1, TI: 62) and blocks until a
-     * confirmation is received.
+     * Sends a set-point command with time tag CP56Time2a, scaled value (C_SE_TB_1, TI: 62).
      *
      * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
      * @param cot                      the cause of transmission. Allowed are activation and deactivation.
@@ -833,16 +857,14 @@ public class Connection {
      * @param scaledValue              the value to be sent.
      * @param qualifier                the qualifier to be sent.
      * @param timeTag                  the time tag to be sent.
-     * @throws IOException      if a fatal communication error occurred.
-     * @throws TimeoutException if the configured response timeout runs out before the confirmation message is received.
+     * @throws IOException if a fatal communication error occurred.
      */
     public void setScaledValueCommandWithTimeTag(int commonAddress,
                                                  CauseOfTransmission cot,
                                                  int informationObjectAddress,
                                                  IeScaledValue scaledValue,
                                                  IeQualifierOfSetPointCommand qualifier,
-                                                 IeTime56 timeTag)
-            throws IOException, TimeoutException {
+                                                 IeTime56 timeTag) throws IOException {
 
         ASdu aSdu = new ASdu(TypeId.C_SE_TB_1,
                              false,
@@ -856,27 +878,24 @@ public class Connection {
                                                                                    {scaledValue,
                                                                                     qualifier,
                                                                                     timeTag}})});
-        encodeWriteReadDecode(aSdu);
+        send(aSdu);
     }
 
     /**
-     * Sends a set-point command, short floating point number (C_SE_NC_1, TI: 50) and blocks until a confirmation is
-     * received.
+     * Sends a set-point command, short floating point number (C_SE_NC_1, TI: 50).
      *
      * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
      * @param cot                      the cause of transmission. Allowed are activation and deactivation.
      * @param informationObjectAddress the information object address.
      * @param shortFloat               the value to be sent.
      * @param qualifier                the qualifier to be sent.
-     * @throws IOException      if a fatal communication error occurred.
-     * @throws TimeoutException if the configured response timeout runs out before the confirmation message is received.
+     * @throws IOException if a fatal communication error occurred.
      */
     public void setShortFloatCommand(int commonAddress,
                                      CauseOfTransmission cot,
                                      int informationObjectAddress,
                                      IeShortFloat shortFloat,
-                                     IeQualifierOfSetPointCommand qualifier)
-            throws IOException, TimeoutException {
+                                     IeQualifierOfSetPointCommand qualifier) throws IOException {
 
         ASdu aSdu = new ASdu(TypeId.C_SE_NC_1,
                              false,
@@ -889,12 +908,11 @@ public class Connection {
                                                                            new InformationElement[][]{
                                                                                    {shortFloat,
                                                                                     qualifier}})});
-        encodeWriteReadDecode(aSdu);
+        send(aSdu);
     }
 
     /**
-     * Sends a set-point command with time tag CP56Time2a, short floating point number (C_SE_TC_1, TI: 63) and blocks
-     * until a confirmation is received.
+     * Sends a set-point command with time tag CP56Time2a, short floating point number (C_SE_TC_1, TI: 63).
      *
      * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
      * @param cot                      the cause of transmission. Allowed are activation and deactivation.
@@ -902,16 +920,14 @@ public class Connection {
      * @param shortFloat               the value to be sent.
      * @param qualifier                the qualifier to be sent.
      * @param timeTag                  the time tag to be sent.
-     * @throws IOException      if a fatal communication error occurred.
-     * @throws TimeoutException if the configured response timeout runs out before the confirmation message is received.
+     * @throws IOException if a fatal communication error occurred.
      */
     public void setShortFloatCommandWithTimeTag(int commonAddress,
                                                 CauseOfTransmission cot,
                                                 int informationObjectAddress,
                                                 IeShortFloat shortFloat,
                                                 IeQualifierOfSetPointCommand qualifier,
-                                                IeTime56 timeTag)
-            throws IOException, TimeoutException {
+                                                IeTime56 timeTag) throws IOException {
 
         ASdu aSdu = new ASdu(TypeId.C_SE_TC_1,
                              false,
@@ -925,24 +941,23 @@ public class Connection {
                                                                                    {shortFloat,
                                                                                     qualifier,
                                                                                     timeTag}})});
-        encodeWriteReadDecode(aSdu);
+        send(aSdu);
     }
 
     /**
-     * Sends a bitstring of 32 bit (C_BO_NA_1, TI: 51) and blocks until a confirmation is received.
+     * Sends a bitstring of 32 bit (C_BO_NA_1, TI: 51).
      *
      * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
      * @param cot                      the cause of transmission. Allowed are activation and deactivation.
      * @param informationObjectAddress the information object address.
      * @param binaryStateInformation   the value to be sent.
-     * @throws IOException      if a fatal communication error occurred.
-     * @throws TimeoutException if the configured response timeout runs out before the confirmation message is received.
+     * @throws IOException if a fatal communication error occurred.
      */
     public void bitStringCommand(int commonAddress,
                                  CauseOfTransmission cot,
                                  int informationObjectAddress,
                                  IeBinaryStateInformation binaryStateInformation)
-            throws IOException, TimeoutException {
+            throws IOException {
 
         ASdu aSdu = new ASdu(TypeId.C_BO_NA_1,
                              false,
@@ -954,26 +969,24 @@ public class Connection {
                              new InformationObject[]{new InformationObject(informationObjectAddress,
                                                                            new InformationElement[][]{
                                                                                    {binaryStateInformation}})});
-        encodeWriteReadDecode(aSdu);
+        send(aSdu);
     }
 
     /**
-     * Sends a bitstring of 32 bit with time tag CP56Time2a (C_BO_TA_1, TI: 64) and blocks until a confirmation is
-     * received.
+     * Sends a bitstring of 32 bit with time tag CP56Time2a (C_BO_TA_1, TI: 64).
      *
      * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
      * @param cot                      the cause of transmission. Allowed are activation and deactivation.
      * @param informationObjectAddress the information object address.
      * @param binaryStateInformation   the value to be sent.
      * @param timeTag                  the time tag to be sent.
-     * @throws IOException      if a fatal communication error occurred.
-     * @throws TimeoutException if the configured response timeout runs out before the confirmation message is received.
+     * @throws IOException if a fatal communication error occurred.
      */
     public void bitStringCommandWithTimeTag(int commonAddress,
                                             CauseOfTransmission cot,
                                             int informationObjectAddress,
                                             IeBinaryStateInformation binaryStateInformation,
-                                            IeTime56 timeTag) throws IOException, TimeoutException {
+                                            IeTime56 timeTag) throws IOException {
 
         ASdu aSdu = new ASdu(TypeId.C_BO_TA_1,
                              false,
@@ -986,22 +999,21 @@ public class Connection {
                                                                            new InformationElement[][]{
                                                                                    {binaryStateInformation,
                                                                                     timeTag}})});
-        encodeWriteReadDecode(aSdu);
+        send(aSdu);
     }
 
     /**
-     * Sends an interrogation command (C_IC_NA_1, TI: 100) and blocks until a confirmation is received.
+     * Sends an interrogation command (C_IC_NA_1, TI: 100).
      *
      * @param commonAddress the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
      * @param cot           the cause of transmission. Allowed are activation and deactivation.
      * @param qualifier     the qualifier to be sent.
-     * @throws IOException      if a fatal communication error occurred.
-     * @throws TimeoutException if the configured response timeout runs out before the confirmation message is received.
+     * @throws IOException if a fatal communication error occurred.
      */
     public void interrogation(int commonAddress,
                               CauseOfTransmission cot,
                               IeQualifierOfInterrogation qualifier)
-            throws IOException, TimeoutException {
+            throws IOException {
         ASdu aSdu = new ASdu(TypeId.C_IC_NA_1,
                              false,
                              cot,
@@ -1012,21 +1024,20 @@ public class Connection {
                              new InformationObject[]{new InformationObject(0,
                                                                            new InformationElement[][]{
                                                                                    {qualifier}})});
-        encodeWriteReadDecode(aSdu);
+        send(aSdu);
     }
 
     /**
-     * Sends a counter interrogation command (C_CI_NA_1, TI: 101) and blocks until a confirmation is received.
+     * Sends a counter interrogation command (C_CI_NA_1, TI: 101).
      *
      * @param commonAddress the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
      * @param cot           the cause of transmission. Allowed are activation and deactivation.
      * @param qualifier     the qualifier to be sent.
-     * @throws IOException      if a fatal communication error occurred.
-     * @throws TimeoutException if the configured response timeout runs out before the confirmation message is received.
+     * @throws IOException if a fatal communication error occurred.
      */
     public void counterInterrogation(int commonAddress, CauseOfTransmission cot,
                                      IeQualifierOfCounterInterrogation qualifier)
-            throws IOException, TimeoutException {
+            throws IOException {
         ASdu aSdu = new ASdu(TypeId.C_CI_NA_1,
                              false,
                              cot,
@@ -1037,19 +1048,17 @@ public class Connection {
                              new InformationObject[]{new InformationObject(0,
                                                                            new InformationElement[][]{
                                                                                    {qualifier}})});
-        encodeWriteReadDecode(aSdu);
+        send(aSdu);
     }
 
     /**
-     * Sends a read command (C_RD_NA_1, TI: 102) and blocks until a confirmation is received.
+     * Sends a read command (C_RD_NA_1, TI: 102).
      *
      * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
      * @param informationObjectAddress the information object address.
-     * @throws IOException      if a fatal communication error occurred.
-     * @throws TimeoutException if the configured response timeout runs out before the confirmation message is received.
+     * @throws IOException if a fatal communication error occurred.
      */
-    public void readCommand(int commonAddress, int informationObjectAddress)
-            throws IOException, TimeoutException {
+    public void readCommand(int commonAddress, int informationObjectAddress) throws IOException {
         ASdu aSdu = new ASdu(TypeId.C_RD_NA_1,
                              false,
                              CauseOfTransmission.REQUEST,
@@ -1059,21 +1068,17 @@ public class Connection {
                              commonAddress,
                              new InformationObject[]{new InformationObject(informationObjectAddress,
                                                                            new InformationElement[0][0])});
-        encodeWriteReadDecode(aSdu);
+        send(aSdu);
     }
 
     /**
-     * Sends a clock synchronization command (C_CS_NA_1, TI: 103) and blocks until a confirmation is received.
+     * Sends a clock synchronization command (C_CS_NA_1, TI: 103).
      *
      * @param commonAddress the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
      * @param time          the time to be sent.
-     * @return the time that was returned by the server in the confirmation message. Null if waiting for confirmation
-     * messages was disabled.
-     * @throws IOException      if a fatal communication error occurred.
-     * @throws TimeoutException if the configured response timeout runs out before the confirmation message is received.
+     * @throws IOException if a fatal communication error occurred.
      */
-    public IeTime56 synchronizeClocks(int commonAddress, IeTime56 time)
-            throws IOException, TimeoutException {
+    public void synchronizeClocks(int commonAddress, IeTime56 time) throws IOException {
         InformationObject io = new InformationObject(0, new InformationElement[][]{{time}});
 
         InformationObject[] ios = new InformationObject[]{io};
@@ -1087,20 +1092,16 @@ public class Connection {
                              commonAddress,
                              ios);
 
-        APdu responsePdu = encodeWriteReadDecode(aSdu);
-
-        return (IeTime56) responsePdu.getASdu()
-                                     .getInformationObjects()[0].getInformationElements()[0][0];
+        send(aSdu);
     }
 
     /**
-     * Sends a test command (C_TS_NA_1, TI: 104) and blocks until a confirmation is received.
+     * Sends a test command (C_TS_NA_1, TI: 104).
      *
      * @param commonAddress the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
-     * @throws IOException      if a fatal communication error occurred.
-     * @throws TimeoutException if the configured response timeout runs out before the confirmation message is received.
+     * @throws IOException if a fatal communication error occurred.
      */
-    public void testCommand(int commonAddress) throws IOException, TimeoutException {
+    public void testCommand(int commonAddress) throws IOException {
         ASdu aSdu = new ASdu(TypeId.C_TS_NA_1,
                              false,
                              CauseOfTransmission.ACTIVATION,
@@ -1111,20 +1112,18 @@ public class Connection {
                              new InformationObject[]{new InformationObject(0,
                                                                            new InformationElement[][]{
                                                                                    {new IeFixedTestBitPattern()}})});
-        encodeWriteReadDecode(aSdu);
+        send(aSdu);
     }
 
     /**
-     * Sends a reset process command (C_RP_NA_1, TI: 105) and blocks until a confirmation is received.
+     * Sends a reset process command (C_RP_NA_1, TI: 105).
      *
      * @param commonAddress the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
      * @param qualifier     the qualifier to be sent.
-     * @throws IOException      if a fatal communication error occurred.
-     * @throws TimeoutException if the configured response timeout runs out before the confirmation message is received.
+     * @throws IOException if a fatal communication error occurred.
      */
     public void resetProcessCommand(int commonAddress, IeQualifierOfResetProcessCommand qualifier)
-            throws IOException,
-            TimeoutException {
+            throws IOException {
         ASdu aSdu = new ASdu(TypeId.C_RP_NA_1,
                              false,
                              CauseOfTransmission.ACTIVATION,
@@ -1135,21 +1134,19 @@ public class Connection {
                              new InformationObject[]{new InformationObject(0,
                                                                            new InformationElement[][]{
                                                                                    {qualifier}})});
-        encodeWriteReadDecode(aSdu);
+        send(aSdu);
     }
 
     /**
-     * Sends a delay acquisition command (C_CD_NA_1, TI: 106) and blocks until a confirmation is received.
+     * Sends a delay acquisition command (C_CD_NA_1, TI: 106).
      *
      * @param commonAddress the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
      * @param cot           the cause of transmission. Allowed are activation and spontaneous.
      * @param time          the time to be sent.
-     * @throws IOException      if a fatal communication error occurred.
-     * @throws TimeoutException if the configured response timeout runs out before the confirmation message is received.
+     * @throws IOException if a fatal communication error occurred.
      */
     public void delayAcquisitionCommand(int commonAddress, CauseOfTransmission cot, IeTime16 time)
-            throws IOException,
-            TimeoutException {
+            throws IOException {
         ASdu aSdu = new ASdu(TypeId.C_CD_NA_1,
                              false,
                              cot,
@@ -1160,22 +1157,21 @@ public class Connection {
                              new InformationObject[]{new InformationObject(0,
                                                                            new InformationElement[][]{
                                                                                    {time}})});
-        encodeWriteReadDecode(aSdu);
+        send(aSdu);
     }
 
     /**
-     * Sends a test command with time tag CP56Time2a (C_TS_TA_1, TI: 107) and blocks until a confirmation is received.
+     * Sends a test command with time tag CP56Time2a (C_TS_TA_1, TI: 107).
      *
      * @param commonAddress       the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
      * @param testSequenceCounter the value to be sent.
      * @param time                the time to be sent.
-     * @throws IOException      if a fatal communication error occurred.
-     * @throws TimeoutException if the configured response timeout runs out before the confirmation message is received.
+     * @throws IOException if a fatal communication error occurred.
      */
     public void testCommandWithTimeTag(int commonAddress,
                                        IeTestSequenceCounter testSequenceCounter,
                                        IeTime56 time)
-            throws IOException, TimeoutException {
+            throws IOException {
         ASdu aSdu = new ASdu(TypeId.C_TS_TA_1,
                              false,
                              CauseOfTransmission.ACTIVATION,
@@ -1188,26 +1184,23 @@ public class Connection {
                                                                                    {
                                                                                            testSequenceCounter,
                                                                                            time}})});
-        encodeWriteReadDecode(aSdu);
+        send(aSdu);
     }
 
     /**
-     * Sends a parameter of measured values, normalized value (P_ME_NA_1, TI: 110) and blocks until a confirmation is
-     * received.
+     * Sends a parameter of measured values, normalized value (P_ME_NA_1, TI: 110).
      *
      * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
      * @param informationObjectAddress the information object address.
      * @param normalizedValue          the value to be sent.
      * @param qualifier                the qualifier to be sent.
-     * @throws IOException      if a fatal communication error occurred.
-     * @throws TimeoutException if the configured response timeout runs out before the confirmation message is received.
+     * @throws IOException if a fatal communication error occurred.
      */
     public void parameterNormalizedValueCommand(int commonAddress,
                                                 int informationObjectAddress,
                                                 IeNormalizedValue normalizedValue,
                                                 IeQualifierOfParameterOfMeasuredValues qualifier)
-            throws IOException,
-            TimeoutException {
+            throws IOException {
         ASdu aSdu = new ASdu(TypeId.P_ME_NA_1,
                              false,
                              CauseOfTransmission.ACTIVATION,
@@ -1219,25 +1212,23 @@ public class Connection {
                                                                            new InformationElement[][]{
                                                                                    {normalizedValue,
                                                                                     qualifier}})});
-        encodeWriteReadDecode(aSdu);
+        send(aSdu);
     }
 
     /**
-     * Sends a parameter of measured values, scaled value (P_ME_NB_1, TI: 111) and blocks until a confirmation is
-     * received.
+     * Sends a parameter of measured values, scaled value (P_ME_NB_1, TI: 111).
      *
      * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
      * @param informationObjectAddress the information object address.
      * @param scaledValue              the value to be sent.
      * @param qualifier                the qualifier to be sent.
-     * @throws IOException      if a fatal communication error occurred.
-     * @throws TimeoutException if the configured response timeout runs out before the confirmation message is received.
+     * @throws IOException if a fatal communication error occurred.
      */
     public void parameterScaledValueCommand(int commonAddress,
                                             int informationObjectAddress,
                                             IeScaledValue scaledValue,
                                             IeQualifierOfParameterOfMeasuredValues qualifier)
-            throws IOException, TimeoutException {
+            throws IOException {
         ASdu aSdu = new ASdu(TypeId.P_ME_NB_1,
                              false,
                              CauseOfTransmission.ACTIVATION,
@@ -1249,25 +1240,23 @@ public class Connection {
                                                                            new InformationElement[][]{
                                                                                    {scaledValue,
                                                                                     qualifier}})});
-        encodeWriteReadDecode(aSdu);
+        send(aSdu);
     }
 
     /**
-     * Sends a parameter of measured values, short floating point number (P_ME_NC_1, TI: 112) and blocks until a
-     * confirmation is received.
+     * Sends a parameter of measured values, short floating point number (P_ME_NC_1, TI: 112).
      *
      * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
      * @param informationObjectAddress the information object address.
      * @param shortFloat               the value to be sent.
      * @param qualifier                the qualifier to be sent.
-     * @throws IOException      if a fatal communication error occurred.
-     * @throws TimeoutException if the configured response timeout runs out before the confirmation message is received.
+     * @throws IOException if a fatal communication error occurred.
      */
     public void parameterShortFloatCommand(int commonAddress,
                                            int informationObjectAddress,
                                            IeShortFloat shortFloat,
                                            IeQualifierOfParameterOfMeasuredValues qualifier)
-            throws IOException, TimeoutException {
+            throws IOException {
         ASdu aSdu = new ASdu(TypeId.P_ME_NC_1,
                              false,
                              CauseOfTransmission.ACTIVATION,
@@ -1279,24 +1268,22 @@ public class Connection {
                                                                            new InformationElement[][]{
                                                                                    {shortFloat,
                                                                                     qualifier}})});
-        encodeWriteReadDecode(aSdu);
+        send(aSdu);
     }
 
     /**
-     * Sends a parameter activation (P_AC_NA_1, TI: 113) and blocks until a confirmation is received.
+     * Sends a parameter activation (P_AC_NA_1, TI: 113).
      *
      * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
      * @param cot                      the cause of transmission. Allowed are activation and deactivation.
      * @param informationObjectAddress the information object address.
      * @param qualifier                the qualifier to be sent.
-     * @throws IOException      if a fatal communication error occurred.
-     * @throws TimeoutException if the configured response timeout runs out before the confirmation message is received.
+     * @throws IOException if a fatal communication error occurred.
      */
     public void parameterActivation(int commonAddress,
                                     CauseOfTransmission cot,
                                     int informationObjectAddress,
-                                    IeQualifierOfParameterActivation qualifier)
-            throws IOException, TimeoutException {
+                                    IeQualifierOfParameterActivation qualifier) throws IOException {
         ASdu aSdu = new ASdu(TypeId.P_AC_NA_1,
                              false,
                              cot,
@@ -1307,12 +1294,12 @@ public class Connection {
                              new InformationObject[]{new InformationObject(informationObjectAddress,
                                                                            new InformationElement[][]{
                                                                                    {qualifier}})});
-        encodeWriteReadDecode(aSdu);
+        send(aSdu);
     }
 
     public void fileReady(int commonAddress, int informationObjectAddress, IeNameOfFile nameOfFile,
                           IeLengthOfFileOrSection lengthOfFile, IeFileReadyQualifier qualifier)
-            throws IOException, TimeoutException {
+            throws IOException {
         ASdu aSdu = new ASdu(TypeId.F_FR_NA_1,
                              false,
                              CauseOfTransmission.FILE_TRANSFER,
@@ -1325,7 +1312,7 @@ public class Connection {
                                      new InformationElement[][]{{nameOfFile,
                                                                  lengthOfFile,
                                                                  qualifier}})});
-        encodeWriteReadDecode(aSdu);
+        send(aSdu);
     }
 
     public void sectionReady(int commonAddress,
@@ -1334,7 +1321,7 @@ public class Connection {
                              IeNameOfSection nameOfSection,
                              IeLengthOfFileOrSection lengthOfSection,
                              IeSectionReadyQualifier qualifier)
-            throws IOException, TimeoutException {
+            throws IOException {
         ASdu aSdu = new ASdu(TypeId.F_SR_NA_1,
                              false,
                              CauseOfTransmission.FILE_TRANSFER,
@@ -1346,7 +1333,7 @@ public class Connection {
                                      informationObjectAddress,
                                      new InformationElement[][]{{nameOfFile, nameOfSection,
                                                                  lengthOfSection, qualifier}})});
-        encodeWriteReadDecode(aSdu);
+        send(aSdu);
     }
 
     public void callOrSelectFiles(int commonAddress,
@@ -1355,7 +1342,7 @@ public class Connection {
                                   IeNameOfFile nameOfFile,
                                   IeNameOfSection nameOfSection,
                                   IeSelectAndCallQualifier qualifier)
-            throws IOException, TimeoutException {
+            throws IOException {
         ASdu aSdu = new ASdu(TypeId.F_SC_NA_1,
                              false,
                              cot,
@@ -1368,7 +1355,7 @@ public class Connection {
                                                                                    {nameOfFile,
                                                                                     nameOfSection,
                                                                                     qualifier}})});
-        encodeWriteReadDecode(aSdu);
+        send(aSdu);
     }
 
     public void lastSectionOrSegment(int commonAddress,
@@ -1377,7 +1364,7 @@ public class Connection {
                                      IeNameOfSection nameOfSection,
                                      IeLastSectionOrSegmentQualifier qualifier,
                                      IeChecksum checksum)
-            throws IOException, TimeoutException {
+            throws IOException {
         ASdu aSdu = new ASdu(TypeId.F_LS_NA_1,
                              false,
                              CauseOfTransmission.FILE_TRANSFER,
@@ -1391,15 +1378,14 @@ public class Connection {
                                                                  nameOfSection,
                                                                  qualifier,
                                                                  checksum}})});
-        encodeWriteReadDecode(aSdu);
+        send(aSdu);
     }
 
     public void ackFileOrSection(int commonAddress,
                                  int informationObjectAddress,
                                  IeNameOfFile nameOfFile,
                                  IeNameOfSection nameOfSection,
-                                 IeAckFileOrSectionQualifier qualifier)
-            throws IOException, TimeoutException {
+                                 IeAckFileOrSectionQualifier qualifier) throws IOException {
         ASdu aSdu = new ASdu(TypeId.F_AF_NA_1,
                              false,
                              CauseOfTransmission.FILE_TRANSFER,
@@ -1412,14 +1398,14 @@ public class Connection {
                                      new InformationElement[][]{{nameOfFile,
                                                                  nameOfSection,
                                                                  qualifier}})});
-        encodeWriteReadDecode(aSdu);
+        send(aSdu);
     }
 
     public void sendSegment(int commonAddress,
                             int informationObjectAddress,
                             IeNameOfFile nameOfFile,
                             IeNameOfSection nameOfSection,
-                            IeFileSegment segment) throws IOException, TimeoutException {
+                            IeFileSegment segment) throws IOException {
         ASdu aSdu = new ASdu(TypeId.F_SG_NA_1,
                              false,
                              CauseOfTransmission.FILE_TRANSFER,
@@ -1432,13 +1418,13 @@ public class Connection {
                                                                                    {nameOfFile,
                                                                                     nameOfSection,
                                                                                     segment}})});
-        encodeWriteReadDecode(aSdu);
+        send(aSdu);
     }
 
     public void sendDirectory(int commonAddress,
                               int informationObjectAddress,
                               InformationElement[][] directory)
-            throws IOException, TimeoutException {
+            throws IOException {
         ASdu aSdu = new ASdu(TypeId.F_DR_TA_1,
                              false,
                              CauseOfTransmission.FILE_TRANSFER,
@@ -1448,12 +1434,11 @@ public class Connection {
                              commonAddress,
                              new InformationObject[]{new InformationObject(
                                      informationObjectAddress, directory)});
-        encodeWriteReadDecode(aSdu);
+        send(aSdu);
     }
 
     public void queryLog(int commonAddress, int informationObjectAddress, IeNameOfFile nameOfFile,
-                         IeTime56 rangeStartTime, IeTime56 rangeEndTime)
-            throws IOException, TimeoutException {
+                         IeTime56 rangeStartTime, IeTime56 rangeEndTime) throws IOException {
         ASdu aSdu = new ASdu(TypeId.F_SC_NB_1,
                              false,
                              CauseOfTransmission.FILE_TRANSFER,
@@ -1465,7 +1450,7 @@ public class Connection {
                                      informationObjectAddress,
                                      new InformationElement[][]{{nameOfFile, rangeStartTime,
                                                                  rangeEndTime}})});
-        encodeWriteReadDecode(aSdu);
+        send(aSdu);
     }
 
 }

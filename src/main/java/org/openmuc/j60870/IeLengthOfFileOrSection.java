@@ -32,9 +32,6 @@ public class IeLengthOfFileOrSection extends InformationElement {
 
     private final int value;
 
-    /**
-     * Creates an LOF (length of file or section) information element.
-     */
     public IeLengthOfFileOrSection(int value) {
         this.value = value;
     }

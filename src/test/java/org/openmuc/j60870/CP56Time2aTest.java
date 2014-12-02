@@ -31,9 +31,10 @@ public class CP56Time2aTest {
         IeTime56 time = new IeTime56(timestamp);
         byte[] buffer = new byte[7];
         time.encode(buffer, 0);
-//        Assert.assertArrayEquals(new byte[]{0x44, (byte) 0xd5, 0x1e, 0x10, 0x5d, 0x0a, 0x0d},
-//                                 buffer);
+        Assert.assertArrayEquals(new byte[]{0x44, (byte) 0xd5, 0x1e, 0x10, 0x5d, 0x0a, 0x0d},
+                                 buffer);
 
-        Assert.assertEquals(timestamp, time.getTimestamp(1970));
+        Assert.assertEquals(timestamp, time.getTimestamp());
+
     }
 }

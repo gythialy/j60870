@@ -20,20 +20,14 @@
  */
 package org.openmuc.j60870.app;
 
+import org.openmuc.j60870.*;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.concurrent.TimeoutException;
-
-import org.openmuc.j60870.ASdu;
-import org.openmuc.j60870.CauseOfTransmission;
-import org.openmuc.j60870.ClientSap;
-import org.openmuc.j60870.Connection;
-import org.openmuc.j60870.ConnectionEventListener;
-import org.openmuc.j60870.IeQualifierOfInterrogation;
-import org.openmuc.j60870.IeTime56;
 
 public final class ClientApp implements ConnectionEventListener {
 
@@ -133,7 +127,7 @@ public final class ClientApp implements ConnectionEventListener {
 
         try {
             try {
-                clientConnection.startDataTransfer(new ClientApp(is));
+                clientConnection.startDataTransfer(new ClientApp(is), 5000);
             }
             catch (TimeoutException e2) {
                 throw new IOException("starting data transfer timed out.");
@@ -150,24 +144,18 @@ public final class ClientApp implements ConnectionEventListener {
                     return;
                 }
 
-                try {
-                    if (line.equals("?")) {
-                        printHelp();
-                    } else if (line.equals("q")) {
-                        return;
-                    } else if (line.equals("1")) {
-                        clientConnection.interrogation(commonAddress,
-                                                       CauseOfTransmission.ACTIVATION,
-                                                       new IeQualifierOfInterrogation(0));
-                    } else if (line.equals("2")) {
-                        clientConnection.synchronizeClocks(commonAddress,
-                                                           new IeTime56(System.currentTimeMillis()));
-                    } else {
-                        System.out.println("Unknown command, enter \'?\' for help");
-                    }
-                }
-                catch (TimeoutException e) {
-                    System.out.println("Command timed out");
+                if (line.equals("?")) {
+                    printHelp();
+                } else if (line.equals("q")) {
+                    return;
+                } else if (line.equals("1")) {
+                    clientConnection.interrogation(commonAddress, CauseOfTransmission.ACTIVATION,
+                                                   new IeQualifierOfInterrogation(0));
+                } else if (line.equals("2")) {
+                    clientConnection.synchronizeClocks(commonAddress,
+                                                       new IeTime56(System.currentTimeMillis()));
+                } else {
+                    System.out.println("Unknown command, enter \'?\' for help");
                 }
             }
 

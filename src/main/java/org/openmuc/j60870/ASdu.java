@@ -63,14 +63,16 @@ public class ASdu {
     /**
      * Use this constructor to create standardized ASDUs.
      *
-     * @param typeId
-     * @param isSequenceOfElements
-     * @param causeOfTransmission
-     * @param test
-     * @param negativeConfirm
-     * @param originatorAddress
-     * @param commonAddress
-     * @param informationObjects
+     * @param typeId               type identification field that defines the purpose and contents of the ASDU
+     * @param isSequenceOfElements if false then the ASDU contains a sequence of information objects consisting of a fixed number of
+     *                             information elements. If true the ASDU contains a single information object with a sequence of
+     *                             elements.
+     * @param causeOfTransmission  the cause of transmission
+     * @param test                 true if the ASDU is sent for test purposes
+     * @param negativeConfirm      true if the ASDU is a negative confirmation
+     * @param originatorAddress    the address of the originating controlling station so that responses can be routed back to it
+     * @param commonAddress        the address of the target station or the broadcast address.
+     * @param informationObjects   the information objects containing the actual actual data
      */
     public ASdu(TypeId typeId,
                 boolean isSequenceOfElements,
@@ -100,15 +102,18 @@ public class ASdu {
     /**
      * Use this constructor to create private ASDU with TypeIDs in the range 128-255.
      *
-     * @param typeId
-     * @param isSequenceOfElements
-     * @param sequenceLength
-     * @param causeOfTransmission
-     * @param test
-     * @param negativeConfirm
-     * @param originatorAddress
-     * @param commonAddress
-     * @param privateInformation
+     * @param typeId               type identification field that defines the purpose and contents of the ASDU
+     * @param isSequenceOfElements if false then the ASDU contains a sequence of information objects consisting of a fixed number of
+     *                             information elements. If true the ASDU contains a single information object with a sequence of
+     *                             elements.
+     * @param sequenceLength       the number of information objects or the number elements depending depending on which is transmitted
+     *                             as a sequence
+     * @param causeOfTransmission  the cause of transmission
+     * @param test                 true if the ASDU is sent for test purposes
+     * @param negativeConfirm      true if the ASDU is a negative confirmation
+     * @param originatorAddress    the address of the originating controlling station so that responses can be routed back to it
+     * @param commonAddress        the address of the target station or the broadcast address.
+     * @param privateInformation   the bytes to be transmitted as payload
      */
     public ASdu(TypeId typeId,
                 boolean isSequenceOfElements,
@@ -282,14 +287,6 @@ public class ASdu {
             i += privateInformation.length;
         }
         return i - origi;
-    }
-
-    boolean isConfirmation(ASdu aSdu, ConnectionSettings settings) {
-        if (aSdu.typeId == typeId && aSdu.test == test && aSdu.commonAddress == commonAddress
-            && ((settings.cotFieldLength == 1) || aSdu.originatorAddress == originatorAddress)) {
-            return true;
-        }
-        return false;
     }
 
     @Override

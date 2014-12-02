@@ -20,10 +20,9 @@
  */
 package org.openmuc.j60870;
 
+import javax.net.ServerSocketFactory;
 import java.io.IOException;
 import java.net.InetAddress;
-
-import javax.net.ServerSocketFactory;
 
 /**
  * The Server Service Access Point is used to start listening for IEC 60870-5-104 client connections.
@@ -89,17 +88,23 @@ public class ServerSap {
 
     /**
      * Sets the message fragment timeout. This is the timeout that the socket timeout is set to after the first byte of
-     * a message has been received. A request function (e.g. setDataValues()) will throw an IOException if the socket
-     * throws this timeout because the association/connection cannot recover from this kind of error.
+     * a message has been received. A command function (e.g.
+     * {@link Connection#interrogation(int, CauseOfTransmission, IeQualifierOfInterrogation) interrogation}) will throw
+     * an IOException if the socket throws this timeout. In addition any ASDU listener will be notified of the
+     * IOException. Usually the connection cannot recover from this kind of error.
      *
-     * @param timeout the timeout in milliseconds. The default is 10000.
+     * @param timeout the timeout in milliseconds. The default is 5000.
      */
     public void setMessageFragmentTimeout(int timeout) {
+        if (timeout < 0) {
+            throw new IllegalArgumentException("invalid message fragment timeout: " + timeout);
+        }
         settings.messageFragmentTimeout = timeout;
     }
 
     /**
-     * Sets the length of the Cause Of Transmission field of the ASDU. Allowed values are 1 or 2. The default is 2.
+     * Sets the length of the Cause Of Transmission (COT) field of the ASDU. Allowed values are 1 or 2. The default is
+     * 2.
      *
      * @param length the length of the Cause Of Transmission field
      */
@@ -111,11 +116,11 @@ public class ServerSap {
     }
 
     /**
-     * Sets the length of the Common Address field of the ASDU. Allowed values are 1 or 2. The default is 2.
+     * Sets the length of the Common Address (CA) field of the ASDU. Allowed values are 1 or 2. The default is 2.
      *
-     * @param length
+     * @param length the length of the Common Address (CA) field
      */
-    public void setAddressFieldLength(int length) {
+    public void setCommonAddressFieldLength(int length) {
         if (length != 1 && length != 2) {
             throw new IllegalArgumentException("invalid length");
         }
@@ -123,16 +128,78 @@ public class ServerSap {
     }
 
     /**
-     * Sets the length of the Information Object Address field of the ASDU. Allowed values are 1, 2 or 3. The default is
-     * 3.
+     * Sets the length of the Information Object Address (IOA) field of the ASDU. Allowed values are 1, 2 or 3. The
+     * default is 3.
      *
      * @param length the length of the Information Object Address field
      */
     public void setIoaFieldLength(int length) {
-        if (length != 1 && length != 2 && length != 3) {
-            throw new IllegalArgumentException("invalid length");
+        if (length < 1 || length > 3) {
+            throw new IllegalArgumentException("invalid length: " + length);
         }
         settings.ioaFieldLength = length;
+    }
+
+    /**
+     * Sets the maximum time in ms that no acknowledgement has been received (for I-Frames or Test-Frames) before
+     * actively closing the connection. This timeout is called t1 by the standard. Default is 15s, minimum is 1s,
+     * maximum is 255s.
+     *
+     * @param time the maximum time in ms that no acknowledgement has been received before actively closing the
+     *             connection.
+     */
+    public void setMaxTimeNoAckReceived(int time) {
+        if (time < 1000 || time > 255000) {
+            throw new IllegalArgumentException("invalid timeout: " + time
+                                               + ", time must be between 1000ms and 255000ms");
+        }
+        settings.maxTimeNoAckReceived = time;
+    }
+
+    /**
+     * Sets the maximum time in ms before confirming received messages that have not yet been acknowledged using an S
+     * format APDU. This timeout is called t2 by the standard. Default is 10s, minimum is 1s, maximum is 255s.
+     *
+     * @param time the maximum time in ms before confirming received messages that have not yet been acknowledged using
+     *             an S format APDU.
+     */
+    public void setMaxTimeNoAckSent(int time) {
+        if (time < 1000 || time > 255000) {
+            throw new IllegalArgumentException("invalid timeout: " + time
+                                               + ", time must be between 1000ms and 255000ms");
+        }
+        settings.maxTimeNoAckSent = time;
+    }
+
+    /**
+     * Sets the maximum time in ms that the connection may be idle before sending a test frame. This timeout is called
+     * t3 by the standard. Default is 20s, minimum is 1s, maximum is 172800s (48h).
+     *
+     * @param time the maximum time in ms that the connection may be idle before sending a test frame.
+     */
+    public void setMaxIdleTime(int time) {
+        if (time < 1000 || time > 172800000) {
+            throw new IllegalArgumentException("invalid timeout: " + time
+                                               + ", time must be between 1000ms and 172800000ms");
+        }
+        settings.maxIdleTime = time;
+    }
+
+    /**
+     * Sets the number of unacknowledged I format APDUs received before the connection will automatically send an S
+     * format APDU to confirm them. This parameter is called w by the standard. Default is 8, minimum is 1, maximum is
+     * 32767.
+     *
+     * @param maxNum the number of unacknowledged I format APDUs received before the connection will automatically send an
+     *               S format APDU to confirm them.
+     */
+    public void setMaxUnconfirmedIPdusReceived(int maxNum) {
+        if (maxNum < 1 || maxNum > 32767) {
+            throw new IllegalArgumentException("invalid maxNum: "
+                                               + maxNum
+                                               + ", must be a value between 1 and 32767");
+        }
+        settings.maxUnconfirmedIPdusReceived = maxNum;
     }
 
     /**
@@ -150,7 +217,7 @@ public class ServerSap {
     /**
      * Starts a new thread that listens on the configured port. This method is non-blocking.
      *
-     * @throws IOException
+     * @throws IOException if any kind of error occures while creating the server socket.
      */
     public void startListening() throws IOException {
         serverThread = new ServerThread(serverSocketFactory.createServerSocket(port,
