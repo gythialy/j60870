@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Fraunhofer ISE
+ * Copyright 2014-16 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -25,8 +25,9 @@ import java.io.IOException;
 
 /**
  * Represents a binary state information (BSI) information element.
- *
+ * 
  * @author Stefan Feuerhahn
+ * 
  */
 public class IeBinaryStateInformation extends InformationElement {
 
@@ -34,9 +35,10 @@ public class IeBinaryStateInformation extends InformationElement {
 
     /**
      * Creates a BSI (binary state information) information element.
-     *
-     * @param value the bits of value represent the binary states. The first binary state is the LSB (least significant
-     *              bit) of value.
+     * 
+     * @param value
+     *            the bits of value represent the binary states. The first binary state is the LSB (least significant
+     *            bit) of value.
      */
     public IeBinaryStateInformation(int value) {
 
@@ -47,7 +49,8 @@ public class IeBinaryStateInformation extends InformationElement {
         value = is.readInt();
     }
 
-    @Override int encode(byte[] buffer, int i) {
+    @Override
+    int encode(byte[] buffer, int i) {
         buffer[i++] = (byte) (value >> 24);
         buffer[i++] = (byte) (value >> 16);
         buffer[i++] = (byte) (value >> 8);
@@ -61,9 +64,10 @@ public class IeBinaryStateInformation extends InformationElement {
 
     /**
      * Returns true if the bit at the given position is 1 and false otherwise.
-     *
-     * @param position the position in the bit string. Range: 1-32. Bit1 is the LSB and bit32 the MSB of the value returned
-     *                 by <code>getValue()</code>.
+     * 
+     * @param position
+     *            the position in the bit string. Range: 1-32. Bit1 is the LSB and bit32 the MSB of the value returned
+     *            by <code>getValue()</code>.
      * @return true if the bit at the given position is 1 and false otherwise.
      */
     public boolean getBinaryState(int position) {

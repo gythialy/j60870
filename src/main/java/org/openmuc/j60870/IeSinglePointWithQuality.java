@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Fraunhofer ISE
+ * Copyright 2014-16 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -25,16 +25,14 @@ import java.io.IOException;
 
 /**
  * Represents a single-point information with quality descriptor (SIQ) information element.
- *
+ * 
  * @author Stefan Feuerhahn
+ * 
  */
 public class IeSinglePointWithQuality extends IeAbstractQuality {
 
-    public IeSinglePointWithQuality(boolean on,
-                                    boolean blocked,
-                                    boolean substituted,
-                                    boolean notTopical,
-                                    boolean invalid) {
+    public IeSinglePointWithQuality(boolean on, boolean blocked, boolean substituted, boolean notTopical,
+            boolean invalid) {
         super(blocked, substituted, notTopical, invalid);
 
         if (on) {

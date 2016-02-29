@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Fraunhofer ISE
+ * Copyright 2014-16 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -25,8 +25,9 @@ import java.io.IOException;
 
 /**
  * Represents a name of file (NOF) information element.
- *
+ * 
  * @author Stefan Feuerhahn
+ * 
  */
 public class IeNameOfFile extends InformationElement {
 
@@ -38,10 +39,11 @@ public class IeNameOfFile extends InformationElement {
 
     IeNameOfFile(DataInputStream is) throws IOException {
 
-        value = is.read() | (is.read() << 8);
+        value = (is.readByte() & 0xff) | ((is.readByte() & 0xff) << 8);
     }
 
-    @Override int encode(byte[] buffer, int i) {
+    @Override
+    int encode(byte[] buffer, int i) {
 
         buffer[i++] = (byte) value;
         buffer[i] = (byte) (value >> 8);

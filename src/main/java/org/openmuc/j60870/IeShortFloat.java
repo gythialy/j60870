@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Fraunhofer ISE
+ * Copyright 2014-16 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -25,8 +25,9 @@ import java.io.IOException;
 
 /**
  * Represents a short floating point number (R32-IEEE STD 754) information element.
- *
+ * 
  * @author Stefan Feuerhahn
+ * 
  */
 public class IeShortFloat extends InformationElement {
 
@@ -37,11 +38,12 @@ public class IeShortFloat extends InformationElement {
     }
 
     IeShortFloat(DataInputStream is) throws IOException {
-        value = Float.intBitsToFloat(is.read() | (is.read() << 8) | (is.read() << 16) | (is.read()
-                                                                                         << 24));
+        value = Float.intBitsToFloat((is.readByte() & 0xff) | ((is.readByte() & 0xff) << 8)
+                | ((is.readByte() & 0xff) << 16) | ((is.readByte() & 0xff) << 24));
     }
 
-    @Override int encode(byte[] buffer, int i) {
+    @Override
+    int encode(byte[] buffer, int i) {
 
         int tempVal = Float.floatToIntBits(value);
         buffer[i++] = (byte) tempVal;

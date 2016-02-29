@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Fraunhofer ISE
+ * Copyright 2014-16 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -20,14 +20,20 @@
  */
 package org.openmuc.j60870.app;
 
-import org.openmuc.j60870.*;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.concurrent.TimeoutException;
+
+import org.openmuc.j60870.ASdu;
+import org.openmuc.j60870.CauseOfTransmission;
+import org.openmuc.j60870.ClientSap;
+import org.openmuc.j60870.Connection;
+import org.openmuc.j60870.ConnectionEventListener;
+import org.openmuc.j60870.IeQualifierOfInterrogation;
+import org.openmuc.j60870.IeTime56;
 
 public final class ClientApp implements ConnectionEventListener {
 
@@ -40,16 +46,13 @@ public final class ClientApp implements ConnectionEventListener {
     }
 
     private static void printUsage() {
-        System.out.println(
-                "SYNOPSIS\n\torg.openmuc.j60870.app.ClientApp <host> [-p <port>] [-ca <common_address>]");
-        System.out.println(
-                "DESCRIPTION\n\tA client/master application to access IEC 60870-5-104 slaves.");
+        System.out.println("SYNOPSIS\n\torg.openmuc.j60870.app.ClientApp <host> [-p <port>] [-ca <common_address>]");
+        System.out.println("DESCRIPTION\n\tA client/master application to access IEC 60870-5-104 servers/slaves.");
         System.out.println("OPTIONS");
         System.out.println("\t<host>\n\t    The address of the slave you want to access.\n");
         System.out.println("\t-p <port>\n\t    The port to connect to. The default port is 2404.\n");
-        System.out
-                .println(
-                        "\t-ca <common_address>\n\t    The address of the target station or the broad cast address. The default is 1.\n");
+        System.out.println(
+                "\t-ca <common_address>\n\t    The address of the target station or the broad cast address. The default is 1.\n");
     }
 
     public static void main(String[] args) {
@@ -72,12 +75,12 @@ public final class ClientApp implements ConnectionEventListener {
                 }
                 try {
                     port = Integer.parseInt(args[i]);
-                }
-                catch (NumberFormatException e) {
+                } catch (NumberFormatException e) {
                     printUsage();
                     System.exit(1);
                 }
-            } else if (args[i].equals("-ca")) {
+            }
+            else if (args[i].equals("-ca")) {
                 i++;
                 if (i == args.length) {
                     printUsage();
@@ -85,12 +88,12 @@ public final class ClientApp implements ConnectionEventListener {
                 }
                 try {
                     commonAddress = Integer.parseInt(args[i]);
-                }
-                catch (NumberFormatException e) {
+                } catch (NumberFormatException e) {
                     printUsage();
                     System.exit(1);
                 }
-            } else {
+            }
+            else {
                 remoteHost = args[i];
             }
         }
@@ -109,16 +112,14 @@ public final class ClientApp implements ConnectionEventListener {
         InetAddress address;
         try {
             address = InetAddress.getByName(remoteHost);
-        }
-        catch (UnknownHostException e) {
+        } catch (UnknownHostException e) {
             System.out.println("Unknown host: " + remoteHost);
             return;
         }
 
         try {
             clientConnection = clientSap.connect(address, port);
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             System.out.println("Unable to connect to remote host: " + remoteHost + ".");
             return;
         }
@@ -128,43 +129,40 @@ public final class ClientApp implements ConnectionEventListener {
         try {
             try {
                 clientConnection.startDataTransfer(new ClientApp(is), 5000);
-            }
-            catch (TimeoutException e2) {
+            } catch (TimeoutException e2) {
                 throw new IOException("starting data transfer timed out.");
             }
             System.out.println("successfully connected");
 
             String line;
             while (true) {
-                try {
-                    line = is.readLine();
-                }
-                catch (IOException e1) {
-                    System.out.println("Connection to server was interrupted. Will quit.");
-                    return;
-                }
+                line = is.readLine();
 
-                if (line.equals("?")) {
+                if (line == null) {
+                    throw new IOException("InputStream unexpectedly reached end of stream.");
+                }
+                else if (line.equals("?")) {
                     printHelp();
-                } else if (line.equals("q")) {
+                }
+                else if (line.equals("q")) {
                     return;
-                } else if (line.equals("1")) {
+                }
+                else if (line.equals("1")) {
                     clientConnection.interrogation(commonAddress, CauseOfTransmission.ACTIVATION,
-                                                   new IeQualifierOfInterrogation(0));
-                } else if (line.equals("2")) {
-                    clientConnection.synchronizeClocks(commonAddress,
-                                                       new IeTime56(System.currentTimeMillis()));
-                } else {
+                            new IeQualifierOfInterrogation(0));
+                }
+                else if (line.equals("2")) {
+                    clientConnection.synchronizeClocks(commonAddress, new IeTime56(System.currentTimeMillis()));
+                }
+                else {
                     System.out.println("Unknown command, enter \'?\' for help");
                 }
             }
 
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             System.out.println("Connection closed for the following reason: " + e.getMessage());
             return;
-        }
-        finally {
+        } finally {
             clientConnection.close();
         }
 
@@ -185,14 +183,14 @@ public final class ClientApp implements ConnectionEventListener {
         System.out.print("Received connection closed signal. Reason: ");
         if (!e.getMessage().isEmpty()) {
             System.out.println(e.getMessage());
-        } else {
+        }
+        else {
             System.out.println("unknown");
         }
 
         try {
             is.close();
-        }
-        catch (IOException e1) {
+        } catch (IOException e1) {
         }
     }
 

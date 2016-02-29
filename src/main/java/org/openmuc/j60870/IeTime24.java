@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Fraunhofer ISE
+ * Copyright 2014-16 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -26,8 +26,9 @@ import java.util.Calendar;
 
 /**
  * Represents a three octet binary time (CP24Time2a) information element.
- *
+ * 
  * @author Stefan Feuerhahn
+ * 
  */
 public class IeTime24 extends InformationElement {
 
@@ -56,7 +57,8 @@ public class IeTime24 extends InformationElement {
         is.readFully(value);
     }
 
-    @Override int encode(byte[] buffer, int i) {
+    @Override
+    int encode(byte[] buffer, int i) {
         System.arraycopy(value, 0, buffer, i, 3);
         return 3;
     }

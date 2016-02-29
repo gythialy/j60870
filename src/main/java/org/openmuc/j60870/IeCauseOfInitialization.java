@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Fraunhofer ISE
+ * Copyright 2014-16 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -25,8 +25,9 @@ import java.io.IOException;
 
 /**
  * Represents a cause of initialization (COI) information element.
- *
+ * 
  * @author Stefan Feuerhahn
+ * 
  */
 public class IeCauseOfInitialization extends InformationElement {
 
@@ -35,10 +36,12 @@ public class IeCauseOfInitialization extends InformationElement {
 
     /**
      * Creates a COI (cause of initialization) information element.
-     *
-     * @param value                    value between 0 and 127
-     * @param initAfterParameterChange true if initialization after change of local parameters and false if initialization with unchanged
-     *                                 local parameters
+     * 
+     * @param value
+     *            value between 0 and 127
+     * @param initAfterParameterChange
+     *            true if initialization after change of local parameters and false if initialization with unchanged
+     *            local parameters
      */
     public IeCauseOfInitialization(int value, boolean initAfterParameterChange) {
 
@@ -52,7 +55,7 @@ public class IeCauseOfInitialization extends InformationElement {
     }
 
     IeCauseOfInitialization(DataInputStream is) throws IOException {
-        int b1 = is.read();
+        int b1 = (is.readByte() & 0xff);
 
         initAfterParameterChange = ((b1 & 0x80) == 0x80);
 
@@ -60,11 +63,13 @@ public class IeCauseOfInitialization extends InformationElement {
 
     }
 
-    @Override int encode(byte[] buffer, int i) {
+    @Override
+    int encode(byte[] buffer, int i) {
 
         if (initAfterParameterChange) {
             buffer[i] = (byte) (value | 0x80);
-        } else {
+        }
+        else {
             buffer[i] = (byte) value;
         }
 
@@ -82,9 +87,6 @@ public class IeCauseOfInitialization extends InformationElement {
 
     @Override
     public String toString() {
-        return "Cause of initialization: "
-               + value
-               + ", init after parameter change: "
-               + initAfterParameterChange;
+        return "Cause of initialization: " + value + ", init after parameter change: " + initAfterParameterChange;
     }
 }

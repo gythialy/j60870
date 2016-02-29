@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Fraunhofer ISE
+ * Copyright 2014-16 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -25,8 +25,9 @@ import java.io.IOException;
 
 /**
  * Represents a section ready qualifier (SRQ) information element.
- *
+ * 
  * @author Stefan Feuerhahn
+ * 
  */
 public class IeSectionReadyQualifier extends InformationElement {
 
@@ -39,12 +40,13 @@ public class IeSectionReadyQualifier extends InformationElement {
     }
 
     IeSectionReadyQualifier(DataInputStream is) throws IOException {
-        int b1 = is.read();
+        int b1 = (is.readByte() & 0xff);
         value = b1 & 0x7f;
         sectionNotReady = ((b1 & 0x80) == 0x80);
     }
 
-    @Override int encode(byte[] buffer, int i) {
+    @Override
+    int encode(byte[] buffer, int i) {
         buffer[i] = (byte) value;
         if (sectionNotReady) {
             buffer[i] |= 0x80;

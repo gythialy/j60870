@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Fraunhofer ISE
+ * Copyright 2014-16 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -25,16 +25,14 @@ import java.io.IOException;
 
 /**
  * Represents a quality descriptor for events of protection equipment (QDP) information element.
- *
+ * 
  * @author Stefan Feuerhahn
+ * 
  */
 public class IeProtectionQuality extends IeAbstractQuality {
 
-    public IeProtectionQuality(boolean elapsedTimeInvalid,
-                               boolean blocked,
-                               boolean substituted,
-                               boolean notTopical,
-                               boolean invalid) {
+    public IeProtectionQuality(boolean elapsedTimeInvalid, boolean blocked, boolean substituted, boolean notTopical,
+            boolean invalid) {
         super(blocked, substituted, notTopical, invalid);
 
         if (elapsedTimeInvalid) {
@@ -52,9 +50,6 @@ public class IeProtectionQuality extends IeAbstractQuality {
 
     @Override
     public String toString() {
-        return "Protection Quality, elapsed time invalid: "
-               + isElapsedTimeInvalid()
-               + ", "
-               + super.toString();
+        return "Protection Quality, elapsed time invalid: " + isElapsedTimeInvalid() + ", " + super.toString();
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Fraunhofer ISE
+ * Copyright 2014-16 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -25,8 +25,9 @@ import java.io.IOException;
 
 /**
  * Represents a fixed test bit pattern (FBP) information element.
- *
+ * 
  * @author Stefan Feuerhahn
+ * 
  */
 public class IeFixedTestBitPattern extends InformationElement {
 
@@ -34,12 +35,13 @@ public class IeFixedTestBitPattern extends InformationElement {
     }
 
     IeFixedTestBitPattern(DataInputStream is) throws IOException {
-        if (is.read() != 0x55 || is.read() != 0xaa) {
+        if ((is.readByte() & 0xff) != 0x55 || (is.readByte() & 0xff) != 0xaa) {
             throw new IOException("Incorrect bit pattern in Fixed Test Bit Pattern.");
         }
     }
 
-    @Override int encode(byte[] buffer, int i) {
+    @Override
+    int encode(byte[] buffer, int i) {
 
         buffer[i++] = 0x55;
         buffer[i] = (byte) 0xaa;

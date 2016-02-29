@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Fraunhofer ISE
+ * Copyright 2014-16 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -25,8 +25,9 @@ import java.io.IOException;
 
 /**
  * Represents a select and call qualifier (SCQ) information element.
- *
+ * 
  * @author Stefan Feuerhahn
+ * 
  */
 public class IeSelectAndCallQualifier extends InformationElement {
 
@@ -39,12 +40,13 @@ public class IeSelectAndCallQualifier extends InformationElement {
     }
 
     IeSelectAndCallQualifier(DataInputStream is) throws IOException {
-        int b1 = is.read();
+        int b1 = (is.readByte() & 0xff);
         action = b1 & 0x0f;
         notice = (b1 >> 4) & 0x0f;
     }
 
-    @Override int encode(byte[] buffer, int i) {
+    @Override
+    int encode(byte[] buffer, int i) {
         buffer[i] = (byte) (action | (notice << 4));
         return 1;
     }

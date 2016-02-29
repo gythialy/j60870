@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Fraunhofer ISE
+ * Copyright 2014-16 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -25,15 +25,17 @@ import java.io.IOException;
 
 /**
  * Represents a scaled value (SVA) information element.
- *
+ * 
  * @author Stefan Feuerhahn
+ * 
  */
 public class IeScaledValue extends IeNormalizedValue {
 
     /**
      * Scaled value is a 16 bit integer (short) in the range from -32768 to 32767
-     *
-     * @param value value in the range -32768 to 32767
+     * 
+     * @param value
+     *            value in the range -32768 to 32767
      */
     public IeScaledValue(int value) {
         super(value);

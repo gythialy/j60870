@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Fraunhofer ISE
+ * Copyright 2014-16 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -42,17 +42,18 @@ abstract class IeAbstractQualifierOfCommand extends InformationElement {
     }
 
     IeAbstractQualifierOfCommand(DataInputStream is) throws IOException {
-        value = is.read();
+        value = (is.readByte() & 0xff);
     }
 
-    @Override int encode(byte[] buffer, int i) {
+    @Override
+    int encode(byte[] buffer, int i) {
         buffer[i] = (byte) value;
         return 1;
     }
 
     /**
      * Returns true if the command selects and false if the command executes.
-     *
+     * 
      * @return true if the command selects and false if the command executes.
      */
     public boolean isSelect() {

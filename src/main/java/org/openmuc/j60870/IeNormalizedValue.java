@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Fraunhofer ISE
+ * Copyright 2014-16 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -25,8 +25,9 @@ import java.io.IOException;
 
 /**
  * Represents a normalized value (NVA) information element.
- *
+ * 
  * @author Stefan Feuerhahn
+ * 
  */
 public class IeNormalizedValue extends InformationElement {
 
@@ -35,8 +36,9 @@ public class IeNormalizedValue extends InformationElement {
     /**
      * Normalized value is a value in the range from -1 to (1-1/(2^15)) This class represents value as an integer from
      * -32768 to 32767 instead. In order to get the real normalized value you need to divide value by 32768.
-     *
-     * @param value value in the range -32768 to 32767
+     * 
+     * @param value
+     *            value in the range -32768 to 32767
      */
     public IeNormalizedValue(int value) {
         if (value < -32768 || value > 32767) {
@@ -46,10 +48,11 @@ public class IeNormalizedValue extends InformationElement {
     }
 
     IeNormalizedValue(DataInputStream is) throws IOException {
-        value = is.read() | (is.readByte() << 8);
+        value = (is.readByte() & 0xff) | (is.readByte() << 8);
     }
 
-    @Override int encode(byte[] buffer, int i) {
+    @Override
+    int encode(byte[] buffer, int i) {
 
         buffer[i++] = (byte) value;
         buffer[i] = (byte) (value >> 8);

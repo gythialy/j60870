@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Fraunhofer ISE
+ * Copyright 2014-16 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -25,8 +25,9 @@ import java.io.IOException;
 
 /**
  * Represents a status and status change detection (SCD) information element.
- *
+ * 
  * @author Stefan Feuerhahn
+ * 
  */
 public class IeStatusAndStatusChanges extends InformationElement {
 
@@ -34,10 +35,11 @@ public class IeStatusAndStatusChanges extends InformationElement {
 
     /**
      * Creates a SCD (status and status change detection) information element.
-     *
-     * @param value the bits of value represent the status and status changed bits. Bit1 (the least significant bit) of
-     *              value represents the first status changed detection bit. Bit17 of value represents the first status
-     *              bit.
+     * 
+     * @param value
+     *            the bits of value represent the status and status changed bits. Bit1 (the least significant bit) of
+     *            value represents the first status changed detection bit. Bit17 of value represents the first status
+     *            bit.
      */
     public IeStatusAndStatusChanges(int value) {
 
@@ -48,7 +50,8 @@ public class IeStatusAndStatusChanges extends InformationElement {
         value = is.readInt();
     }
 
-    @Override int encode(byte[] buffer, int i) {
+    @Override
+    int encode(byte[] buffer, int i) {
         buffer[i++] = (byte) (value >> 24);
         buffer[i++] = (byte) (value >> 16);
         buffer[i++] = (byte) (value >> 8);
@@ -62,9 +65,10 @@ public class IeStatusAndStatusChanges extends InformationElement {
 
     /**
      * Returns true if the status at the given position is ON(1) and false otherwise.
-     *
-     * @param position the position in the status bitstring. Range: 1-16. Status 1 is bit 17 and status 16 is bit 32 of the
-     *                 value returned by <code>getValue()</code>.
+     * 
+     * @param position
+     *            the position in the status bitstring. Range: 1-16. Status 1 is bit 17 and status 16 is bit 32 of the
+     *            value returned by <code>getValue()</code>.
      * @return true if the status at the given position is ON(1) and false otherwise.
      */
     public boolean getStatus(int position) {
@@ -76,9 +80,10 @@ public class IeStatusAndStatusChanges extends InformationElement {
 
     /**
      * Returns true if the status at the given position has changed and false otherwise.
-     *
-     * @param position the position in the status changed bitstring. Range: 1-16. Status changed 1 is bit 1 and status 16 is
-     *                 bit 16 of the value returned by <code>getValue()</code>.
+     * 
+     * @param position
+     *            the position in the status changed bitstring. Range: 1-16. Status changed 1 is bit 1 and status 16 is
+     *            bit 16 of the value returned by <code>getValue()</code>.
      * @return true if the status at the given position has changed and false otherwise.
      */
     public boolean hasStatusChanged(int position) {
@@ -102,10 +107,8 @@ public class IeStatusAndStatusChanges extends InformationElement {
             sb2.insert(0, '0'); // pad with leading zero if needed
         }
 
-        return "Status and status changes (first bit = LSB), states: "
-               + sb1.toString()
-               + ", state changes: "
-               + sb2.toString();
+        return "Status and status changes (first bit = LSB), states: " + sb1.toString() + ", state changes: "
+                + sb2.toString();
     }
 
 }

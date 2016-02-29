@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Fraunhofer ISE
+ * Copyright 2014-16 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -30,22 +30,25 @@ import java.io.IOException;
  * {@link #newASdu(ASdu)} is never called simultaneously for the same connection.
  *
  * @author Stefan Feuerhahn
+ *
  */
 public interface ConnectionEventListener {
 
     /**
      * Invoked when a new ASDU arrives.
      *
-     * @param aSdu the ASDU that arrived.
+     * @param aSdu
+     *            the ASDU that arrived.
      */
     public void newASdu(ASdu aSdu);
 
     /**
      * Invoked when an IOException occurred while listening for incoming ASDUs. An IOException implies that the
-     * ClientConnection that feeds this listener was automatically closed and can no longer be used to send commands or
-     * receive ASDUs.
+     * {@link Connection} that feeds this listener was automatically closed and can no longer be used to send commands
+     * or receive ASDUs.
      *
-     * @param e the exception that occurred.
+     * @param e
+     *            the exception that occurred.
      */
     public void connectionClosed(IOException e);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Fraunhofer ISE
+ * Copyright 2014-16 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -25,8 +25,9 @@ import java.io.IOException;
 
 /**
  * Represents the segment of a file as transferred by ASDUs of type F_SG_NA_1 (125).
- *
+ * 
  * @author Stefan Feuerhahn
+ * 
  */
 public class IeFileSegment extends InformationElement {
 
@@ -42,14 +43,15 @@ public class IeFileSegment extends InformationElement {
 
     IeFileSegment(DataInputStream is) throws IOException {
 
-        length = is.read();
+        length = (is.readByte() & 0xff);
         segment = new byte[length];
 
         is.readFully(segment);
         offset = 0;
     }
 
-    @Override int encode(byte[] buffer, int i) {
+    @Override
+    int encode(byte[] buffer, int i) {
 
         buffer[i++] = (byte) length;
 

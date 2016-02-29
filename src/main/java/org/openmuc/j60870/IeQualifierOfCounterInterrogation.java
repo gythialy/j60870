@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Fraunhofer ISE
+ * Copyright 2014-16 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -25,8 +25,9 @@ import java.io.IOException;
 
 /**
  * Represents a qualifier of counter interrogation (QCC) information element.
- *
+ * 
  * @author Stefan Feuerhahn
+ * 
  */
 public class IeQualifierOfCounterInterrogation extends InformationElement {
 
@@ -39,12 +40,13 @@ public class IeQualifierOfCounterInterrogation extends InformationElement {
     }
 
     IeQualifierOfCounterInterrogation(DataInputStream is) throws IOException {
-        int b1 = is.read();
+        int b1 = (is.readByte() & 0xff);
         request = b1 & 0x3f;
         freeze = (b1 >> 6) & 0x03;
     }
 
-    @Override int encode(byte[] buffer, int i) {
+    @Override
+    int encode(byte[] buffer, int i) {
         buffer[i] = (byte) (request | (freeze << 6));
         return 1;
     }

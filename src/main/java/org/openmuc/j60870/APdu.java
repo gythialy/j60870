@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Fraunhofer ISE
+ * Copyright 2014-16 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -26,7 +26,14 @@ import java.io.IOException;
 final class APdu {
 
     public enum APCI_TYPE {
-        I_FORMAT, S_FORMAT, TESTFR_CON, TESTFR_ACT, STOPDT_CON, STOPDT_ACT, STARTDT_CON, STARTDT_ACT;
+        I_FORMAT,
+        S_FORMAT,
+        TESTFR_CON,
+        TESTFR_ACT,
+        STOPDT_CON,
+        STOPDT_ACT,
+        STARTDT_CON,
+        STARTDT_ACT;
     }
 
     private int sendSeqNum = 0;
@@ -61,21 +68,28 @@ final class APdu {
             receiveSeqNum = ((aPduHeader[2] & 0xfe) >> 1) + ((aPduHeader[3] & 0xff) << 7);
 
             aSdu = new ASdu(is, settings, length - 4);
-        } else if ((aPduHeader[0] & 0x02) == 0) {
+        }
+        else if ((aPduHeader[0] & 0x02) == 0) {
             apciType = APCI_TYPE.S_FORMAT;
             receiveSeqNum = ((aPduHeader[2] & 0xfe) >> 1) + ((aPduHeader[3] & 0xff) << 7);
-        } else {
+        }
+        else {
             if (aPduHeader[0] == (byte) 0x83) {
                 apciType = APCI_TYPE.TESTFR_CON;
-            } else if (aPduHeader[0] == 0x43) {
+            }
+            else if (aPduHeader[0] == 0x43) {
                 apciType = APCI_TYPE.TESTFR_ACT;
-            } else if (aPduHeader[0] == 0x23) {
+            }
+            else if (aPduHeader[0] == 0x23) {
                 apciType = APCI_TYPE.STOPDT_CON;
-            } else if (aPduHeader[0] == 0x13) {
+            }
+            else if (aPduHeader[0] == 0x13) {
                 apciType = APCI_TYPE.STOPDT_ACT;
-            } else if (aPduHeader[0] == 0x0B) {
+            }
+            else if (aPduHeader[0] == 0x0B) {
                 apciType = APCI_TYPE.STARTDT_CON;
-            } else {
+            }
+            else {
                 apciType = APCI_TYPE.STARTDT_ACT;
             }
         }
@@ -94,17 +108,20 @@ final class APdu {
             buffer[4] = (byte) (receiveSeqNum << 1);
             buffer[5] = (byte) (receiveSeqNum >> 7);
             length += aSdu.encode(buffer, 6, settings);
-        } else if (apciType == APCI_TYPE.STARTDT_ACT) {
+        }
+        else if (apciType == APCI_TYPE.STARTDT_ACT) {
             buffer[2] = 0x07;
             buffer[3] = 0x00;
             buffer[4] = 0x00;
             buffer[5] = 0x00;
-        } else if (apciType == APCI_TYPE.STARTDT_CON) {
+        }
+        else if (apciType == APCI_TYPE.STARTDT_CON) {
             buffer[2] = 0x0b;
             buffer[3] = 0x00;
             buffer[4] = 0x00;
             buffer[5] = 0x00;
-        } else if (apciType == APCI_TYPE.S_FORMAT) {
+        }
+        else if (apciType == APCI_TYPE.S_FORMAT) {
             buffer[2] = 0x01;
             buffer[3] = 0x00;
             buffer[4] = (byte) (receiveSeqNum << 1);

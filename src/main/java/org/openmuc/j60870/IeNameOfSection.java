@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Fraunhofer ISE
+ * Copyright 2014-16 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -25,8 +25,9 @@ import java.io.IOException;
 
 /**
  * Represents a name of section (NOS) information element.
- *
+ * 
  * @author Stefan Feuerhahn
+ * 
  */
 public class IeNameOfSection extends InformationElement {
 
@@ -38,10 +39,11 @@ public class IeNameOfSection extends InformationElement {
 
     IeNameOfSection(DataInputStream is) throws IOException {
 
-        value = is.read();
+        value = (is.readByte() & 0xff);
     }
 
-    @Override int encode(byte[] buffer, int i) {
+    @Override
+    int encode(byte[] buffer, int i) {
 
         buffer[i] = (byte) value;
 

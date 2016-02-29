@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Fraunhofer ISE
+ * Copyright 2014-16 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -25,8 +25,9 @@ import java.io.IOException;
 
 /**
  * Represents a status of file (SOF) information element.
- *
+ * 
  * @author Stefan Feuerhahn
+ * 
  */
 public class IeStatusOfFile extends InformationElement {
 
@@ -36,7 +37,7 @@ public class IeStatusOfFile extends InformationElement {
     private final boolean transferIsActive;
 
     public IeStatusOfFile(int status, boolean lastFileOfDirectory, boolean nameDefinesDirectory,
-                          boolean transferIsActive) {
+            boolean transferIsActive) {
         this.status = status;
         this.lastFileOfDirectory = lastFileOfDirectory;
         this.nameDefinesDirectory = nameDefinesDirectory;
@@ -44,14 +45,15 @@ public class IeStatusOfFile extends InformationElement {
     }
 
     IeStatusOfFile(DataInputStream is) throws IOException {
-        int b1 = is.read();
+        int b1 = (is.readByte() & 0xff);
         status = b1 & 0x1f;
         lastFileOfDirectory = ((b1 & 0x20) == 0x20);
         nameDefinesDirectory = ((b1 & 0x40) == 0x40);
         transferIsActive = ((b1 & 0x80) == 0x80);
     }
 
-    @Override int encode(byte[] buffer, int i) {
+    @Override
+    int encode(byte[] buffer, int i) {
         buffer[i] = (byte) status;
         if (lastFileOfDirectory) {
             buffer[i] |= 0x20;
@@ -83,13 +85,7 @@ public class IeStatusOfFile extends InformationElement {
 
     @Override
     public String toString() {
-        return "Status of file: "
-               + status
-               + ", last file of directory: "
-               + lastFileOfDirectory
-               + ", name defines directory: "
-               + nameDefinesDirectory
-               + ", transfer is active: "
-               + transferIsActive;
+        return "Status of file: " + status + ", last file of directory: " + lastFileOfDirectory
+                + ", name defines directory: " + nameDefinesDirectory + ", transfer is active: " + transferIsActive;
     }
 }

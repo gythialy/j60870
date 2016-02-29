@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Fraunhofer ISE
+ * Copyright 2014-16 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -25,23 +25,22 @@ import java.io.IOException;
 
 /**
  * Represents a single event of protection equipment (SEP) information element.
- *
+ * 
  * @author Stefan Feuerhahn
+ * 
  */
 public class IeSingleProtectionEvent extends InformationElement {
 
     private int value;
 
     public enum EventState {
-        INDETERMINATE, OFF, ON;
+        INDETERMINATE,
+        OFF,
+        ON;
     }
 
-    public IeSingleProtectionEvent(EventState eventState,
-                                   boolean elapsedTimeInvalid,
-                                   boolean blocked,
-                                   boolean substituted,
-                                   boolean notTopical,
-                                   boolean eventInvalid) {
+    public IeSingleProtectionEvent(EventState eventState, boolean elapsedTimeInvalid, boolean blocked,
+            boolean substituted, boolean notTopical, boolean eventInvalid) {
 
         value = 0;
 
@@ -74,10 +73,11 @@ public class IeSingleProtectionEvent extends InformationElement {
     }
 
     IeSingleProtectionEvent(DataInputStream is) throws IOException {
-        value = is.read();
+        value = (is.readByte() & 0xff);
     }
 
-    @Override int encode(byte[] buffer, int i) {
+    @Override
+    int encode(byte[] buffer, int i) {
         buffer[i] = (byte) value;
         return 1;
     }
@@ -115,16 +115,9 @@ public class IeSingleProtectionEvent extends InformationElement {
 
     @Override
     public String toString() {
-        return "Single protection event, elapsed time invalid: "
-               + isElapsedTimeInvalid()
-               + ", blocked: "
-               + isBlocked()
-               + ", substituted: "
-               + isSubstituted()
-               + ", not topical: "
-               + isNotTopical()
-               + ", event invalid: "
-               + isEventInvalid();
+        return "Single protection event, elapsed time invalid: " + isElapsedTimeInvalid() + ", blocked: " + isBlocked()
+                + ", substituted: " + isSubstituted() + ", not topical: " + isNotTopical() + ", event invalid: "
+                + isEventInvalid();
     }
 
 }

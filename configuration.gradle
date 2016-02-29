@@ -1,0 +1,90 @@
+
+project.ext {
+
+  cfgVersion = '1.0.0'
+  
+  cfgGroup = 'org.openmuc'
+
+  cfgCopyDependencies = false
+
+  cfgCopyToRoot = false
+
+  cfgSignPom = true
+
+  cfgRepository = project.properties.sonatypeRepository
+
+  cfgSnapshotRepository = project.properties.sonatypeSnapshotRepository
+
+  cfgRepositoryUser = project.properties.sonatypeUser
+
+  cfgRepositoryPass = project.properties.sonatypePass
+
+  javaProjects = allprojects
+
+  distributionProjects = javaProjects
+
+  docProjects = javaProjects
+
+  repositoryProjects = javaProjects
+}
+
+tasks.withType(Tar) {
+
+  into(project.name) {
+    from('./') {
+      include 'build.gradle'
+      include 'configuration.gradle'
+      include 'license/**'
+      include 'doc/*.txt'
+      include 'doc/userguide/' + project.name + '-doc*.html'
+      include 'doc/userguide/' + project.name + '-doc_img/**'
+      include 'run-scripts/**'
+      include 'build/libs/**'
+      include 'build/docs/javadoc/**'
+      include 'src/**'
+    }
+
+    if (name.equals("tar") ){
+      exclude '**/dependencies/**/src'
+    }
+
+  }
+}
+
+
+//------------------project specific configurations--------------------
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'osgi'
+apply plugin: 'maven'
+apply plugin: 'signing'
+
+
+jar {
+  manifest {
+    name = 'j60870'
+    instruction 'Export-Package', '!*.internal.*,*'
+  }
+}
+
+uploadArchives {
+  repositories {
+    mavenDeployer {
+      pom.project {
+        name 'j60870'
+        description 'j60870 is an IEC 60870-5-104 client and server library.'
+        
+        licenses {
+          license {
+            name 'GNU General Public License'
+            url 'http://www.gnu.org/copyleft/gpl-3.0.html'
+            distribution 'repo'
+          }
+        }
+        
+      }
+    }
+  }
+}
+

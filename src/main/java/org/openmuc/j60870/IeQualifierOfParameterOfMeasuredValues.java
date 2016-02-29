@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Fraunhofer ISE
+ * Copyright 2014-16 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -25,8 +25,9 @@ import java.io.IOException;
 
 /**
  * Represents a qualifier of parameter of measured values (QPM) information element.
- *
+ * 
  * @author Stefan Feuerhahn
+ * 
  */
 public class IeQualifierOfParameterOfMeasuredValues extends InformationElement {
 
@@ -34,22 +35,21 @@ public class IeQualifierOfParameterOfMeasuredValues extends InformationElement {
     private final boolean change;
     private final boolean notInOperation;
 
-    public IeQualifierOfParameterOfMeasuredValues(int kindOfParameter,
-                                                  boolean change,
-                                                  boolean notInOperation) {
+    public IeQualifierOfParameterOfMeasuredValues(int kindOfParameter, boolean change, boolean notInOperation) {
         this.kindOfParameter = kindOfParameter;
         this.change = change;
         this.notInOperation = notInOperation;
     }
 
     IeQualifierOfParameterOfMeasuredValues(DataInputStream is) throws IOException {
-        int b1 = is.read();
+        int b1 = (is.readByte() & 0xff);
         kindOfParameter = b1 & 0x3f;
         change = ((b1 & 0x40) == 0x40);
         notInOperation = ((b1 & 0x80) == 0x80);
     }
 
-    @Override int encode(byte[] buffer, int i) {
+    @Override
+    int encode(byte[] buffer, int i) {
         buffer[i] = (byte) kindOfParameter;
         if (change) {
             buffer[i] |= 0x40;
@@ -74,11 +74,7 @@ public class IeQualifierOfParameterOfMeasuredValues extends InformationElement {
 
     @Override
     public String toString() {
-        return "Qualifier of parameter of measured values, kind of parameter: "
-               + kindOfParameter
-               + ", change: "
-               + change
-               + ", not in operation: "
-               + notInOperation;
+        return "Qualifier of parameter of measured values, kind of parameter: " + kindOfParameter + ", change: "
+                + change + ", not in operation: " + notInOperation;
     }
 }

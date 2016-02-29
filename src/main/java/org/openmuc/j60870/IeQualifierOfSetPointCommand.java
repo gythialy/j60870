@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Fraunhofer ISE
+ * Copyright 2014-16 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -25,8 +25,9 @@ import java.io.IOException;
 
 /**
  * Represents a qualifier of set-point command (QOS) information element.
- *
+ * 
  * @author Stefan Feuerhahn
+ * 
  */
 public class IeQualifierOfSetPointCommand extends InformationElement {
 
@@ -39,12 +40,13 @@ public class IeQualifierOfSetPointCommand extends InformationElement {
     }
 
     IeQualifierOfSetPointCommand(DataInputStream is) throws IOException {
-        int b1 = is.read();
+        int b1 = (is.readByte() & 0xff);
         ql = b1 & 0x7f;
         select = ((b1 & 0x80) == 0x80);
     }
 
-    @Override int encode(byte[] buffer, int i) {
+    @Override
+    int encode(byte[] buffer, int i) {
         buffer[i] = (byte) ql;
         if (select) {
             buffer[i] |= 0x80;

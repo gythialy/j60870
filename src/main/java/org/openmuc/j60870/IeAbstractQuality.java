@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Fraunhofer ISE
+ * Copyright 2014-16 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -27,10 +27,7 @@ abstract class IeAbstractQuality extends InformationElement {
 
     protected int value;
 
-    public IeAbstractQuality(boolean blocked,
-                             boolean substituted,
-                             boolean notTopical,
-                             boolean invalid) {
+    public IeAbstractQuality(boolean blocked, boolean substituted, boolean notTopical, boolean invalid) {
 
         value = 0;
 
@@ -50,10 +47,11 @@ abstract class IeAbstractQuality extends InformationElement {
     }
 
     IeAbstractQuality(DataInputStream is) throws IOException {
-        value = is.read();
+        value = (is.readByte() & 0xff);
     }
 
-    @Override int encode(byte[] buffer, int i) {
+    @Override
+    int encode(byte[] buffer, int i) {
         buffer[i] = (byte) value;
         return 1;
     }
@@ -76,13 +74,7 @@ abstract class IeAbstractQuality extends InformationElement {
 
     @Override
     public String toString() {
-        return "blocked: "
-               + isBlocked()
-               + ", substituted: "
-               + isSubstituted()
-               + ", not topical: "
-               + isNotTopical()
-               + ", invalid: "
-               + isInvalid();
+        return "blocked: " + isBlocked() + ", substituted: " + isSubstituted() + ", not topical: " + isNotTopical()
+                + ", invalid: " + isInvalid();
     }
 }

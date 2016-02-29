@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Fraunhofer ISE
+ * Copyright 2014-16 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -25,17 +25,16 @@ import java.io.IOException;
 
 /**
  * Represents an output circuit information of protection equipment (OCI) information element.
- *
+ * 
  * @author Stefan Feuerhahn
+ * 
  */
 public class IeProtectionOutputCircuitInformation extends InformationElement {
 
     private int value;
 
-    public IeProtectionOutputCircuitInformation(boolean generalCommand,
-                                                boolean commandToL1,
-                                                boolean commandToL2,
-                                                boolean commandToL3) {
+    public IeProtectionOutputCircuitInformation(boolean generalCommand, boolean commandToL1, boolean commandToL2,
+            boolean commandToL3) {
 
         value = 0;
 
@@ -55,10 +54,11 @@ public class IeProtectionOutputCircuitInformation extends InformationElement {
     }
 
     IeProtectionOutputCircuitInformation(DataInputStream is) throws IOException {
-        value = is.read();
+        value = (is.readByte() & 0xff);
     }
 
-    @Override int encode(byte[] buffer, int i) {
+    @Override
+    int encode(byte[] buffer, int i) {
         buffer[i] = (byte) value;
         return 1;
     }
@@ -81,14 +81,8 @@ public class IeProtectionOutputCircuitInformation extends InformationElement {
 
     @Override
     public String toString() {
-        return "Protection output circuit information, general command: "
-               + isGeneralCommand()
-               + ", command to L1: "
-               + isCommandToL1()
-               + ", command to L2: "
-               + isCommandToL2()
-               + ", command to L3: "
-               + isCommandToL3();
+        return "Protection output circuit information, general command: " + isGeneralCommand() + ", command to L1: "
+                + isCommandToL1() + ", command to L2: " + isCommandToL2() + ", command to L3: " + isCommandToL3();
     }
 
 }

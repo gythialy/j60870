@@ -1,3 +1,10 @@
+v1.0 24-Feb-2016
+----------------
+- fixed bug when creating multiple parallel connections using
+  the same ClientSap
+- fixed a synchronization problem in the server implementation
+- fixed toString() method of IeTime56 thanks to Jan Gall from Bosch
+
 v0.9 19-Nov-2014
 ----------------
 - added full support for timers t1,t2 and t3

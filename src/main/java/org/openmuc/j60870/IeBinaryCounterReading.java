@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Fraunhofer ISE
+ * Copyright 2014-16 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -25,8 +25,9 @@ import java.io.IOException;
 
 /**
  * Represents a binary counter reading (BCR) information element.
- *
+ * 
  * @author Stefan Feuerhahn
+ * 
  */
 public class IeBinaryCounterReading extends InformationElement {
 
@@ -36,11 +37,8 @@ public class IeBinaryCounterReading extends InformationElement {
     private final boolean counterAdjusted;
     private final boolean invalid;
 
-    public IeBinaryCounterReading(int counterReading,
-                                  int sequenceNumber,
-                                  boolean carry,
-                                  boolean counterAdjusted,
-                                  boolean invalid) {
+    public IeBinaryCounterReading(int counterReading, int sequenceNumber, boolean carry, boolean counterAdjusted,
+            boolean invalid) {
 
         this.counterReading = counterReading;
         this.sequenceNumber = sequenceNumber;
@@ -52,11 +50,11 @@ public class IeBinaryCounterReading extends InformationElement {
 
     IeBinaryCounterReading(DataInputStream is) throws IOException {
 
-        int b1 = is.read();
-        int b2 = is.read();
-        int b3 = is.read();
-        int b4 = is.read();
-        int b5 = is.read();
+        int b1 = (is.readByte() & 0xff);
+        int b2 = (is.readByte() & 0xff);
+        int b3 = (is.readByte() & 0xff);
+        int b4 = (is.readByte() & 0xff);
+        int b5 = (is.readByte() & 0xff);
 
         carry = ((b5 & 0x20) == 0x20);
         counterAdjusted = ((b5 & 0x40) == 0x40);
@@ -68,7 +66,8 @@ public class IeBinaryCounterReading extends InformationElement {
 
     }
 
-    @Override int encode(byte[] buffer, int i) {
+    @Override
+    int encode(byte[] buffer, int i) {
 
         buffer[i++] = (byte) counterReading;
         buffer[i++] = (byte) (counterReading >> 8);
@@ -112,15 +111,7 @@ public class IeBinaryCounterReading extends InformationElement {
 
     @Override
     public String toString() {
-        return "Binary counter reading: "
-               + counterReading
-               + ", seq num: "
-               + sequenceNumber
-               + ", carry: "
-               + carry
-               + ", counter adjusted: "
-               + counterAdjusted
-               + ", invalid: "
-               + invalid;
+        return "Binary counter reading: " + counterReading + ", seq num: " + sequenceNumber + ", carry: " + carry
+                + ", counter adjusted: " + counterAdjusted + ", invalid: " + invalid;
     }
 }

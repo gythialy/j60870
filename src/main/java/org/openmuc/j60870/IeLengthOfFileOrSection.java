@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Fraunhofer ISE
+ * Copyright 2014-16 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -25,8 +25,9 @@ import java.io.IOException;
 
 /**
  * Represents a length of file or section (LOF) information element.
- *
+ * 
  * @author Stefan Feuerhahn
+ * 
  */
 public class IeLengthOfFileOrSection extends InformationElement {
 
@@ -37,10 +38,11 @@ public class IeLengthOfFileOrSection extends InformationElement {
     }
 
     IeLengthOfFileOrSection(DataInputStream is) throws IOException {
-        value = is.read() | (is.read() << 8) | (is.read() << 16);
+        value = (is.readByte() & 0xff) | ((is.readByte() & 0xff) << 8) | ((is.readByte() & 0xff) << 16);
     }
 
-    @Override int encode(byte[] buffer, int i) {
+    @Override
+    int encode(byte[] buffer, int i) {
 
         buffer[i++] = (byte) value;
         buffer[i++] = (byte) (value >> 8);

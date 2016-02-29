@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Fraunhofer ISE
+ * Copyright 2014-16 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -25,8 +25,9 @@ import java.io.IOException;
 
 /**
  * Represents a qualifier of reset process command (QRP) information element.
- *
+ * 
  * @author Stefan Feuerhahn
+ * 
  */
 public class IeQualifierOfResetProcessCommand extends InformationElement {
 
@@ -37,10 +38,11 @@ public class IeQualifierOfResetProcessCommand extends InformationElement {
     }
 
     IeQualifierOfResetProcessCommand(DataInputStream is) throws IOException {
-        value = is.read();
+        value = (is.readByte() & 0xff);
     }
 
-    @Override int encode(byte[] buffer, int i) {
+    @Override
+    int encode(byte[] buffer, int i) {
         buffer[i] = (byte) value;
         return 1;
     }

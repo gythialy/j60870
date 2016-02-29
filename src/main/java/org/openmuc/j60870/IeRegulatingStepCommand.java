@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Fraunhofer ISE
+ * Copyright 2014-16 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -22,66 +22,76 @@ package org.openmuc.j60870;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Represents a regulating step command (RCO) information element.
- *
+ * 
  * @author Stefan Feuerhahn
+ * 
  */
 public class IeRegulatingStepCommand extends IeAbstractQualifierOfCommand {
 
     public enum StepCommandState {
-        NOT_PERMITTED_A(0), NEXT_STEP_LOWER(1), NEXT_STEP_HIGHER(2), NOT_PERMITTED_B(3);
+        NOT_PERMITTED_A(0),
+        NEXT_STEP_LOWER(1),
+        NEXT_STEP_HIGHER(2),
+        NOT_PERMITTED_B(3);
 
-        private final int code;
+        private final int id;
 
-        private StepCommandState(int code) {
-            this.code = code;
-        }
+        private static final Map<Integer, StepCommandState> idMap = new HashMap<Integer, StepCommandState>();
 
-        /**
-         * Returns the code associated with this StepCommandState.
-         *
-         * @return the code associated with this StepCommandState.
-         */
-        public int getCode() {
-            return code;
-        }
-
-        /**
-         * Returns the StepCommandState for the given code. Returns null if the code is unknown.
-         *
-         * @param code the code of the StepCommandState
-         * @return the StepCommandState. Returns null if the code is unknown.
-         */
-        public static StepCommandState createStepCommandState(int code) {
-            switch (code) {
-            case 0:
-                return NOT_PERMITTED_A;
-            case 1:
-                return NEXT_STEP_LOWER;
-            case 2:
-                return NEXT_STEP_HIGHER;
-            case 3:
-                return NOT_PERMITTED_B;
-            default:
-                return null;
+        static {
+            for (StepCommandState enumInstance : StepCommandState.values()) {
+                if (idMap.put(enumInstance.getId(), enumInstance) != null) {
+                    throw new IllegalArgumentException("duplicate ID: " + enumInstance.getId());
+                }
             }
+        }
+
+        private StepCommandState(int id) {
+            this.id = id;
+        }
+
+        /**
+         * Returns the ID of this StepCommandState.
+         * 
+         * @return the ID
+         */
+        public int getId() {
+            return id;
+        }
+
+        /**
+         * Returns the StepCommandState that corresponds to the given ID. Returns <code>null</code> if no
+         * StepCommandState with the given ID exists.
+         * 
+         * @param id
+         *            the ID
+         * @return the StepCommandState that corresponds to the given ID
+         */
+        public static StepCommandState getInstance(int id) {
+            return idMap.get(id);
         }
 
     }
 
     /**
      * Create a Regulating Step Command Information Element.
-     *
-     * @param commandState the command state
-     * @param qualifier    the qualifier
-     * @param select       true if select, false if execute
+     * 
+     * @param commandState
+     *            the command state
+     * @param qualifier
+     *            the qualifier
+     * @param select
+     *            true if select, false if execute
      */
     public IeRegulatingStepCommand(StepCommandState commandState, int qualifier, boolean select) {
         super(qualifier, select);
 
-        value |= commandState.getCode();
+        value |= commandState.getId();
     }
 
     IeRegulatingStepCommand(DataInputStream is) throws IOException {
@@ -89,7 +99,7 @@ public class IeRegulatingStepCommand extends IeAbstractQualifierOfCommand {
     }
 
     public StepCommandState getCommandState() {
-        return StepCommandState.createStepCommandState(value & 0x03);
+        return StepCommandState.getInstance(value & 0x03);
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Fraunhofer ISE
+ * Copyright 2014-16 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -25,8 +25,9 @@ import java.io.IOException;
 
 /**
  * Represents a single command (SCO) information element.
- *
+ * 
  * @author Stefan Feuerhahn
+ * 
  */
 public class IeSingleCommand extends IeAbstractQualifierOfCommand {
 

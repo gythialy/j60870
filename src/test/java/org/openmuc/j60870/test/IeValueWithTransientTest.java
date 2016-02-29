@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Fraunhofer ISE
+ * Copyright 2014-16 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -29,8 +29,7 @@ public class IeValueWithTransientTest {
     @Test
     public void testSetGetValue() {
 
-        IeValueWithTransientState valueWithTransientState = new IeValueWithTransientState(-64,
-                                                                                          false);
+        IeValueWithTransientState valueWithTransientState = new IeValueWithTransientState(-64, false);
 
         Assert.assertEquals(-64, valueWithTransientState.getValue());
 

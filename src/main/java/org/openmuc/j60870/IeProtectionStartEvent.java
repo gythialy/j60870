@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Fraunhofer ISE
+ * Copyright 2014-16 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -25,19 +25,16 @@ import java.io.IOException;
 
 /**
  * Represents a start events of protection equipment (SPE) information element.
- *
+ * 
  * @author Stefan Feuerhahn
+ * 
  */
 public class IeProtectionStartEvent extends InformationElement {
 
     private int value;
 
-    public IeProtectionStartEvent(boolean generalStart,
-                                  boolean startOperationL1,
-                                  boolean startOperationL2,
-                                  boolean startOperationL3,
-                                  boolean startOperationIe,
-                                  boolean startReverseOperation) {
+    public IeProtectionStartEvent(boolean generalStart, boolean startOperationL1, boolean startOperationL2,
+            boolean startOperationL3, boolean startOperationIe, boolean startReverseOperation) {
 
         value = 0;
 
@@ -62,10 +59,11 @@ public class IeProtectionStartEvent extends InformationElement {
     }
 
     IeProtectionStartEvent(DataInputStream is) throws IOException {
-        value = is.read();
+        value = (is.readByte() & 0xff);
     }
 
-    @Override int encode(byte[] buffer, int i) {
+    @Override
+    int encode(byte[] buffer, int i) {
         buffer[i] = (byte) value;
         return 1;
     }
@@ -96,18 +94,10 @@ public class IeProtectionStartEvent extends InformationElement {
 
     @Override
     public String toString() {
-        return "Protection start event, general start of operation: "
-               + isGeneralStart()
-               + ", start of operation L1: "
-               + isStartOperationL1()
-               + ", start of operation L2: "
-               + isStartOperationL2()
-               + ", start of operation L3: "
-               + isStartOperationL3()
-               + ", start of operation IE(earth current): "
-               + isStartOperationIe()
-               + ", start of operation in reverse direction: "
-               + isStartReverseOperation();
+        return "Protection start event, general start of operation: " + isGeneralStart() + ", start of operation L1: "
+                + isStartOperationL1() + ", start of operation L2: " + isStartOperationL2()
+                + ", start of operation L3: " + isStartOperationL3() + ", start of operation IE(earth current): "
+                + isStartOperationIe() + ", start of operation in reverse direction: " + isStartReverseOperation();
     }
 
 }
