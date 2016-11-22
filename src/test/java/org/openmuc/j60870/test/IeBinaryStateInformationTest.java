@@ -18,22 +18,23 @@
  * along with j60870.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-package org.openmuc.j60870;
+package org.openmuc.j60870.test;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.openmuc.j60870.IeBinaryStateInformation;
 
-public class CP56Time2aTest {
+public class IeBinaryStateInformationTest {
 
     @Test
-    public void testTimestampToCalendar() {
-        long timestamp = 1383060654596l;
-        IeTime56 time = new IeTime56(timestamp);
-        byte[] buffer = new byte[7];
-        time.encode(buffer, 0);
-        Assert.assertArrayEquals(new byte[] { 0x44, (byte) 0xd5, 0x1e, 0x17, 0x5d, 0x0a, 0x0d }, buffer);
+    public void testSetGetValue() {
 
-        Assert.assertEquals(timestamp, time.getTimestamp());
+        byte[] bits = new byte[] { (byte) 0x7f, 0, (byte) 0xff, (byte) 0x80 };
+
+        IeBinaryStateInformation ieBinaryStateInformation = new IeBinaryStateInformation(bits);
+
+        Assert.assertEquals(2130771840, ieBinaryStateInformation.getValue());
+        Assert.assertArrayEquals(bits, ieBinaryStateInformation.getValueAsByteArray());
 
     }
 }

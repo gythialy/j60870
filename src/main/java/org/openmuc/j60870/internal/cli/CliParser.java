@@ -11,6 +11,8 @@ public class CliParser {
     private final String description;
     private String selectedGroup = "";
 
+    private static final String HELP = "--help";
+
     private static class ParameterGroup {
         private final String name;
         private final List<CliParameter> parameters;
@@ -21,7 +23,7 @@ public class CliParser {
         }
     }
 
-    private final List<ParameterGroup> commandLineParameterGroups = new ArrayList<ParameterGroup>();
+    private final List<ParameterGroup> commandLineParameterGroups = new ArrayList<>();
 
     public CliParser(String name, String description) {
         this.name = name;
@@ -52,6 +54,10 @@ public class CliParser {
         else {
             if (args.length == 0) {
                 throw new CliParseException("No parameters found.");
+            }
+            else if (HELP.equals(args[0])) {
+                System.out.println(getUsageString());
+                System.exit(0);
             }
             for (ParameterGroup parameterGroup : commandLineParameterGroups) {
                 if (parameterGroup.name.equals(args[0].toLowerCase())) {
@@ -109,7 +115,7 @@ public class CliParser {
 
         sb.append("\nOPTIONS\n");
 
-        Set<CliParameter> parameters = new LinkedHashSet<CliParameter>();
+        Set<CliParameter> parameters = new LinkedHashSet<>();
 
         for (ParameterGroup parameterGroup : commandLineParameterGroups) {
             parameters.addAll(parameterGroup.parameters);
@@ -120,6 +126,8 @@ public class CliParser {
             parameter.appendDescription(sb);
             sb.append("\n\n");
         }
+
+        sb.append("\t--help display this help and exit");
 
         return sb.toString();
     }

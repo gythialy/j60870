@@ -1,5 +1,3 @@
-package org.openmuc.j60870;
-
 /*
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -8,9 +6,23 @@ package org.openmuc.j60870;
  * way you like and without any restrictions.
  *
  */
+package org.openmuc.j60870.app;
+
 import java.io.EOFException;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
+
+import org.openmuc.j60870.ASdu;
+import org.openmuc.j60870.CauseOfTransmission;
+import org.openmuc.j60870.Connection;
+import org.openmuc.j60870.ConnectionEventListener;
+import org.openmuc.j60870.IeQuality;
+import org.openmuc.j60870.IeScaledValue;
+import org.openmuc.j60870.InformationElement;
+import org.openmuc.j60870.InformationObject;
+import org.openmuc.j60870.Server;
+import org.openmuc.j60870.ServerEventListener;
+import org.openmuc.j60870.TypeId;
 
 public class SampleServer {
 

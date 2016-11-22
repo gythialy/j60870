@@ -440,7 +440,7 @@ public enum TypeId {
     private final int id;
     private final String description;
 
-    private static final Map<Integer, TypeId> idMap = new HashMap<Integer, TypeId>();
+    private static final Map<Integer, TypeId> idMap = new HashMap<>();
 
     static {
         for (TypeId enumInstance : TypeId.values()) {

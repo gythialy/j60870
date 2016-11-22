@@ -28,7 +28,7 @@ public class CliParameterBuilder {
         return new LongCliParameter(this, parameterName);
     }
 
-    public IntCliParameter buildIntegerParameter(String parameterName, int defaultValue) {
+    public IntCliParameter buildIntParameter(String parameterName, int defaultValue) {
         return new IntCliParameter(this, parameterName, defaultValue);
     }
 

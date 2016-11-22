@@ -75,7 +75,7 @@ public enum CauseOfTransmission {
 
     private final int id;
 
-    private static final Map<Integer, CauseOfTransmission> idMap = new HashMap<Integer, CauseOfTransmission>();
+    private static final Map<Integer, CauseOfTransmission> idMap = new HashMap<>();
 
     static {
         for (CauseOfTransmission enumInstance : CauseOfTransmission.values()) {

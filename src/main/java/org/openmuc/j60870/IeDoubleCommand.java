@@ -41,7 +41,7 @@ public class IeDoubleCommand extends IeAbstractQualifierOfCommand {
 
         private final int id;
 
-        private static final Map<Integer, DoubleCommandState> idMap = new HashMap<Integer, DoubleCommandState>();
+        private static final Map<Integer, DoubleCommandState> idMap = new HashMap<>();
 
         static {
             for (DoubleCommandState enumInstance : DoubleCommandState.values()) {
