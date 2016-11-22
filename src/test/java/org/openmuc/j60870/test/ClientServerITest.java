@@ -171,22 +171,20 @@ public class ClientServerITest implements ServerEventListener, ConnectionEventLi
                     // send spontaneous packets
 
                     // 1
-                    serverConnection
-                            .send(new ASdu(TypeId.M_SP_NA_1, false, CauseOfTransmission.SPONTANEOUS, false, false, 0,
-                                    aSdu.getCommonAddress(),
-                                    new InformationObject[] {
-                                            new InformationObject(1,
-                                                    new InformationElement[][] { { new IeSinglePointWithQuality(true,
-                                                            true, true, true, true) } }),
-                                            new InformationObject(2,
-                                                    new InformationElement[][] { { new IeSinglePointWithQuality(false,
-                                                            false, false, false, false) } }) }));
+                    serverConnection.send(new ASdu(TypeId.M_SP_NA_1, false, CauseOfTransmission.SPONTANEOUS, false,
+                            false, 0, aSdu.getCommonAddress(),
+                            new InformationObject[] {
+                                    new InformationObject(1,
+                                            new InformationElement[][] {
+                                                    { new IeSinglePointWithQuality(true, true, true, true, true) } }),
+                                    new InformationObject(2, new InformationElement[][] {
+                                            { new IeSinglePointWithQuality(false, false, false, false, false) } }) }));
 
                     // 2
-                    serverConnection.send(new ASdu(TypeId.M_SP_NA_1, true, CauseOfTransmission.SPONTANEOUS, false,
-                            false, 0, aSdu.getCommonAddress(),
-                            new InformationObject[] { new InformationObject(1,
-                                    new InformationElement[][] {
+                    serverConnection
+                            .send(new ASdu(TypeId.M_SP_NA_1, true, CauseOfTransmission.SPONTANEOUS, false, false, 0,
+                                    aSdu.getCommonAddress(),
+                                    new InformationObject[] { new InformationObject(1, new InformationElement[][] {
                                             { new IeSinglePointWithQuality(true, true, true, true, true) },
                                             { new IeSinglePointWithQuality(false, false, false, false, false) } }) }));
 
@@ -205,30 +203,26 @@ public class ClientServerITest implements ServerEventListener, ConnectionEventLi
                                                             new IeTime24(60000) } }) }));
 
                     // 4
-                    serverConnection
-                            .send(new ASdu(TypeId.M_DP_NA_1, false, CauseOfTransmission.SPONTANEOUS, false, false,
-                                    0, aSdu
-                                            .getCommonAddress(),
-                                    new InformationObject[] { new InformationObject(1,
-                                            new InformationElement[][] {
-                                                    { new IeDoublePointWithQuality(DoublePointInformation.OFF, true,
-                                                            true, true, true) } }) }));
+                    serverConnection.send(new ASdu(TypeId.M_DP_NA_1, false, CauseOfTransmission.SPONTANEOUS, false,
+                            false, 0, aSdu.getCommonAddress(),
+                            new InformationObject[] { new InformationObject(1,
+                                    new InformationElement[][] {
+                                            { new IeDoublePointWithQuality(DoublePointInformation.OFF, true, true, true,
+                                                    true) } }) }));
 
                     // 5
-                    serverConnection
-                            .send(new ASdu(TypeId.M_ST_NA_1, true, CauseOfTransmission.SPONTANEOUS, false, false, 0,
-                                    aSdu.getCommonAddress(),
-                                    new InformationObject[] {
-                                            new InformationObject(1,
-                                                    new InformationElement[][] {
-                                                            { new IeValueWithTransientState(-5, true),
-                                                                    new IeQuality(true, true, true, true, true) },
-                                                            { new IeValueWithTransientState(-5, false),
-                                                                    new IeQuality(true, true, true, true, true) },
-                                                            { new IeValueWithTransientState(-64, true),
-                                                                    new IeQuality(true, true, true, true, true) },
-                                                            { new IeValueWithTransientState(10, false), new IeQuality(
-                                                                    true, true, true, true, true) } }) }));
+                    serverConnection.send(new ASdu(TypeId.M_ST_NA_1, true, CauseOfTransmission.SPONTANEOUS, false,
+                            false, 0, aSdu.getCommonAddress(),
+                            new InformationObject[] { new InformationObject(1,
+                                    new InformationElement[][] {
+                                            { new IeValueWithTransientState(-5, true),
+                                                    new IeQuality(true, true, true, true, true) },
+                                            { new IeValueWithTransientState(-5, false),
+                                                    new IeQuality(true, true, true, true, true) },
+                                            { new IeValueWithTransientState(-64, true),
+                                                    new IeQuality(true, true, true, true, true) },
+                                            { new IeValueWithTransientState(10, false),
+                                                    new IeQuality(true, true, true, true, true) } }) }));
 
                     // 6
                     serverConnection.send(new ASdu(TypeId.M_BO_NA_1, true, CauseOfTransmission.SPONTANEOUS, false,
@@ -286,25 +280,19 @@ public class ClientServerITest implements ServerEventListener, ConnectionEventLi
                                                     new IeTime16(300), new IeTime24(400) } }) }));
 
                     // 12
-                    serverConnection
-                            .send(new ASdu(TypeId.M_EP_TB_1, false, CauseOfTransmission.SPONTANEOUS, false, false, 0,
-                                    aSdu.getCommonAddress(),
-                                    new InformationObject[] {
-                                            new InformationObject(1,
-                                                    new InformationElement[][] { {
-                                                            new IeProtectionStartEvent(true, true, true, true, true,
-                                                                    true),
-                                                            new IeProtectionQuality(true, true, true, true, true),
-                                                            new IeTime16(300), new IeTime24(400) } }) }));
+                    serverConnection.send(new ASdu(TypeId.M_EP_TB_1, false, CauseOfTransmission.SPONTANEOUS, false,
+                            false, 0, aSdu.getCommonAddress(),
+                            new InformationObject[] { new InformationObject(1,
+                                    new InformationElement[][] {
+                                            { new IeProtectionStartEvent(true, true, true, true, true, true),
+                                                    new IeProtectionQuality(true, true, true, true, true),
+                                                    new IeTime16(300), new IeTime24(400) } }) }));
 
-                    serverConnection
-                            .send(new ASdu(TypeId.M_PS_NA_1, false, CauseOfTransmission.SPONTANEOUS, false, false, 0,
-                                    aSdu.getCommonAddress(),
-                                    new InformationObject[] {
-                                            new InformationObject(1,
-                                                    new InformationElement[][] { {
-                                                            new IeStatusAndStatusChanges(0xff0000ff), new IeQuality(
-                                                                    true, true, true, true, true) } }) }));
+                    serverConnection.send(new ASdu(TypeId.M_PS_NA_1, false, CauseOfTransmission.SPONTANEOUS, false,
+                            false, 0, aSdu.getCommonAddress(),
+                            new InformationObject[] { new InformationObject(1,
+                                    new InformationElement[][] { { new IeStatusAndStatusChanges(0xff0000ff),
+                                            new IeQuality(true, true, true, true, true) } }) }));
 
                     Thread.sleep(1000);
 
@@ -314,9 +302,8 @@ public class ClientServerITest implements ServerEventListener, ConnectionEventLi
                                     new InformationElement[][] { { new IeNormalizedValue(3) } }) }));
 
                     serverConnection
-                            .send(new ASdu(TypeId.M_SP_TB_1, false, CauseOfTransmission.SPONTANEOUS, false, false,
-                                    0, aSdu
-                                            .getCommonAddress(),
+                            .send(new ASdu(TypeId.M_SP_TB_1, false, CauseOfTransmission.SPONTANEOUS, false, false, 0,
+                                    aSdu.getCommonAddress(),
                                     new InformationObject[] {
                                             new InformationObject(1,
                                                     new InformationElement[][] { {
@@ -324,14 +311,12 @@ public class ClientServerITest implements ServerEventListener, ConnectionEventLi
                                                             new IeTime56(serverTimestamp) } }) }));
 
                     // 16
-                    serverConnection
-                            .send(new ASdu(TypeId.M_IT_TB_1, false, CauseOfTransmission.SPONTANEOUS, false, false,
-                                    0, aSdu
-                                            .getCommonAddress(),
-                                    new InformationObject[] { new InformationObject(1,
-                                            new InformationElement[][] {
-                                                    { new IeBinaryCounterReading(-300, 5, true, true, true),
-                                                            new IeTime56(serverTimestamp) } }) }));
+                    serverConnection.send(new ASdu(TypeId.M_IT_TB_1, false, CauseOfTransmission.SPONTANEOUS, false,
+                            false, 0, aSdu.getCommonAddress(),
+                            new InformationObject[] { new InformationObject(1,
+                                    new InformationElement[][] {
+                                            { new IeBinaryCounterReading(-300, 5, true, true, true),
+                                                    new IeTime56(serverTimestamp) } }) }));
 
                     serverConnection.send(new ASdu(TypeId.PRIVATE_136, false, 1, CauseOfTransmission.SPONTANEOUS, false,
                             false, 0, aSdu.getCommonAddress(), new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 }));
@@ -576,12 +561,12 @@ public class ClientServerITest implements ServerEventListener, ConnectionEventLi
                 IeNormalizedValue normalizedValue = (IeNormalizedValue) aSdu.getInformationObjects()[0]
                         .getInformationElements()[0][0];
 
-                Assert.assertEquals(-32768, normalizedValue.getValue());
+                Assert.assertEquals(-32768, normalizedValue.getUnnormalizedValue());
 
                 IeNormalizedValue normalizedValue2 = (IeNormalizedValue) aSdu.getInformationObjects()[0]
                         .getInformationElements()[1][0];
 
-                Assert.assertEquals(0, normalizedValue2.getValue());
+                Assert.assertEquals(0, normalizedValue2.getUnnormalizedValue());
                 counter2++;
             }
             else if (counter == 8) {
@@ -589,12 +574,12 @@ public class ClientServerITest implements ServerEventListener, ConnectionEventLi
                 IeScaledValue scaledValue = (IeScaledValue) aSdu.getInformationObjects()[0]
                         .getInformationElements()[0][0];
 
-                Assert.assertEquals(-32768, scaledValue.getValue());
+                Assert.assertEquals(-32768, scaledValue.getUnnormalizedValue());
 
                 IeScaledValue scaledValue2 = (IeScaledValue) aSdu.getInformationObjects()[0]
                         .getInformationElements()[1][0];
 
-                Assert.assertEquals(10, scaledValue2.getValue());
+                Assert.assertEquals(10, scaledValue2.getUnnormalizedValue());
                 counter2++;
             }
             else if (counter == 9) {
@@ -704,7 +689,7 @@ public class ClientServerITest implements ServerEventListener, ConnectionEventLi
                 IeNormalizedValue normalizedValue = (IeNormalizedValue) aSdu.getInformationObjects()[0]
                         .getInformationElements()[0][0];
 
-                Assert.assertEquals(3, normalizedValue.getValue());
+                Assert.assertEquals(3, normalizedValue.getUnnormalizedValue());
 
                 counter2++;
             }

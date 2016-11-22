@@ -75,7 +75,7 @@ final class ServerThread extends Thread {
     @Override
     public void run() {
 
-        ExecutorService executor = Executors.newFixedThreadPool(maxConnections);
+        ExecutorService executor = Executors.newCachedThreadPool();
         try {
 
             Socket clientSocket = null;

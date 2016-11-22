@@ -41,7 +41,7 @@ public class IeRegulatingStepCommand extends IeAbstractQualifierOfCommand {
 
         private final int id;
 
-        private static final Map<Integer, StepCommandState> idMap = new HashMap<Integer, StepCommandState>();
+        private static final Map<Integer, StepCommandState> idMap = new HashMap<>();
 
         static {
             for (StepCommandState enumInstance : StepCommandState.values()) {

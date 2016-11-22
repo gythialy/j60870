@@ -2,9 +2,9 @@ package org.openmuc.j60870.internal.cli;
 
 public abstract class CliParameter {
 
-    String name;
-    String description;
-    boolean optional;
+    final String name;
+    final String description;
+    final boolean optional;
     boolean selected;
 
     CliParameter(CliParameterBuilder builder) {

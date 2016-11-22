@@ -1,5 +1,5 @@
-j60870 User Guide
-=================
+= j60870 User Guide
+include::common-settings.txt[]
 
 :numbered:
 
@@ -20,13 +20,11 @@ found in the folder /build/libs.
 
 == Getting Started
 
-=== Client
-
 The easiest way to get started is by taking a look at the code of the
-console client which can be found here:
-src/main/java/org/openmuc/j60870/app/ConsoleClient.java . This
-application in combination with the javadoc should satisfy most of
-your documentation needs.
+console client and the sample server which can be found here:
+src/main/java/org/openmuc/j60870/app/ . These applications in
+combination with the javadoc should satisfy most of your documentation
+needs.
 
 Here is a short summary of the steps to get a client running:
 
@@ -51,14 +49,6 @@ Here is a short summary of the steps to get a client running:
 
 * You can use the Connection instance to send commands.
 
-=== Server
-
-The easiest way to get started programming an IEC 60870-5-104 server
-is by taking a look at the SampleServer located at:
-src/sample/java/SampleServer.java . The easiest way to run the sample
-server is by importing the project into Eclipse and run it from
-there. This is explained here:
-https://www.openmuc.org/faq/
 
 == Terminology
 

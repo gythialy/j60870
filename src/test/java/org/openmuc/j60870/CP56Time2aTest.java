@@ -23,12 +23,6 @@ package org.openmuc.j60870;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Locale;
-import java.util.TimeZone;
-
 public class CP56Time2aTest {
 
     @Test
@@ -37,10 +31,9 @@ public class CP56Time2aTest {
         IeTime56 time = new IeTime56(timestamp);
         byte[] buffer = new byte[7];
         time.encode(buffer, 0);
-
-        Assert.assertArrayEquals(new byte[]{0x44, (byte) 0xd5, 0x1e, 0x17, 0x5d, 0x0a, 0x0d},
-                buffer);
+        Assert.assertArrayEquals(new byte[] { 0x44, (byte) 0xd5, 0x1e, 0x17, 0x5d, 0x0a, 0x0d }, buffer);
 
         Assert.assertEquals(timestamp, time.getTimestamp());
+
     }
 }

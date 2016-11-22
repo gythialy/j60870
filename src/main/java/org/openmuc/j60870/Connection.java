@@ -63,6 +63,7 @@ public class Connection {
     private final DataInputStream is;
 
     private boolean closed = false;
+    private boolean dataTransferStarted = false;
 
     private final ConnectionSettings settings;
     private ConnectionEventListener aSduListener = null;
@@ -97,7 +98,7 @@ public class Connection {
 
     private CountDownLatch startdtactSignal;
     private CountDownLatch startdtConSignal;
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final ExecutorService newAsduNotificationExecutor = Executors.newSingleThreadExecutor();
 
     private class ConnectionReader extends Thread {
 
@@ -122,6 +123,10 @@ public class Connection {
                         switch (aPdu.getApciType()) {
                         case I_FORMAT:
 
+                            if (dataTransferStarted == false) {
+                                break;
+                            }
+
                             if (receiveSequenceNumber != aPdu.getSendSeqNumber()) {
                                 throw new IOException("Got unexpected send sequence number: " + aPdu.getSendSeqNumber()
                                         + ", expected: " + receiveSequenceNumber);
@@ -132,7 +137,7 @@ public class Connection {
                             handleReceiveSequenceNumber(aPdu);
 
                             if (aSduListener != null) {
-                                executor.execute(new Runnable() {
+                                newAsduNotificationExecutor.execute(new Runnable() {
                                     @Override
                                     public void run() {
                                         aSduListener.newASdu(aPdu.getASdu());
@@ -216,16 +221,19 @@ public class Connection {
             } catch (Exception e2) {
                 closedIOException = new IOException("Unexpected Exception", e2);
             } finally {
-                if (closed == false) {
-                    close();
-                    if (aSduListener != null) {
-                        aSduListener.connectionClosed(closedIOException);
+                synchronized (Connection.this) {
+                    if (closed == false) {
+                        close();
+                        if (aSduListener != null) {
+                            aSduListener.connectionClosed(closedIOException);
+                        }
                     }
+                    maxTimeNoAckSentTimer.shutdownNow();
+                    maxTimeNoAckReceivedTimer.shutdownNow();
+                    maxIdleTimeTimer.shutdownNow();
+                    maxTimeNoTestConReceivedTimer.shutdownNow();
+                    newAsduNotificationExecutor.shutdownNow();
                 }
-                maxTimeNoAckSentTimer.shutdownNow();
-                maxTimeNoAckReceivedTimer.shutdownNow();
-                maxIdleTimeTimer.shutdownNow();
-                maxTimeNoTestConReceivedTimer.shutdownNow();
             }
         }
 
@@ -304,9 +312,8 @@ public class Connection {
             throw new IllegalArgumentException("timeout may not be negative");
         }
 
-        startdtConSignal = new CountDownLatch(1);
-
         synchronized (this) {
+            startdtConSignal = new CountDownLatch(1);
             os.write(STARTDT_ACT_BUFFER, 0, STARTDT_ACT_BUFFER.length);
         }
         os.flush();
@@ -328,7 +335,10 @@ public class Connection {
             }
         }
 
-        this.aSduListener = listener;
+        synchronized (this) {
+            this.aSduListener = listener;
+            dataTransferStarted = true;
+        }
     }
 
     /**
@@ -370,10 +380,10 @@ public class Connection {
 
         synchronized (this) {
             os.write(STARTDT_CON_BUFFER, 0, STARTDT_CON_BUFFER.length);
+            this.aSduListener = listener;
+            dataTransferStarted = true;
         }
         os.flush();
-
-        this.aSduListener = listener;
 
         resetMaxIdleTimeTimer();
     }
@@ -424,9 +434,10 @@ public class Connection {
     /**
      * Will close the TCP connection to the server if its still open and free any resources of this connection.
      */
-    public void close() {
+    public synchronized void close() {
         if (!closed) {
             closed = true;
+            dataTransferStarted = false;
             try {
                 // will also close socket
                 os.close();
@@ -442,28 +453,25 @@ public class Connection {
         }
     }
 
-    public void send(ASdu aSdu) throws IOException {
+    public synchronized void send(ASdu aSdu) throws IOException {
 
-        synchronized (this) {
+        acknowledgedReceiveSequenceNumber = receiveSequenceNumber;
+        APdu requestAPdu = new APdu(sendSequenceNumber, receiveSequenceNumber, APCI_TYPE.I_FORMAT, aSdu);
+        sendSequenceNumber = (sendSequenceNumber + 1) % 32768;
 
-            acknowledgedReceiveSequenceNumber = receiveSequenceNumber;
-            APdu requestAPdu = new APdu(sendSequenceNumber, receiveSequenceNumber, APCI_TYPE.I_FORMAT, aSdu);
-            sendSequenceNumber = (sendSequenceNumber + 1) % 32768;
-
-            if (maxTimeNoAckSentFuture != null) {
-                maxTimeNoAckSentFuture.cancel(true);
-                maxTimeNoAckSentFuture = null;
-            }
-
-            if (maxTimeNoAckReceivedFuture == null) {
-                scheduleMaxTimeNoAckReceivedFuture();
-            }
-
-            int length = requestAPdu.encode(buffer, settings);
-            os.write(buffer, 0, length);
-            os.flush();
-            resetMaxIdleTimeTimer();
+        if (maxTimeNoAckSentFuture != null) {
+            maxTimeNoAckSentFuture.cancel(true);
+            maxTimeNoAckSentFuture = null;
         }
+
+        if (maxTimeNoAckReceivedFuture == null) {
+            scheduleMaxTimeNoAckReceivedFuture();
+        }
+
+        int length = requestAPdu.encode(buffer, settings);
+        os.write(buffer, 0, length);
+        os.flush();
+        resetMaxIdleTimeTimer();
     }
 
     private void scheduleMaxTimeNoAckReceivedFuture() {

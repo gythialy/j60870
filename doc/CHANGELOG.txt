@@ -1,8 +1,24 @@
+v1.1.1 04-Oct-2016
+------------------
+
+- replaced fixed thread pool by cached thread pool so that unused
+  threads are closed
+
+- ASDU notification correctly closed when connection is closed thanks
+  to Mr. Tellenbach
+
+- Client no longer closes connection if data is received before
+  START_DT CON message, but data is discarded instead.
+
+- improved normalized value and binary state information element
+  classes, but did not change API behaviour
+
+
 v1.1.0 06-Jun-2016
 ------------------
 - Renamed ClientSap to ClientConnectionBuilder and ServerSap to
   Server.Builder
-- fixed time conversion to ms of IeTime24 thanks to Jürgen Wieferink
+- fixed time conversion to ms of IeTime24 thanks to Juergen Wieferink
   from BTC AG
 - added stopListening() to ServerSap allowing for clean close
 - refactored console client
