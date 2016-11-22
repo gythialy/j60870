@@ -36,20 +36,21 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.openmuc.j60870.APdu.APCI_TYPE;
+import org.openmuc.j60870.internal.ConnectionSettings;
 
 /**
- * Represents a connection between a client and a server. It is created either through an instance of {@link ClientSap}
- * or passed to {@link ServerSapListener}. Once it has been closed it cannot be opened again. A newly created connection
- * has successfully build up a TCP/IP connection to the server. Before receiving ASDUs or sending commands one has to
- * call {@link Connection#startDataTransfer(ConnectionEventListener, int)} or
+ * Represents a connection between a client and a server. It is created either through an instance of
+ * {@link ClientConnectionBuilder} or passed to {@link ServerEventListener}. Once it has been closed it cannot be opened
+ * again. A newly created connection has successfully build up a TCP/IP connection to the server. Before receiving ASDUs
+ * or sending commands one has to call {@link Connection#startDataTransfer(ConnectionEventListener, int)} or
  * {@link Connection#waitForStartDT(ConnectionEventListener, int)}. Afterwards incoming ASDUs are forwarded to the
  * {@link ConnectionEventListener}. Incoming ASDUs are queued so that {@link ConnectionEventListener#newASdu(ASdu)} is
- * never called simultaneously for the same connection. Note that the ASduListener is not notified of incoming
- * confirmation messages (CONs).
+ * never called simultaneously for the same connection.
  *
  * Connection offers a method for every possible command defined by IEC 60870 (e.g. singleCommand). Every command
  * function may throw an IOException indicating a fatal connection error. In this case the connection will be
- * automatically closed and a new connection will have to be built up.
+ * automatically closed and a new connection will have to be built up. The command methods do not wait for an
+ * acknowledgment but return right after the command has been sent.
  *
  * @author Stefan Feuerhahn
  *
@@ -697,7 +698,7 @@ public class Connection {
      */
     public void regulatingStepCommandWithTimeTag(int commonAddress, CauseOfTransmission cot,
             int informationObjectAddress, IeRegulatingStepCommand regulatingStepCommand, IeTime56 timeTag)
-                    throws IOException {
+            throws IOException {
 
         ASdu aSdu = new ASdu(TypeId.C_RC_TA_1, false, cot, false, false, originatorAddress, commonAddress,
                 new InformationObject[] { new InformationObject(informationObjectAddress,
@@ -1157,7 +1158,7 @@ public class Connection {
 
     public void sectionReady(int commonAddress, int informationObjectAddress, IeNameOfFile nameOfFile,
             IeNameOfSection nameOfSection, IeLengthOfFileOrSection lengthOfSection, IeSectionReadyQualifier qualifier)
-                    throws IOException {
+            throws IOException {
         ASdu aSdu = new ASdu(TypeId.F_SR_NA_1, false, CauseOfTransmission.FILE_TRANSFER, false, false,
                 originatorAddress, commonAddress,
                 new InformationObject[] { new InformationObject(informationObjectAddress,
@@ -1167,7 +1168,7 @@ public class Connection {
 
     public void callOrSelectFiles(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
             IeNameOfFile nameOfFile, IeNameOfSection nameOfSection, IeSelectAndCallQualifier qualifier)
-                    throws IOException {
+            throws IOException {
         ASdu aSdu = new ASdu(TypeId.F_SC_NA_1, false, cot, false, false, originatorAddress, commonAddress,
                 new InformationObject[] { new InformationObject(informationObjectAddress,
                         new InformationElement[][] { { nameOfFile, nameOfSection, qualifier } }) });
@@ -1176,7 +1177,7 @@ public class Connection {
 
     public void lastSectionOrSegment(int commonAddress, int informationObjectAddress, IeNameOfFile nameOfFile,
             IeNameOfSection nameOfSection, IeLastSectionOrSegmentQualifier qualifier, IeChecksum checksum)
-                    throws IOException {
+            throws IOException {
         ASdu aSdu = new ASdu(TypeId.F_LS_NA_1, false, CauseOfTransmission.FILE_TRANSFER, false, false,
                 originatorAddress, commonAddress,
                 new InformationObject[] { new InformationObject(informationObjectAddress,

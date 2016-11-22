@@ -1,5 +1,14 @@
-v1.0 24-Feb-2016
-----------------
+v1.1.0 06-Jun-2016
+------------------
+- Renamed ClientSap to ClientConnectionBuilder and ServerSap to
+  Server.Builder
+- fixed time conversion to ms of IeTime24 thanks to Jürgen Wieferink
+  from BTC AG
+- added stopListening() to ServerSap allowing for clean close
+- refactored console client
+
+v1.0.0 24-Feb-2016
+------------------
 - fixed bug when creating multiple parallel connections using
   the same ClientSap
 - fixed a synchronization problem in the server implementation

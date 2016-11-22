@@ -26,18 +26,20 @@ import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.openmuc.j60870.internal.ConnectionSettings;
+
 final class ServerThread extends Thread {
 
     private final ServerSocket serverSocket;
     private final ConnectionSettings settings;
     private final int maxConnections;
-    private final ServerSapListener serverSapListener;
+    private final ServerEventListener serverSapListener;
 
     private boolean stopServer = false;
     private int numConnections = 0;
 
     ServerThread(ServerSocket serverSocket, ConnectionSettings settings, int maxConnections,
-            ServerSapListener serverSapListener) {
+            ServerEventListener serverSapListener) {
         this.serverSocket = serverSocket;
         this.settings = settings;
         this.maxConnections = maxConnections;

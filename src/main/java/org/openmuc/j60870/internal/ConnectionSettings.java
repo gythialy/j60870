@@ -18,9 +18,9 @@
  * along with j60870.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-package org.openmuc.j60870;
+package org.openmuc.j60870.internal;
 
-final class ConnectionSettings {
+public final class ConnectionSettings {
 
     public int messageFragmentTimeout = 5000;
 

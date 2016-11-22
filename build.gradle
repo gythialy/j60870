@@ -6,14 +6,34 @@ buildscript {
   }
   dependencies {
     classpath "net.saliman:gradle-cobertura-plugin:2.2.8"
+    classpath group: "org.asciidoctor", name: "asciidoctorj-pdf", version: "1.5.0-alpha.11"
+
   }
 }
 
 plugins {
   id "org.sonarqube" version "1.0"
+  id "org.asciidoctor.convert" version "1.5.3"
 }
 
+apply plugin: "org.asciidoctor.convert"
+apply plugin: "java"
 apply from: "configuration.gradle"
+
+asciidoctor {
+  backends = ["pdf", "html5"]
+  attributes	"stylesheet": "openmuc-asciidoc.css",
+  "toc2": "left",
+  "sampleSrc": file("src/sample/java"),
+  "pdf-stylesdir": "./",
+  "pdf-style": "pdf"
+
+  resources {
+    from("$sourceDir") {
+      include "images/**"
+    }	
+  }
+}
 
 configure(allprojects) {
   version = cfgVersion
@@ -122,8 +142,9 @@ configure(javaProjects) {
       }
     }
   }
-
-  build.dependsOn(jarAll)
+  
+  build.dependsOn {asciidoctor}
+  build.dependsOn {jarAll}
 
   eclipse.pathVariables([GRADLE_USER_HOME:file(gradle.gradleUserHomeDir)])
   tasks.eclipse.dependsOn(cleanEclipse)
@@ -158,7 +179,7 @@ configure(repositoryProjects) {
   if (cfgSignPom) {
     signing {
       if ( project.hasProperty('signing.keyId') ) {
-	sign configurations.archives
+        sign configurations.archives
       }
     }
   }
@@ -220,6 +241,8 @@ task javadocAll(type: Javadoc) {
   }
 
   exclude '**/internal/**'
+  exclude '**/java-gen/**'
+  exclude '**/app/**'
 
   destinationDir = new File(buildDir, 'docs/javadoc-all')
 
@@ -267,6 +290,7 @@ tasks.withType(Tar) {
   dependsOn(writeSettings)
   dependsOn(distributionProjects.build)
   dependsOn(javadocAll)
+  dependsOn(asciidoctor)
 
   compression = Compression.GZIP
   

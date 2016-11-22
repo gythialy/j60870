@@ -23,6 +23,8 @@ package org.openmuc.j60870;
 import java.io.DataInputStream;
 import java.io.IOException;
 
+import org.openmuc.j60870.internal.ConnectionSettings;
+
 final class APdu {
 
     public enum APCI_TYPE {

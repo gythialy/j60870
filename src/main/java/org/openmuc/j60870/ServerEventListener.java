@@ -22,7 +22,7 @@ package org.openmuc.j60870;
 
 import java.io.IOException;
 
-public interface ServerSapListener {
+public interface ServerEventListener {
 
     public void connectionIndication(Connection connection);
 

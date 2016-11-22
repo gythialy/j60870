@@ -64,7 +64,7 @@ public class IeTime24 extends InformationElement {
     }
 
     public int getTimeInMs() {
-        return (value[0] & 0xff) + ((value[1] & 0xff) << 8) + value[2] * 6000;
+        return (value[0] & 0xff) + ((value[1] & 0xff) << 8) + value[2] * 60000;
     }
 
     @Override

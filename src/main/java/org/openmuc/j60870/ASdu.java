@@ -23,6 +23,8 @@ package org.openmuc.j60870;
 import java.io.DataInputStream;
 import java.io.IOException;
 
+import org.openmuc.j60870.internal.ConnectionSettings;
+
 /**
  * The application service data unit (ASDU). The ASDU is the payload of the application protocol data unit (APDU). Its
  * structure is defined in IEC 60870-5-101. The ASDU consists of the Data Unit Identifier and a number of Information

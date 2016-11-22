@@ -1,7 +1,7 @@
 #!/bin/bash
 
 JARS_LOCATION="../build/libs"
-MAIN_CLASS="org.openmuc.j60870.app.ClientApp"
+MAIN_CLASS="org.openmuc.j60870.app.ConsoleClient"
 SYSPROPS=""
 PARAMS=""
 

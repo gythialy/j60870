@@ -1,7 +1,7 @@
 
 project.ext {
 
-  cfgVersion = '1.0.0'
+  cfgVersion = '1.1.0'
   
   cfgGroup = 'org.openmuc'
 
@@ -35,12 +35,12 @@ tasks.withType(Tar) {
       include 'build.gradle'
       include 'configuration.gradle'
       include 'license/**'
-      include 'doc/*.txt'
-      include 'doc/userguide/' + project.name + '-doc*.html'
-      include 'doc/userguide/' + project.name + '-doc_img/**'
+      include 'doc/CHANGELOG.txt'
       include 'run-scripts/**'
+      include 'gradle/wrapper/**'
+      include 'gradlew'
+      include 'gradlew.bat'
       include 'build/libs/**'
-      include 'build/docs/javadoc/**'
       include 'src/**'
     }
 
@@ -49,6 +49,22 @@ tasks.withType(Tar) {
     }
 
   }
+
+  into(project.name + '/doc/user-guide/') {
+    from('./build/asciidoc/html5/') {
+      include '**'
+    }
+    from('./build/asciidoc/pdf/') {
+      include '**'
+    }
+  }
+
+  into(project.name + '/doc/') {
+    from('./build/docs/') {
+      include 'javadoc/**'
+    }
+  }
+
 }
 
 
@@ -87,4 +103,3 @@ uploadArchives {
     }
   }
 }
-

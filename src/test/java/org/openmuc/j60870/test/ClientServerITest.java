@@ -27,7 +27,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.openmuc.j60870.ASdu;
 import org.openmuc.j60870.CauseOfTransmission;
-import org.openmuc.j60870.ClientSap;
+import org.openmuc.j60870.ClientConnectionBuilder;
 import org.openmuc.j60870.Connection;
 import org.openmuc.j60870.ConnectionEventListener;
 import org.openmuc.j60870.IeBinaryCounterReading;
@@ -55,18 +55,17 @@ import org.openmuc.j60870.IeTime56;
 import org.openmuc.j60870.IeValueWithTransientState;
 import org.openmuc.j60870.InformationElement;
 import org.openmuc.j60870.InformationObject;
-import org.openmuc.j60870.ServerSap;
-import org.openmuc.j60870.ServerSapListener;
+import org.openmuc.j60870.Server;
+import org.openmuc.j60870.ServerEventListener;
 import org.openmuc.j60870.TypeId;
 import org.openmuc.j60870.Util;
 
-public class ClientServerITest implements ServerSapListener, ConnectionEventListener {
+public class ClientServerITest implements ServerEventListener, ConnectionEventListener {
 
     private final static int port = 2404;
 
     String host = "127.0.0.1";
-    ClientSap clientSap = new ClientSap();
-    ServerSap serverSap = null;
+    Server serverSap = null;
     int counter = 0;
     int serverCounter = 0;
     int counter2 = 0;
@@ -179,16 +178,16 @@ public class ClientServerITest implements ServerSapListener, ConnectionEventList
                                             new InformationObject(1,
                                                     new InformationElement[][] { { new IeSinglePointWithQuality(true,
                                                             true, true, true, true) } }),
-                                    new InformationObject(2, new InformationElement[][] {
-                                            { new IeSinglePointWithQuality(false, false, false, false, false) } }) }));
+                                            new InformationObject(2,
+                                                    new InformationElement[][] { { new IeSinglePointWithQuality(false,
+                                                            false, false, false, false) } }) }));
 
                     // 2
-                    serverConnection
-                            .send(new ASdu(TypeId.M_SP_NA_1, true, CauseOfTransmission.SPONTANEOUS, false, false, 0,
-                                    aSdu.getCommonAddress(),
-                                    new InformationObject[] { new InformationObject(1,
-                                            new InformationElement[][] { { new IeSinglePointWithQuality(true, true,
-                                                    true, true, true) },
+                    serverConnection.send(new ASdu(TypeId.M_SP_NA_1, true, CauseOfTransmission.SPONTANEOUS, false,
+                            false, 0, aSdu.getCommonAddress(),
+                            new InformationObject[] { new InformationObject(1,
+                                    new InformationElement[][] {
+                                            { new IeSinglePointWithQuality(true, true, true, true, true) },
                                             { new IeSinglePointWithQuality(false, false, false, false, false) } }) }));
 
                     // 3
@@ -217,66 +216,60 @@ public class ClientServerITest implements ServerSapListener, ConnectionEventList
 
                     // 5
                     serverConnection
-                            .send(new ASdu(TypeId.M_ST_NA_1, true, CauseOfTransmission.SPONTANEOUS, false, false,
-                                    0, aSdu
-                                            .getCommonAddress(),
-                                    new InformationObject[] { new InformationObject(1,
-                                            new InformationElement[][] {
-                                                    { new IeValueWithTransientState(-5, true),
-                                                            new IeQuality(true, true, true, true, true) },
-                                                    { new IeValueWithTransientState(-5, false),
-                                                            new IeQuality(true, true, true, true, true) },
-                                            { new IeValueWithTransientState(-64, true),
-                                                    new IeQuality(true, true, true, true, true) },
-                                            { new IeValueWithTransientState(10, false),
-                                                    new IeQuality(true, true, true, true, true) } }) }));
-
-                    // 6
-                    serverConnection
-                            .send(new ASdu(TypeId.M_BO_NA_1, true, CauseOfTransmission.SPONTANEOUS, false, false, 0,
+                            .send(new ASdu(TypeId.M_ST_NA_1, true, CauseOfTransmission.SPONTANEOUS, false, false, 0,
                                     aSdu.getCommonAddress(),
                                     new InformationObject[] {
                                             new InformationObject(1,
                                                     new InformationElement[][] {
-                                                            { new IeBinaryStateInformation(0xff), new IeQuality(true,
-                                                                    true, true, true, true) },
-                                                    { new IeBinaryStateInformation(0xffffffff),
-                                                            new IeQuality(true, true, true, true, true) } }) }));
+                                                            { new IeValueWithTransientState(-5, true),
+                                                                    new IeQuality(true, true, true, true, true) },
+                                                            { new IeValueWithTransientState(-5, false),
+                                                                    new IeQuality(true, true, true, true, true) },
+                                                            { new IeValueWithTransientState(-64, true),
+                                                                    new IeQuality(true, true, true, true, true) },
+                                                            { new IeValueWithTransientState(10, false), new IeQuality(
+                                                                    true, true, true, true, true) } }) }));
+
+                    // 6
+                    serverConnection.send(new ASdu(TypeId.M_BO_NA_1, true, CauseOfTransmission.SPONTANEOUS, false,
+                            false, 0, aSdu.getCommonAddress(),
+                            new InformationObject[] { new InformationObject(1,
+                                    new InformationElement[][] {
+                                            { new IeBinaryStateInformation(0xff),
+                                                    new IeQuality(true, true, true, true, true) },
+                                            { new IeBinaryStateInformation(0xffffffff),
+                                                    new IeQuality(true, true, true, true, true) } }) }));
 
                     // 7
                     serverConnection.send(new ASdu(TypeId.M_ME_NA_1, true, CauseOfTransmission.SPONTANEOUS, false,
                             false, 0, aSdu.getCommonAddress(),
                             new InformationObject[] { new InformationObject(1, new InformationElement[][] {
-                                    { new IeNormalizedValue(-32768), new IeQuality(true, true, true, true, true) },
-                                    { new IeNormalizedValue(0), new IeQuality(true, true, true, true, true) } }) }));
+                                    { new IeNormalizedValue(-32768), new IeQuality(true, true, true, true, true) }, {
+                                            new IeNormalizedValue(0),
+                                            new IeQuality(true, true, true, true, true) } }) }));
 
                     // 8
-                    serverConnection
-                            .send(new ASdu(TypeId.M_ME_NB_1, true, CauseOfTransmission.SPONTANEOUS, false, false,
-                                    0, aSdu
-                                            .getCommonAddress(),
-                                    new InformationObject[] { new InformationObject(1,
-                                            new InformationElement[][] { { new IeScaledValue(-32768),
-                                                    new IeQuality(true, true, true, true, true) },
-                                            { new IeScaledValue(10), new IeQuality(true, true, true, true, true) },
-                                            { new IeScaledValue(-5),
-                                                    new IeQuality(true, true, true, true, true) } }) }));
+                    serverConnection.send(new ASdu(TypeId.M_ME_NB_1, true, CauseOfTransmission.SPONTANEOUS, false,
+                            false, 0, aSdu.getCommonAddress(),
+                            new InformationObject[] { new InformationObject(1, new InformationElement[][] {
+                                    { new IeScaledValue(-32768), new IeQuality(true, true, true, true, true) },
+                                    { new IeScaledValue(10), new IeQuality(true, true, true, true, true) },
+                                    { new IeScaledValue(-5), new IeQuality(true, true, true, true, true) } }) }));
 
                     serverConnection.send(new ASdu(TypeId.M_ME_NC_1, true, CauseOfTransmission.SPONTANEOUS, false,
                             false, 0, aSdu.getCommonAddress(),
                             new InformationObject[] { new InformationObject(1, new InformationElement[][] {
-                                    { new IeShortFloat(-32768.2f), new IeQuality(true, true, true, true, true) },
-                                    { new IeShortFloat(10.5f), new IeQuality(true, true, true, true, true) } }) }));
+                                    { new IeShortFloat(-32768.2f), new IeQuality(true, true, true, true, true) }, {
+                                            new IeShortFloat(10.5f),
+                                            new IeQuality(true, true, true, true, true) } }) }));
 
                     // 10
-                    serverConnection
-                            .send(new ASdu(TypeId.M_IT_NA_1, true, CauseOfTransmission.SPONTANEOUS, false, false, 0,
-                                    aSdu.getCommonAddress(),
-                                    new InformationObject[] {
-                                            new InformationObject(1,
-                                                    new InformationElement[][] { { new IeBinaryCounterReading(-300, 5,
-                                                            true, true, true) },
-                                                    { new IeBinaryCounterReading(-300, 4, false, false, false) } }) }));
+                    serverConnection.send(new ASdu(TypeId.M_IT_NA_1, true, CauseOfTransmission.SPONTANEOUS, false,
+                            false, 0, aSdu.getCommonAddress(),
+                            new InformationObject[] { new InformationObject(1,
+                                    new InformationElement[][] {
+                                            { new IeBinaryCounterReading(-300, 5, true, true, true) }, {
+                                                    new IeBinaryCounterReading(-300, 4, false, false, false) } }) }));
 
                     serverConnection.send(new ASdu(TypeId.M_EP_TA_1, false, CauseOfTransmission.SPONTANEOUS, false,
                             false, 0, aSdu.getCommonAddress(),
@@ -305,14 +298,13 @@ public class ClientServerITest implements ServerSapListener, ConnectionEventList
                                                             new IeTime16(300), new IeTime24(400) } }) }));
 
                     serverConnection
-                            .send(new ASdu(TypeId.M_PS_NA_1, false, CauseOfTransmission.SPONTANEOUS, false, false,
-                                    0, aSdu
-                                            .getCommonAddress(),
+                            .send(new ASdu(TypeId.M_PS_NA_1, false, CauseOfTransmission.SPONTANEOUS, false, false, 0,
+                                    aSdu.getCommonAddress(),
                                     new InformationObject[] {
                                             new InformationObject(1,
                                                     new InformationElement[][] { {
-                                                            new IeStatusAndStatusChanges(0xff0000ff),
-                                                            new IeQuality(true, true, true, true, true) } }) }));
+                                                            new IeStatusAndStatusChanges(0xff0000ff), new IeQuality(
+                                                                    true, true, true, true, true) } }) }));
 
                     Thread.sleep(1000);
 
@@ -366,11 +358,11 @@ public class ClientServerITest implements ServerSapListener, ConnectionEventList
     @Test
     public void testClientServerCom() throws Exception {
 
-        serverSap = new ServerSap(port, this);
-        serverSap.startListening();
+        serverSap = new Server.Builder().setPort(port).build();// (port, this);
+        serverSap.start(this);
 
-        Connection clientConnection = clientSap.connect(InetAddress.getByName("127.0.0.1"), port);
-
+        Connection clientConnection = new ClientConnectionBuilder(InetAddress.getByName("127.0.0.1")).setPort(port)
+                .connect();
         try {
 
             clientConnection.startDataTransfer(this, 5000);
