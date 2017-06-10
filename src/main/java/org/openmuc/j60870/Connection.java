@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-16 Fraunhofer ISE
+ * Copyright 2014-17 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -566,6 +566,8 @@ public class Connection {
      *
      * @param commonAddress
      *            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
+     * @param cot
+     *            the cause of transmission. Allowed are activation and deactivation.
      * @param informationObjectAddress
      *            the information object address.
      * @param singleCommand
@@ -573,15 +575,8 @@ public class Connection {
      * @throws IOException
      *             if a fatal communication error occurred.
      */
-    public void singleCommand(int commonAddress, int informationObjectAddress, IeSingleCommand singleCommand)
-            throws IOException {
-        CauseOfTransmission cot;
-        if (singleCommand.isCommandStateOn()) {
-            cot = CauseOfTransmission.ACTIVATION;
-        }
-        else {
-            cot = CauseOfTransmission.DEACTIVATION;
-        }
+    public void singleCommand(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
+            IeSingleCommand singleCommand) throws IOException {
         ASdu aSdu = new ASdu(TypeId.C_SC_NA_1, false, cot, false, false, originatorAddress, commonAddress,
                 new InformationObject[] { new InformationObject(informationObjectAddress,
                         new InformationElement[][] { { singleCommand } }) });
@@ -593,6 +588,8 @@ public class Connection {
      *
      * @param commonAddress
      *            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
+     * @param cot
+     *            the cause of transmission. Allowed are activation and deactivation.
      * @param informationObjectAddress
      *            the information object address.
      * @param singleCommand
@@ -602,15 +599,8 @@ public class Connection {
      * @throws IOException
      *             if a fatal communication error occurred.
      */
-    public void singleCommandWithTimeTag(int commonAddress, int informationObjectAddress, IeSingleCommand singleCommand,
-            IeTime56 timeTag) throws IOException {
-        CauseOfTransmission cot;
-        if (singleCommand.isCommandStateOn()) {
-            cot = CauseOfTransmission.ACTIVATION;
-        }
-        else {
-            cot = CauseOfTransmission.DEACTIVATION;
-        }
+    public void singleCommandWithTimeTag(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
+            IeSingleCommand singleCommand, IeTime56 timeTag) throws IOException {
         ASdu aSdu = new ASdu(TypeId.C_SC_TA_1, false, cot, false, false, originatorAddress, commonAddress,
                 new InformationObject[] { new InformationObject(informationObjectAddress,
                         new InformationElement[][] { { singleCommand, timeTag } }) });

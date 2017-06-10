@@ -1,3 +1,9 @@
+v1.2.0 04-Jan-2017
+------------------
+
+- CauseOfTransmission field can now be set explicilty when sending
+  SingleCommand (thanks to Dean Ouelette from RTDS).
+
 v1.1.1 04-Oct-2016
 ------------------
 

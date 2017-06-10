@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-16 Fraunhofer ISE
+ * Copyright 2014-17 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -356,7 +356,8 @@ public class ClientServerITest implements ServerEventListener, ConnectionEventLi
 
             int commonAddress = 1;
 
-            clientConnection.singleCommand(Util.convertToCommonAddress(63, 203), 1, new IeSingleCommand(true, 3, true));
+            clientConnection.singleCommand(Util.convertToCommonAddress(63, 203), CauseOfTransmission.ACTIVATION, 1,
+                    new IeSingleCommand(true, 3, true));
 
             clientConnection.synchronizeClocks(commonAddress, new IeTime56(System.currentTimeMillis()));
 

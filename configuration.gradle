@@ -1,9 +1,9 @@
 
 project.ext {
 
-  cfgVersion = '1.1.0'
+  cfgVersion = "1.2.0"
   
-  cfgGroup = 'org.openmuc'
+  cfgGroup = "org.openmuc"
 
   cfgCopyDependencies = false
 
@@ -31,37 +31,37 @@ project.ext {
 tasks.withType(Tar) {
 
   into(project.name) {
-    from('./') {
-      include 'build.gradle'
-      include 'configuration.gradle'
-      include 'license/**'
-      include 'doc/CHANGELOG.txt'
-      include 'run-scripts/**'
-      include 'gradle/wrapper/**'
-      include 'gradlew'
-      include 'gradlew.bat'
-      include 'build/libs/**'
-      include 'src/**'
+    from("./") {
+      include "build.gradle"
+      include "configuration.gradle"
+      include "license/**"
+      include "doc/CHANGELOG.txt"
+      include "run-scripts/**"
+      include "gradle/wrapper/**"
+      include "gradlew"
+      include "gradlew.bat"
+      include "build/libs/**"
+      include "src/**"
     }
 
     if (name.equals("tar") ){
-      exclude '**/dependencies/**/src'
+      exclude "**/dependencies/**/src"
     }
 
   }
 
-  into(project.name + '/doc/user-guide/') {
-    from('./build/asciidoc/html5/') {
-      include '**'
+  into(project.name + "/doc/user-guide/") {
+    from("./build/asciidoc/html5/") {
+      include "**"
     }
-    from('./build/asciidoc/pdf/') {
-      include '**'
+    from("./build/asciidoc/pdf/") {
+      include "*.pdf"
     }
   }
 
-  into(project.name + '/doc/') {
-    from('./build/docs/') {
-      include 'javadoc/**'
+  into(project.name + "/doc/") {
+    from("./build/docs/") {
+      include "javadoc/**"
     }
   }
 
@@ -70,17 +70,17 @@ tasks.withType(Tar) {
 
 //------------------project specific configurations--------------------
 
-apply plugin: 'java'
-apply plugin: 'eclipse'
-apply plugin: 'osgi'
-apply plugin: 'maven'
-apply plugin: 'signing'
+apply plugin: "java"
+apply plugin: "eclipse"
+apply plugin: "osgi"
+apply plugin: "maven"
+apply plugin: "signing"
 
 
 jar {
   manifest {
-    name = 'j60870'
-    instruction 'Export-Package', '!*.internal.*,*'
+    name = "j60870"
+    instruction "Export-Package", "!*.internal.*,*"
   }
 }
 
@@ -88,14 +88,14 @@ uploadArchives {
   repositories {
     mavenDeployer {
       pom.project {
-        name 'j60870'
-        description 'j60870 is an IEC 60870-5-104 client and server library.'
+        name "j60870"
+        description "j60870 is an IEC 60870-5-104 client and server library."
         
         licenses {
           license {
-            name 'GNU General Public License'
-            url 'http://www.gnu.org/copyleft/gpl-3.0.html'
-            distribution 'repo'
+            name "GNU General Public License"
+            url "http://www.gnu.org/copyleft/gpl-3.0.html"
+            distribution "repo"
           }
         }
         
