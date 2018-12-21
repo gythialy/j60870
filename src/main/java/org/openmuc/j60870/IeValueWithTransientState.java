@@ -25,9 +25,6 @@ import java.io.IOException;
 
 /**
  * Represents a value with transient state indication (VTI) information element.
- * 
- * 
- * 
  */
 public class IeValueWithTransientState extends InformationElement {
 
@@ -36,11 +33,9 @@ public class IeValueWithTransientState extends InformationElement {
 
     /**
      * Creates a VTI (value with transient state indication) information element.
-     * 
-     * @param value
-     *            value between -64 and 63
-     * @param transientState
-     *            true if in transient state
+     *
+     * @param value          value between -64 and 63
+     * @param transientState true if in transient state
      */
     public IeValueWithTransientState(int value, boolean transientState) {
 
@@ -60,8 +55,7 @@ public class IeValueWithTransientState extends InformationElement {
 
         if ((b1 & 0x40) == 0x40) {
             value = b1 | 0xffffff80;
-        }
-        else {
+        } else {
             value = b1 & 0x3f;
         }
 
@@ -72,8 +66,7 @@ public class IeValueWithTransientState extends InformationElement {
 
         if (transientState) {
             buffer[i] = (byte) (value | 0x80);
-        }
-        else {
+        } else {
             buffer[i] = (byte) (value & 0x7f);
         }
 

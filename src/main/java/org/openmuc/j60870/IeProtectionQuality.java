@@ -25,14 +25,11 @@ import java.io.IOException;
 
 /**
  * Represents a quality descriptor for events of protection equipment (QDP) information element.
- * 
- * 
- * 
  */
 public class IeProtectionQuality extends IeAbstractQuality {
 
     public IeProtectionQuality(boolean elapsedTimeInvalid, boolean blocked, boolean substituted, boolean notTopical,
-            boolean invalid) {
+                               boolean invalid) {
         super(blocked, substituted, notTopical, invalid);
 
         if (elapsedTimeInvalid) {

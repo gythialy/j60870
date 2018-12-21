@@ -25,14 +25,11 @@ import java.io.IOException;
 
 /**
  * Represents a single-point information with quality descriptor (SIQ) information element.
- * 
- * 
- * 
  */
 public class IeSinglePointWithQuality extends IeAbstractQuality {
 
     public IeSinglePointWithQuality(boolean on, boolean blocked, boolean substituted, boolean notTopical,
-            boolean invalid) {
+                                    boolean invalid) {
         super(blocked, substituted, notTopical, invalid);
 
         if (on) {

@@ -33,9 +33,6 @@ import java.util.Map;
  * <li>CC - additional information to distinguish different messages with the same function (e.g. "NA" for no timestamp
  * and "TA" for with timestamp)</li>
  * </ul>
- * 
- * 
- * 
  */
 public enum TypeId {
 
@@ -457,7 +454,7 @@ public enum TypeId {
 
     /**
      * Returns the description of this TypeId.
-     * 
+     *
      * @return the description
      */
     public String getDescription() {
@@ -466,7 +463,7 @@ public enum TypeId {
 
     /**
      * Returns the ID of this TypeId.
-     * 
+     *
      * @return the ID
      */
     public int getId() {
@@ -476,9 +473,8 @@ public enum TypeId {
     /**
      * Returns the TypeId that corresponds to the given ID. Returns <code>null</code> if no TypeId with the given ID
      * exists.
-     * 
-     * @param id
-     *            the ID
+     *
+     * @param id the ID
      * @return the TypeId that corresponds to the given ID
      */
     public static TypeId getInstance(int id) {

@@ -28,7 +28,7 @@ class CommonBuilder<T extends CommonBuilder<T>> {
 
     /**
      * Access the casted this reference.
-     * 
+     *
      * @return the reference of the object.
      */
     @SuppressWarnings("unchecked")
@@ -40,8 +40,7 @@ class CommonBuilder<T extends CommonBuilder<T>> {
      * Sets the length of the Cause Of Transmission (COT) field of the ASDU. Allowed values are 1 or 2. The default is
      * 2.
      *
-     * @param length
-     *            the length of the Cause Of Transmission field
+     * @param length the length of the Cause Of Transmission field
      * @return this builder
      */
     public T setCotFieldLength(int length) {
@@ -55,8 +54,7 @@ class CommonBuilder<T extends CommonBuilder<T>> {
     /**
      * Sets the length of the Common Address (CA) field of the ASDU. Allowed values are 1 or 2. The default is 2.
      *
-     * @param length
-     *            the length of the Common Address (CA) field
+     * @param length the length of the Common Address (CA) field
      * @return this builder
      */
     public T setCommonAddressFieldLength(int length) {
@@ -71,8 +69,7 @@ class CommonBuilder<T extends CommonBuilder<T>> {
      * Sets the length of the Information Object Address (IOA) field of the ASDU. Allowed values are 1, 2 or 3. The
      * default is 3.
      *
-     * @param length
-     *            the length of the Information Object Address field
+     * @param length the length of the Information Object Address field
      * @return this builder
      */
     public T setIoaFieldLength(int length) {
@@ -88,9 +85,8 @@ class CommonBuilder<T extends CommonBuilder<T>> {
      * actively closing the connection. This timeout is called t1 by the standard. Default is 15s, minimum is 1s,
      * maximum is 255s.
      *
-     * @param time
-     *            the maximum time in ms that no acknowledgement has been received before actively closing the
-     *            connection.
+     * @param time the maximum time in ms that no acknowledgement has been received before actively closing the
+     *             connection.
      * @return this builder
      */
     public T setMaxTimeNoAckReceived(int time) {
@@ -106,9 +102,8 @@ class CommonBuilder<T extends CommonBuilder<T>> {
      * Sets the maximum time in ms before confirming received messages that have not yet been acknowledged using an S
      * format APDU. This timeout is called t2 by the standard. Default is 10s, minimum is 1s, maximum is 255s.
      *
-     * @param time
-     *            the maximum time in ms before confirming received messages that have not yet been acknowledged using
-     *            an S format APDU.
+     * @param time the maximum time in ms before confirming received messages that have not yet been acknowledged using
+     *             an S format APDU.
      * @return this builder
      */
     public T setMaxTimeNoAckSent(int time) {
@@ -124,8 +119,7 @@ class CommonBuilder<T extends CommonBuilder<T>> {
      * Sets the maximum time in ms that the connection may be idle before sending a test frame. This timeout is called
      * t3 by the standard. Default is 20s, minimum is 1s, maximum is 172800s (48h).
      *
-     * @param time
-     *            the maximum time in ms that the connection may be idle before sending a test frame.
+     * @param time the maximum time in ms that the connection may be idle before sending a test frame.
      * @return this builder
      */
     public T setMaxIdleTime(int time) {
@@ -142,9 +136,8 @@ class CommonBuilder<T extends CommonBuilder<T>> {
      * format APDU to confirm them. This parameter is called w by the standard. Default is 8, minimum is 1, maximum is
      * 32767.
      *
-     * @param maxNum
-     *            the number of unacknowledged I format APDUs received before the connection will automatically send an
-     *            S format APDU to confirm them.
+     * @param maxNum the number of unacknowledged I format APDUs received before the connection will automatically send an
+     *               S format APDU to confirm them.
      * @return this builder
      */
     public T setMaxUnconfirmedIPdusReceived(int maxNum) {

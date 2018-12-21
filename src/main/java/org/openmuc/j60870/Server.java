@@ -20,18 +20,14 @@
  */
 package org.openmuc.j60870;
 
+import org.openmuc.j60870.internal.ConnectionSettings;
+
+import javax.net.ServerSocketFactory;
 import java.io.IOException;
 import java.net.InetAddress;
 
-import javax.net.ServerSocketFactory;
-
-import org.openmuc.j60870.internal.ConnectionSettings;
-
 /**
  * The server is used to start listening for IEC 60870-5-104 client connections.
- * 
- * 
- * 
  */
 public class Server {
 
@@ -56,9 +52,8 @@ public class Server {
 
         /**
          * Sets the TCP port that the server will listen on. IEC 60870-5-104 usually uses port 2404.
-         * 
-         * @param port
-         *            the port
+         *
+         * @param port the port
          * @return this builder
          */
         public Builder setPort(int port) {
@@ -68,9 +63,8 @@ public class Server {
 
         /**
          * Sets the backlog that is passed to the java.net.ServerSocket.
-         * 
-         * @param backlog
-         *            the backlog
+         *
+         * @param backlog the backlog
          * @return this builder
          */
         public Builder setBacklog(int backlog) {
@@ -80,9 +74,8 @@ public class Server {
 
         /**
          * Sets the IP address to bind to. It is passed to java.net.ServerSocket
-         * 
-         * @param bindAddr
-         *            the IP address to bind to
+         *
+         * @param bindAddr the IP address to bind to
          * @return this builder
          */
         public Builder setBindAddr(InetAddress bindAddr) {
@@ -93,9 +86,8 @@ public class Server {
         /**
          * Sets the ServerSocketFactory to be used to create the ServerSocket. Default is
          * ServerSocketFactory.getDefault().
-         * 
-         * @param socketFactory
-         *            the ServerSocketFactory to be used to create the ServerSocket
+         *
+         * @param socketFactory the ServerSocketFactory to be used to create the ServerSocket
          * @return this builder
          */
         public Builder setSocketFactory(ServerSocketFactory socketFactory) {
@@ -105,9 +97,8 @@ public class Server {
 
         /**
          * Set the maximum number of client connections that are allowed in parallel.
-         * 
-         * @param maxConnections
-         *            the number of connections allowed (default is 100) @ return this builder
+         *
+         * @param maxConnections the number of connections allowed (default is 100) @ return this builder
          * @return this builder
          */
         public Builder setMaxConnections(int maxConnections) {
@@ -135,12 +126,10 @@ public class Server {
 
     /**
      * Starts a new thread that listens on the configured port. This method is non-blocking.
-     * 
-     * @param listener
-     *            the ServerConnectionListener that will be notified when remote clients are connecting or the server
-     *            stopped listening.
-     * @throws IOException
-     *             if any kind of error occures while creating the server socket.
+     *
+     * @param listener the ServerConnectionListener that will be notified when remote clients are connecting or the server
+     *                 stopped listening.
+     * @throws IOException if any kind of error occures while creating the server socket.
      */
     public void start(ServerEventListener listener) throws IOException {
         serverThread = new ServerThread(serverSocketFactory.createServerSocket(port, backlog, bindAddr), settings,

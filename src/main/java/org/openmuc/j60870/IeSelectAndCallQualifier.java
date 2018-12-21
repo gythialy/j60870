@@ -24,9 +24,6 @@ import java.io.IOException;
 
 /**
  * Represents a select and call qualifier (SCQ) information element.
- * 
- * 
- * 
  */
 public class IeSelectAndCallQualifier extends InformationElement {
 

@@ -25,9 +25,6 @@ import java.io.IOException;
 
 /**
  * Represents a status of file (SOF) information element.
- * 
- * 
- * 
  */
 public class IeStatusOfFile extends InformationElement {
 
@@ -37,7 +34,7 @@ public class IeStatusOfFile extends InformationElement {
     private final boolean transferIsActive;
 
     public IeStatusOfFile(int status, boolean lastFileOfDirectory, boolean nameDefinesDirectory,
-            boolean transferIsActive) {
+                          boolean transferIsActive) {
         this.status = status;
         this.lastFileOfDirectory = lastFileOfDirectory;
         this.nameDefinesDirectory = nameDefinesDirectory;

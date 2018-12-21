@@ -25,9 +25,6 @@ import java.io.IOException;
 
 /**
  * Represents a qualifier of parameter activation (QPA) information element.
- * 
- * 
- * 
  */
 public class IeQualifierOfParameterActivation extends InformationElement {
 

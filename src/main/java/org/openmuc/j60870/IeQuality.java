@@ -25,9 +25,6 @@ import java.io.IOException;
 
 /**
  * Represents a quality descriptor (QDS) information element.
- * 
- * 
- * 
  */
 public class IeQuality extends IeAbstractQuality {
 

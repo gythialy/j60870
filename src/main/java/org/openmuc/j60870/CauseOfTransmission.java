@@ -27,9 +27,6 @@ import java.util.Map;
  * Every ASDU contains a single Cause Of Transmission field so the recipient knows why the message it received was sent.
  * Parts IEC 60870-5-101 and IEC 60870-5-104 define what CauseOfTransmissions are allowed for the different ASDU types.
  * CauseOfTransmissions 44 to 47 are meant for replies to commands with undefined values.
- * 
- * 
- * 
  */
 public enum CauseOfTransmission {
 
@@ -91,7 +88,7 @@ public enum CauseOfTransmission {
 
     /**
      * Returns the ID of this CauseOfTransmission.
-     * 
+     *
      * @return the ID.
      */
     public int getId() {
@@ -101,9 +98,8 @@ public enum CauseOfTransmission {
     /**
      * Returns the CauseOfTransmission that corresponds to the given ID. Returns <code>null</code> if no
      * CauseOfTransmission with the given ID exists.
-     * 
-     * @param id
-     *            the ID
+     *
+     * @param id the ID
      * @return the CauseOfTransmission that corresponds to the given ID
      */
     public static CauseOfTransmission getInstance(int id) {

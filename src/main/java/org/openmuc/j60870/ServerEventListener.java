@@ -30,8 +30,7 @@ public interface ServerEventListener {
      * This function is only called when an IOException in ServerSocket.accept() occurred which was not forced using
      * ServerSap.stopListening()
      *
-     * @param e
-     *            The IOException caught form ServerSocket.accept()
+     * @param e The IOException caught form ServerSocket.accept()
      */
     public void serverStoppedListeningIndication(IOException e);
 

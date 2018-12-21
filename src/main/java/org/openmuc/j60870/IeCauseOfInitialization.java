@@ -25,9 +25,6 @@ import java.io.IOException;
 
 /**
  * Represents a cause of initialization (COI) information element.
- * 
- * 
- * 
  */
 public class IeCauseOfInitialization extends InformationElement {
 
@@ -36,12 +33,10 @@ public class IeCauseOfInitialization extends InformationElement {
 
     /**
      * Creates a COI (cause of initialization) information element.
-     * 
-     * @param value
-     *            value between 0 and 127
-     * @param initAfterParameterChange
-     *            true if initialization after change of local parameters and false if initialization with unchanged
-     *            local parameters
+     *
+     * @param value                    value between 0 and 127
+     * @param initAfterParameterChange true if initialization after change of local parameters and false if initialization with unchanged
+     *                                 local parameters
      */
     public IeCauseOfInitialization(int value, boolean initAfterParameterChange) {
 
@@ -68,8 +63,7 @@ public class IeCauseOfInitialization extends InformationElement {
 
         if (initAfterParameterChange) {
             buffer[i] = (byte) (value | 0x80);
-        }
-        else {
+        } else {
             buffer[i] = (byte) value;
         }
 

@@ -1,19 +1,19 @@
 /**
  * Copyright 2014-17 Fraunhofer ISE
- *
+ * <p>
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
- *
+ * <p>
  * j60870 is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
+ * <p>
  * j60870 is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * <p>
  * You should have received a copy of the GNU General Public License
  * along with j60870.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -27,21 +27,11 @@
  */
 package org.openmuc.j60870.app;
 
+import org.openmuc.j60870.*;
+
 import java.io.EOFException;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
-
-import org.openmuc.j60870.ASdu;
-import org.openmuc.j60870.CauseOfTransmission;
-import org.openmuc.j60870.Connection;
-import org.openmuc.j60870.ConnectionEventListener;
-import org.openmuc.j60870.IeQuality;
-import org.openmuc.j60870.IeScaledValue;
-import org.openmuc.j60870.InformationElement;
-import org.openmuc.j60870.InformationObject;
-import org.openmuc.j60870.Server;
-import org.openmuc.j60870.ServerEventListener;
-import org.openmuc.j60870.TypeId;
 
 public class SampleServer {
 
@@ -62,21 +52,21 @@ public class SampleServer {
                 try {
 
                     switch (aSdu.getTypeIdentification()) {
-                    // interrogation command
-                    case C_IC_NA_1:
-                        connection.sendConfirmation(aSdu);
-                        System.out.println("Got interrogation command. Will send scaled measured values.\n");
+                        // interrogation command
+                        case C_IC_NA_1:
+                            connection.sendConfirmation(aSdu);
+                            System.out.println("Got interrogation command. Will send scaled measured values.\n");
 
-                        connection.send(new ASdu(TypeId.M_ME_NB_1, true, CauseOfTransmission.SPONTANEOUS, false, false,
-                                0, aSdu.getCommonAddress(),
-                                new InformationObject[] { new InformationObject(1, new InformationElement[][] {
-                                        { new IeScaledValue(-32768), new IeQuality(true, true, true, true, true) },
-                                        { new IeScaledValue(10), new IeQuality(true, true, true, true, true) },
-                                        { new IeScaledValue(-5), new IeQuality(true, true, true, true, true) } }) }));
+                            connection.send(new ASdu(TypeId.M_ME_NB_1, true, CauseOfTransmission.SPONTANEOUS, false, false,
+                                    0, aSdu.getCommonAddress(),
+                                    new InformationObject[]{new InformationObject(1, new InformationElement[][]{
+                                            {new IeScaledValue(-32768), new IeQuality(true, true, true, true, true)},
+                                            {new IeScaledValue(10), new IeQuality(true, true, true, true, true)},
+                                            {new IeScaledValue(-5), new IeQuality(true, true, true, true, true)}})}));
 
-                        break;
-                    default:
-                        System.out.println("Got unknown request: " + aSdu + ". Will not confirm it.\n");
+                            break;
+                        default:
+                            System.out.println("Got unknown request: " + aSdu + ". Will not confirm it.\n");
                     }
 
                 } catch (EOFException e) {

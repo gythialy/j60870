@@ -25,9 +25,6 @@ import java.io.IOException;
 
 /**
  * Represents a name of file (NOF) information element.
- * 
- * 
- * 
  */
 public class IeNameOfFile extends InformationElement {
 

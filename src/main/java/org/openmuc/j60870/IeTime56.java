@@ -27,9 +27,6 @@ import java.util.TimeZone;
 
 /**
  * Represents a seven octet binary time (CP56Time2a) information element.
- * 
- * 
- * 
  */
 public class IeTime56 extends InformationElement {
 
@@ -37,13 +34,10 @@ public class IeTime56 extends InformationElement {
 
     /**
      * Creates a Time56 instance using the given timestamp and time zone.
-     * 
-     * @param timestamp
-     *            the timestamp that shall be used to calculate Time56
-     * @param timeZone
-     *            the time zone to use
-     * @param invalid
-     *            true if the time shall be marked as invalid
+     *
+     * @param timestamp the timestamp that shall be used to calculate Time56
+     * @param timeZone  the time zone to use
+     * @param invalid   true if the time shall be marked as invalid
      */
     public IeTime56(long timestamp, TimeZone timeZone, boolean invalid) {
         Calendar calendar = Calendar.getInstance(timeZone);
@@ -69,9 +63,8 @@ public class IeTime56 extends InformationElement {
 
     /**
      * Creates a valid Time56 instance using the given timestamp and the default time zone.
-     * 
-     * @param timestamp
-     *            the timestamp that shall be used to calculate Time56
+     *
+     * @param timestamp the timestamp that shall be used to calculate Time56
      */
     public IeTime56(long timestamp) {
         this(timestamp, TimeZone.getDefault(), false);
@@ -95,17 +88,15 @@ public class IeTime56 extends InformationElement {
 
     /**
      * Returns the timestamp in ms equivalent to this Time56 instance.
-     * 
+     * <p>
      * Note that Time56 does not store the century of the date. Therefore you have to pass the earliest possible year of
      * the Time56 instance. Say the year stored by Time56 is 10. From this information alone it is not possible to tell
      * whether the real year is 1910 or 2010 or 2110. If you pass 1970 as the start of century, then this function will
      * know that the year of the given date lies between 1970 and 2069 and can therefore calculate that the correct date
      * is 2010.
-     * 
-     * @param startOfCentury
-     *            The timestamp will
-     * @param timeZone
-     *            the timezone that shall be used to calculate the timestamp.
+     *
+     * @param startOfCentury The timestamp will
+     * @param timeZone       the timezone that shall be used to calculate the timestamp.
      * @return the timestamp in ms equivalent to this Time56 instance
      */
     public long getTimestamp(int startOfCentury, TimeZone timeZone) {
@@ -125,15 +116,14 @@ public class IeTime56 extends InformationElement {
 
     /**
      * Returns the timestamp in ms equivalent to this Time56 instance. The default time zone is used.
-     * 
+     * <p>
      * Note that Time56 does not store the century of the date. Therefore you have to pass the earliest possible year of
      * the Time56 instance. Say the year stored by Time56 is 10. From this information alone it is not possible to tell
      * whether the real year is 1910 or 2010 or 2110. If you pass 1970 as the start of century, then this function will
      * know that the year of the given date lies between 1970 and 2069 and can therefore calculate that the correct date
      * is 2010.
-     * 
-     * @param startOfCentury
-     *            The timestamp will
+     *
+     * @param startOfCentury The timestamp will
      * @return the timestamp in ms equivalent to this Time56 instance
      */
     public long getTimestamp(int startOfCentury) {
@@ -143,7 +133,7 @@ public class IeTime56 extends InformationElement {
     /**
      * Returns the timestamp in ms equivalent to this Time56 instance. Assumes that the given date is between 1970 and
      * 2070. The default time zone is used.
-     * 
+     *
      * @return the timestamp in ms equivalent to this Time56 instance
      */
     public long getTimestamp() {
@@ -152,7 +142,7 @@ public class IeTime56 extends InformationElement {
 
     /**
      * Returns the millisecond of the second. Returned values can range from 0 to 999.
-     * 
+     *
      * @return the millisecond of the second
      */
     public int getMillisecond() {
@@ -161,7 +151,7 @@ public class IeTime56 extends InformationElement {
 
     /**
      * Returns the second of the minute. Returned values can range from 0 to 59.
-     * 
+     *
      * @return the second of the minute
      */
     public int getSecond() {
@@ -170,7 +160,7 @@ public class IeTime56 extends InformationElement {
 
     /**
      * Returns the minute of the hour. Returned values can range from 0 to 59.
-     * 
+     *
      * @return the minute of the hour
      */
     public int getMinute() {
@@ -179,7 +169,7 @@ public class IeTime56 extends InformationElement {
 
     /**
      * Returns the hour of the day. Returned values can range from 0 to 23.
-     * 
+     *
      * @return the hour of the day
      */
     public int getHour() {
@@ -188,7 +178,7 @@ public class IeTime56 extends InformationElement {
 
     /**
      * Returns the day of the week. Returned values can range from 1 (Monday) to 7 (Sunday).
-     * 
+     *
      * @return the day of the week
      */
     public int getDayOfWeek() {
@@ -197,7 +187,7 @@ public class IeTime56 extends InformationElement {
 
     /**
      * Returns the day of the month. Returned values can range from 1 to 31.
-     * 
+     *
      * @return the day of the month
      */
     public int getDayOfMonth() {
@@ -206,7 +196,7 @@ public class IeTime56 extends InformationElement {
 
     /**
      * Returns the month of the year. Returned values can range from 1 (January) to 12 (December).
-     * 
+     *
      * @return the month of the year
      */
     public int getMonth() {
@@ -216,7 +206,7 @@ public class IeTime56 extends InformationElement {
     /**
      * Returns the year in the century. Returned values can range from 0 to 99. Note that the century is not stored by
      * Time56.
-     * 
+     *
      * @return the number of years in the century
      */
     public int getYear() {
@@ -225,7 +215,7 @@ public class IeTime56 extends InformationElement {
 
     /**
      * Returns true if summer time (i.e. Daylight Saving Time (DST)) is active.
-     * 
+     *
      * @return true if summer time (i.e. Daylight Saving Time (DST)) is active
      */
     public boolean isSummerTime() {
@@ -234,7 +224,7 @@ public class IeTime56 extends InformationElement {
 
     /**
      * Return true if time value is invalid.
-     * 
+     *
      * @return true if time value is invalid
      */
     public boolean isInvalid() {

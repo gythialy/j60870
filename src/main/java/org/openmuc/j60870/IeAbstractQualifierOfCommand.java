@@ -53,7 +53,7 @@ abstract class IeAbstractQualifierOfCommand extends InformationElement {
 
     /**
      * Returns true if the command selects and false if the command executes.
-     * 
+     *
      * @return true if the command selects and false if the command executes.
      */
     public boolean isSelect() {

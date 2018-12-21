@@ -25,9 +25,6 @@ import java.io.IOException;
 
 /**
  * Represents a qualifier of interrogation (QOI) information element.
- * 
- * 
- * 
  */
 public class IeQualifierOfInterrogation extends InformationElement {
 

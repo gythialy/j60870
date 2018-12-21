@@ -26,9 +26,6 @@ import java.util.Calendar;
 
 /**
  * Represents a three octet binary time (CP24Time2a) information element.
- * 
- * 
- * 
  */
 public class IeTime24 extends InformationElement {
 

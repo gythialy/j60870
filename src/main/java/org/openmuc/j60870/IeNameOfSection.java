@@ -25,9 +25,6 @@ import java.io.IOException;
 
 /**
  * Represents a name of section (NOS) information element.
- * 
- * 
- * 
  */
 public class IeNameOfSection extends InformationElement {
 

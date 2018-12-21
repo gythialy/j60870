@@ -20,30 +20,15 @@
  */
 package org.openmuc.j60870.app;
 
+import org.openmuc.j60870.*;
+import org.openmuc.j60870.internal.cli.*;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
-
-import org.openmuc.j60870.ASdu;
-import org.openmuc.j60870.CauseOfTransmission;
-import org.openmuc.j60870.ClientConnectionBuilder;
-import org.openmuc.j60870.Connection;
-import org.openmuc.j60870.ConnectionEventListener;
-import org.openmuc.j60870.IeQualifierOfInterrogation;
-import org.openmuc.j60870.IeTime56;
-import org.openmuc.j60870.internal.cli.Action;
-import org.openmuc.j60870.internal.cli.ActionException;
-import org.openmuc.j60870.internal.cli.ActionListener;
-import org.openmuc.j60870.internal.cli.ActionProcessor;
-import org.openmuc.j60870.internal.cli.CliParameter;
-import org.openmuc.j60870.internal.cli.CliParameterBuilder;
-import org.openmuc.j60870.internal.cli.CliParseException;
-import org.openmuc.j60870.internal.cli.CliParser;
-import org.openmuc.j60870.internal.cli.IntCliParameter;
-import org.openmuc.j60870.internal.cli.StringCliParameter;
 
 public final class ConsoleClient {
 
@@ -77,8 +62,7 @@ public final class ConsoleClient {
             System.out.print("Received connection closed signal. Reason: ");
             if (!e.getMessage().isEmpty()) {
                 System.out.println(e.getMessage());
-            }
-            else {
+            } else {
                 System.out.println("unknown");
             }
             actionProcessor.close();
@@ -92,18 +76,18 @@ public final class ConsoleClient {
         public void actionCalled(String actionKey) throws ActionException {
             try {
                 switch (actionKey) {
-                case INTERROGATION_ACTION_KEY:
-                    System.out.println("** Sending general interrogation command.");
-                    connection.interrogation(commonAddrParam.getValue(), CauseOfTransmission.ACTIVATION,
-                            new IeQualifierOfInterrogation(20));
-                    Thread.sleep(2000);
-                    break;
-                case CLOCK_SYNC_ACTION_KEY:
-                    System.out.println("** Sending synchronize clocks command.");
-                    connection.synchronizeClocks(commonAddrParam.getValue(), new IeTime56(System.currentTimeMillis()));
-                    break;
-                default:
-                    break;
+                    case INTERROGATION_ACTION_KEY:
+                        System.out.println("** Sending general interrogation command.");
+                        connection.interrogation(commonAddrParam.getValue(), CauseOfTransmission.ACTIVATION,
+                                new IeQualifierOfInterrogation(20));
+                        Thread.sleep(2000);
+                        break;
+                    case CLOCK_SYNC_ACTION_KEY:
+                        System.out.println("** Sending synchronize clocks command.");
+                        connection.synchronizeClocks(commonAddrParam.getValue(), new IeTime56(System.currentTimeMillis()));
+                        break;
+                    default:
+                        break;
                 }
             } catch (Exception e) {
                 throw new ActionException(e);

@@ -27,9 +27,6 @@ import java.util.Map;
 
 /**
  * Represents a regulating step command (RCO) information element.
- * 
- * 
- * 
  */
 public class IeRegulatingStepCommand extends IeAbstractQualifierOfCommand {
 
@@ -57,7 +54,7 @@ public class IeRegulatingStepCommand extends IeAbstractQualifierOfCommand {
 
         /**
          * Returns the ID of this StepCommandState.
-         * 
+         *
          * @return the ID
          */
         public int getId() {
@@ -67,9 +64,8 @@ public class IeRegulatingStepCommand extends IeAbstractQualifierOfCommand {
         /**
          * Returns the StepCommandState that corresponds to the given ID. Returns <code>null</code> if no
          * StepCommandState with the given ID exists.
-         * 
-         * @param id
-         *            the ID
+         *
+         * @param id the ID
          * @return the StepCommandState that corresponds to the given ID
          */
         public static StepCommandState getInstance(int id) {
@@ -80,13 +76,10 @@ public class IeRegulatingStepCommand extends IeAbstractQualifierOfCommand {
 
     /**
      * Create a Regulating Step Command Information Element.
-     * 
-     * @param commandState
-     *            the command state
-     * @param qualifier
-     *            the qualifier
-     * @param select
-     *            true if select, false if execute
+     *
+     * @param commandState the command state
+     * @param qualifier    the qualifier
+     * @param select       true if select, false if execute
      */
     public IeRegulatingStepCommand(StepCommandState commandState, int qualifier, boolean select) {
         super(qualifier, select);

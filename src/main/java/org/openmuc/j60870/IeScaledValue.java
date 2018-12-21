@@ -25,17 +25,13 @@ import java.io.IOException;
 
 /**
  * Represents a scaled value (SVA) information element.
- * 
- * 
- * 
  */
 public class IeScaledValue extends IeNormalizedValue {
 
     /**
      * Scaled value is a 16 bit integer (short) in the range from -32768 to 32767
-     * 
-     * @param value
-     *            value in the range -32768 to 32767
+     *
+     * @param value value in the range -32768 to 32767
      */
     public IeScaledValue(int value) {
         super(value);

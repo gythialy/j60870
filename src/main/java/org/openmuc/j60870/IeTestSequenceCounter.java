@@ -25,9 +25,6 @@ import java.io.IOException;
 
 /**
  * Represents a test sequence Counter (TSC) information element.
- * 
- * 
- * 
  */
 public class IeTestSequenceCounter extends InformationElement {
 

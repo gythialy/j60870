@@ -25,9 +25,6 @@ import java.io.IOException;
 
 /**
  * Represents a single event of protection equipment (SEP) information element.
- * 
- * 
- * 
  */
 public class IeSingleProtectionEvent extends InformationElement {
 
@@ -40,19 +37,19 @@ public class IeSingleProtectionEvent extends InformationElement {
     }
 
     public IeSingleProtectionEvent(EventState eventState, boolean elapsedTimeInvalid, boolean blocked,
-            boolean substituted, boolean notTopical, boolean eventInvalid) {
+                                   boolean substituted, boolean notTopical, boolean eventInvalid) {
 
         value = 0;
 
         switch (eventState) {
-        case OFF:
-            value |= 0x01;
-            break;
-        case ON:
-            value |= 0x02;
-            break;
-        default:
-            break;
+            case OFF:
+                value |= 0x01;
+                break;
+            case ON:
+                value |= 0x02;
+                break;
+            default:
+                break;
         }
 
         if (elapsedTimeInvalid) {
@@ -84,12 +81,12 @@ public class IeSingleProtectionEvent extends InformationElement {
 
     public EventState getEventState() {
         switch (value & 0x03) {
-        case 1:
-            return EventState.OFF;
-        case 2:
-            return EventState.ON;
-        default:
-            return EventState.INDETERMINATE;
+            case 1:
+                return EventState.OFF;
+            case 2:
+                return EventState.ON;
+            default:
+                return EventState.INDETERMINATE;
         }
     }
 

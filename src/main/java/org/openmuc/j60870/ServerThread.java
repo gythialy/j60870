@@ -20,13 +20,13 @@
  */
 package org.openmuc.j60870;
 
+import org.openmuc.j60870.internal.ConnectionSettings;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import org.openmuc.j60870.internal.ConnectionSettings;
 
 final class ServerThread extends Thread {
 
@@ -39,7 +39,7 @@ final class ServerThread extends Thread {
     private int numConnections = 0;
 
     ServerThread(ServerSocket serverSocket, ConnectionSettings settings, int maxConnections,
-            ServerEventListener serverSapListener) {
+                 ServerEventListener serverSapListener) {
         this.serverSocket = serverSocket;
         this.settings = settings;
         this.maxConnections = maxConnections;
@@ -102,17 +102,14 @@ final class ServerThread extends Thread {
                 if (startConnection) {
                     ConnectionHandler connectionHandler = new ConnectionHandler(clientSocket, this);
                     executor.execute(connectionHandler);
-                }
-                else {
+                } else {
                     serverSapListener.connectionAttemptFailed(new IOException(
                             "Maximum number of connections reached. Ignoring connection request. Maximum number of connections: "
                                     + maxConnections));
                 }
 
             }
-        } finally
-
-        {
+        } finally {
             executor.shutdown();
         }
 

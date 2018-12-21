@@ -20,10 +20,10 @@
  */
 package org.openmuc.j60870;
 
+import org.openmuc.j60870.internal.ConnectionSettings;
+
 import java.io.DataInputStream;
 import java.io.IOException;
-
-import org.openmuc.j60870.internal.ConnectionSettings;
 
 /**
  * The application service data unit (ASDU). The ASDU is the payload of the application protocol data unit (APDU). Its
@@ -46,7 +46,6 @@ import org.openmuc.j60870.internal.ConnectionSettings;
  * addressing is only allowed for certain TypeIDs.</li>
  * <li>A list of Information Objects containing the actual actual data in the form of Information Elements.</li>
  * </ul>
- *
  */
 public class ASdu {
 
@@ -64,27 +63,19 @@ public class ASdu {
     /**
      * Use this constructor to create standardized ASDUs.
      *
-     * @param typeId
-     *            type identification field that defines the purpose and contents of the ASDU
-     * @param isSequenceOfElements
-     *            if false then the ASDU contains a sequence of information objects consisting of a fixed number of
-     *            information elements. If true the ASDU contains a single information object with a sequence of
-     *            elements.
-     * @param causeOfTransmission
-     *            the cause of transmission
-     * @param test
-     *            true if the ASDU is sent for test purposes
-     * @param negativeConfirm
-     *            true if the ASDU is a negative confirmation
-     * @param originatorAddress
-     *            the address of the originating controlling station so that responses can be routed back to it
-     * @param commonAddress
-     *            the address of the target station or the broadcast address.
-     * @param informationObjects
-     *            the information objects containing the actual data
+     * @param typeId               type identification field that defines the purpose and contents of the ASDU
+     * @param isSequenceOfElements if false then the ASDU contains a sequence of information objects consisting of a fixed number of
+     *                             information elements. If true the ASDU contains a single information object with a sequence of
+     *                             elements.
+     * @param causeOfTransmission  the cause of transmission
+     * @param test                 true if the ASDU is sent for test purposes
+     * @param negativeConfirm      true if the ASDU is a negative confirmation
+     * @param originatorAddress    the address of the originating controlling station so that responses can be routed back to it
+     * @param commonAddress        the address of the target station or the broadcast address.
+     * @param informationObjects   the information objects containing the actual data
      */
     public ASdu(TypeId typeId, boolean isSequenceOfElements, CauseOfTransmission causeOfTransmission, boolean test,
-            boolean negativeConfirm, int originatorAddress, int commonAddress, InformationObject[] informationObjects) {
+                boolean negativeConfirm, int originatorAddress, int commonAddress, InformationObject[] informationObjects) {
 
         this.typeId = typeId;
         this.isSequenceOfElements = isSequenceOfElements;
@@ -97,8 +88,7 @@ public class ASdu {
         privateInformation = null;
         if (isSequenceOfElements) {
             sequenceLength = informationObjects[0].getInformationElements().length;
-        }
-        else {
+        } else {
             sequenceLength = informationObjects.length;
         }
     }
@@ -106,31 +96,22 @@ public class ASdu {
     /**
      * Use this constructor to create private ASDU with TypeIDs in the range 128-255.
      *
-     * @param typeId
-     *            type identification field that defines the purpose and contents of the ASDU
-     * @param isSequenceOfElements
-     *            if false then the ASDU contains a sequence of information objects consisting of a fixed number of
-     *            information elements. If true the ASDU contains a single information object with a sequence of
-     *            elements.
-     * @param sequenceLength
-     *            the number of information objects or the number elements depending depending on which is transmitted
-     *            as a sequence
-     * @param causeOfTransmission
-     *            the cause of transmission
-     * @param test
-     *            true if the ASDU is sent for test purposes
-     * @param negativeConfirm
-     *            true if the ASDU is a negative confirmation
-     * @param originatorAddress
-     *            the address of the originating controlling station so that responses can be routed back to it
-     * @param commonAddress
-     *            the address of the target station or the broadcast address.
-     * @param privateInformation
-     *            the bytes to be transmitted as payload
+     * @param typeId               type identification field that defines the purpose and contents of the ASDU
+     * @param isSequenceOfElements if false then the ASDU contains a sequence of information objects consisting of a fixed number of
+     *                             information elements. If true the ASDU contains a single information object with a sequence of
+     *                             elements.
+     * @param sequenceLength       the number of information objects or the number elements depending depending on which is transmitted
+     *                             as a sequence
+     * @param causeOfTransmission  the cause of transmission
+     * @param test                 true if the ASDU is sent for test purposes
+     * @param negativeConfirm      true if the ASDU is a negative confirmation
+     * @param originatorAddress    the address of the originating controlling station so that responses can be routed back to it
+     * @param commonAddress        the address of the target station or the broadcast address.
+     * @param privateInformation   the bytes to be transmitted as payload
      */
     public ASdu(TypeId typeId, boolean isSequenceOfElements, int sequenceLength,
-            CauseOfTransmission causeOfTransmission, boolean test, boolean negativeConfirm, int originatorAddress,
-            int commonAddress, byte[] privateInformation) {
+                CauseOfTransmission causeOfTransmission, boolean test, boolean negativeConfirm, int originatorAddress,
+                int commonAddress, byte[] privateInformation) {
 
         this.typeId = typeId;
         this.isSequenceOfElements = isSequenceOfElements;
@@ -165,8 +146,7 @@ public class ASdu {
         if (isSequenceOfElements) {
             numberOfSequenceElements = sequenceLength;
             numberOfInformationObjects = 1;
-        }
-        else {
+        } else {
             numberOfInformationObjects = sequenceLength;
             numberOfSequenceElements = 1;
         }
@@ -179,15 +159,13 @@ public class ASdu {
         if (settings.cotFieldLength == 2) {
             originatorAddress = (is.readByte() & 0xff);
             aSduLength--;
-        }
-        else {
+        } else {
             originatorAddress = -1;
         }
 
         if (settings.commonAddressFieldLength == 1) {
             commonAddress = (is.readByte() & 0xff);
-        }
-        else {
+        } else {
             commonAddress = (is.readByte() & 0xff) + (((is.readByte() & 0xff) << 8));
             aSduLength--;
         }
@@ -202,8 +180,7 @@ public class ASdu {
 
             privateInformation = null;
 
-        }
-        else {
+        } else {
             informationObjects = null;
             privateInformation = new byte[aSduLength - 4];
             is.readFully(privateInformation);
@@ -258,24 +235,20 @@ public class ASdu {
         buffer[i++] = (byte) typeId.getId();
         if (isSequenceOfElements) {
             buffer[i++] = (byte) (sequenceLength | 0x80);
-        }
-        else {
+        } else {
             buffer[i++] = (byte) sequenceLength;
         }
 
         if (test) {
             if (negativeConfirm) {
                 buffer[i++] = (byte) (causeOfTransmission.getId() | 0xC0);
-            }
-            else {
+            } else {
                 buffer[i++] = (byte) (causeOfTransmission.getId() | 0x80);
             }
-        }
-        else {
+        } else {
             if (negativeConfirm) {
                 buffer[i++] = (byte) (causeOfTransmission.getId() | 0x40);
-            }
-            else {
+            } else {
                 buffer[i++] = (byte) causeOfTransmission.getId();
             }
         }
@@ -294,8 +267,7 @@ public class ASdu {
             for (InformationObject informationObject : informationObjects) {
                 i += informationObject.encode(buffer, i, settings);
             }
-        }
-        else {
+        } else {
             System.arraycopy(privateInformation, 0, buffer, i, privateInformation.length);
             i += privateInformation.length;
         }
@@ -315,8 +287,7 @@ public class ASdu {
                 builder.append("\n");
                 builder.append(informationObject.toString());
             }
-        }
-        else {
+        } else {
             builder.append("\nPrivate Information:\n");
             int l = 1;
             for (byte b : privateInformation) {

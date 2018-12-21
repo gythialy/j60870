@@ -25,9 +25,6 @@ import java.io.IOException;
 
 /**
  * Represents a fixed test bit pattern (FBP) information element.
- * 
- * 
- * 
  */
 public class IeFixedTestBitPattern extends InformationElement {
 

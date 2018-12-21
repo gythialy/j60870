@@ -25,9 +25,6 @@ import java.io.IOException;
 
 /**
  * Represents a section ready qualifier (SRQ) information element.
- * 
- * 
- * 
  */
 public class IeSectionReadyQualifier extends InformationElement {
 

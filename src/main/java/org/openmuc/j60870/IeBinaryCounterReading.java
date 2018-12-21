@@ -25,9 +25,6 @@ import java.io.IOException;
 
 /**
  * Represents a binary counter reading (BCR) information element.
- * 
- * 
- * 
  */
 public class IeBinaryCounterReading extends InformationElement {
 
@@ -38,7 +35,7 @@ public class IeBinaryCounterReading extends InformationElement {
     private final boolean invalid;
 
     public IeBinaryCounterReading(int counterReading, int sequenceNumber, boolean carry, boolean counterAdjusted,
-            boolean invalid) {
+                                  boolean invalid) {
 
         this.counterReading = counterReading;
         this.sequenceNumber = sequenceNumber;

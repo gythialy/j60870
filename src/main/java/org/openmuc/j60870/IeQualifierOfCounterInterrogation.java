@@ -25,9 +25,6 @@ import java.io.IOException;
 
 /**
  * Represents a qualifier of counter interrogation (QCC) information element.
- * 
- * 
- * 
  */
 public class IeQualifierOfCounterInterrogation extends InformationElement {
 

@@ -25,9 +25,6 @@ import java.io.IOException;
 
 /**
  * Represents a normalized value (NVA) information element.
- * 
- * 
- * 
  */
 public class IeNormalizedValue extends InformationElement {
 
@@ -37,9 +34,8 @@ public class IeNormalizedValue extends InformationElement {
      * Normalized value is a value in the range from -1 to (1-1/(2^15)). The normalized value is encoded as a 16 bit
      * integer ranging from -32768 to 32767. In order to get the normalized value the integer value is divided by 32768.
      * Use this constructor to initialize the value exactly using the integer value in the range from -32768 to 32767.
-     * 
-     * @param value
-     *            non-normalized value in the range -32768 to 32767
+     *
+     * @param value non-normalized value in the range -32768 to 32767
      */
     public IeNormalizedValue(int value) {
         if (value < -32768 || value > 32767) {
@@ -51,9 +47,8 @@ public class IeNormalizedValue extends InformationElement {
     /**
      * Normalized value is a value in the range from -1 to (1-1/(2^15)). Use this constructor to initialize the value
      * using a double value ranging from -1 to (1-1/(2^15)).
-     * 
-     * @param value
-     *            normalized value in the range -1 to (1-1/(2^15))
+     *
+     * @param value normalized value in the range -1 to (1-1/(2^15))
      */
     public IeNormalizedValue(double value) {
         this.value = (int) (value * 32768.0);
@@ -79,7 +74,7 @@ public class IeNormalizedValue extends InformationElement {
 
     /**
      * Get the value as a normalized double value ranging from -1 to (1-1/(2^15))
-     * 
+     *
      * @return the value as a normalized double.
      */
     public double getNormalizedValue() {
@@ -90,7 +85,7 @@ public class IeNormalizedValue extends InformationElement {
      * Get the value as a non-normalized integer value ranging from -32768..32767. In order to get the normalized value
      * the returned integer value has to be devided by 32768. The normalized value can also be retrieved using
      * {@link #getNormalizedValue()}
-     * 
+     *
      * @return the value as a non-normalized integer value
      */
     public int getUnnormalizedValue() {

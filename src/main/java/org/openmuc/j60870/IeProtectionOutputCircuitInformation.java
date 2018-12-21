@@ -25,16 +25,13 @@ import java.io.IOException;
 
 /**
  * Represents an output circuit information of protection equipment (OCI) information element.
- * 
- * 
- * 
  */
 public class IeProtectionOutputCircuitInformation extends InformationElement {
 
     private int value;
 
     public IeProtectionOutputCircuitInformation(boolean generalCommand, boolean commandToL1, boolean commandToL2,
-            boolean commandToL3) {
+                                                boolean commandToL3) {
 
         value = 0;
 

@@ -25,16 +25,13 @@ import java.io.IOException;
 
 /**
  * Represents a start events of protection equipment (SPE) information element.
- * 
- * 
- * 
  */
 public class IeProtectionStartEvent extends InformationElement {
 
     private int value;
 
     public IeProtectionStartEvent(boolean generalStart, boolean startOperationL1, boolean startOperationL2,
-            boolean startOperationL3, boolean startOperationIe, boolean startReverseOperation) {
+                                  boolean startOperationL3, boolean startOperationIe, boolean startReverseOperation) {
 
         value = 0;
 

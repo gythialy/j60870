@@ -28,17 +28,13 @@ import java.io.IOException;
  * {@link Connection#startDataTransfer(ConnectionEventListener, int)} or
  * {@link Connection#waitForStartDT(ConnectionEventListener, int)} method. Incoming ASDUs are queued so that
  * {@link #newASdu(ASdu)} is never called simultaneously for the same connection.
- *
- * 
- *
  */
 public interface ConnectionEventListener {
 
     /**
      * Invoked when a new ASDU arrives.
      *
-     * @param aSdu
-     *            the ASDU that arrived.
+     * @param aSdu the ASDU that arrived.
      */
     public void newASdu(ASdu aSdu);
 
@@ -47,8 +43,7 @@ public interface ConnectionEventListener {
      * {@link Connection} that feeds this listener was automatically closed and can no longer be used to send commands
      * or receive ASDUs.
      *
-     * @param e
-     *            the exception that occurred.
+     * @param e the exception that occurred.
      */
     public void connectionClosed(IOException e);
 

@@ -29,7 +29,7 @@ public class IeBinaryStateInformationTest {
     @Test
     public void testSetGetValue() {
 
-        byte[] bits = new byte[] { (byte) 0x7f, 0, (byte) 0xff, (byte) 0x80 };
+        byte[] bits = new byte[]{(byte) 0x7f, 0, (byte) 0xff, (byte) 0x80};
 
         IeBinaryStateInformation ieBinaryStateInformation = new IeBinaryStateInformation(bits);
 

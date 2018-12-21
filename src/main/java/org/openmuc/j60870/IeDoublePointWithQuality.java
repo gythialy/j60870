@@ -25,9 +25,6 @@ import java.io.IOException;
 
 /**
  * Represents a double-point information with quality descriptor (DIQ) information element.
- * 
- * 
- * 
  */
 public class IeDoublePointWithQuality extends IeAbstractQuality {
 
@@ -39,21 +36,21 @@ public class IeDoublePointWithQuality extends IeAbstractQuality {
     }
 
     public IeDoublePointWithQuality(DoublePointInformation dpi, boolean blocked, boolean substituted,
-            boolean notTopical, boolean invalid) {
+                                    boolean notTopical, boolean invalid) {
         super(blocked, substituted, notTopical, invalid);
 
         switch (dpi) {
-        case INDETERMINATE_OR_INTERMEDIATE:
-            break;
-        case OFF:
-            value |= 0x01;
-            break;
-        case ON:
-            value |= 0x02;
-            break;
-        case INDETERMINATE:
-            value |= 0x03;
-            break;
+            case INDETERMINATE_OR_INTERMEDIATE:
+                break;
+            case OFF:
+                value |= 0x01;
+                break;
+            case ON:
+                value |= 0x02;
+                break;
+            case INDETERMINATE:
+                value |= 0x03;
+                break;
         }
     }
 
@@ -63,14 +60,14 @@ public class IeDoublePointWithQuality extends IeAbstractQuality {
 
     public DoublePointInformation getDoublePointInformation() {
         switch (value & 0x03) {
-        case 0:
-            return DoublePointInformation.INDETERMINATE_OR_INTERMEDIATE;
-        case 1:
-            return DoublePointInformation.OFF;
-        case 2:
-            return DoublePointInformation.ON;
-        default:
-            return DoublePointInformation.INDETERMINATE;
+            case 0:
+                return DoublePointInformation.INDETERMINATE_OR_INTERMEDIATE;
+            case 1:
+                return DoublePointInformation.OFF;
+            case 2:
+                return DoublePointInformation.ON;
+            default:
+                return DoublePointInformation.INDETERMINATE;
         }
     }
 

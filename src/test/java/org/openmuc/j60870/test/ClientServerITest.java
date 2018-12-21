@@ -20,45 +20,15 @@
  */
 package org.openmuc.j60870.test;
 
-import java.io.IOException;
-import java.net.InetAddress;
-
 import org.junit.Assert;
 import org.junit.Test;
-import org.openmuc.j60870.ASdu;
-import org.openmuc.j60870.CauseOfTransmission;
-import org.openmuc.j60870.ClientConnectionBuilder;
-import org.openmuc.j60870.Connection;
-import org.openmuc.j60870.ConnectionEventListener;
-import org.openmuc.j60870.IeBinaryCounterReading;
-import org.openmuc.j60870.IeBinaryStateInformation;
-import org.openmuc.j60870.IeDoubleCommand;
+import org.openmuc.j60870.*;
 import org.openmuc.j60870.IeDoubleCommand.DoubleCommandState;
-import org.openmuc.j60870.IeDoublePointWithQuality;
 import org.openmuc.j60870.IeDoublePointWithQuality.DoublePointInformation;
-import org.openmuc.j60870.IeNormalizedValue;
-import org.openmuc.j60870.IeProtectionQuality;
-import org.openmuc.j60870.IeProtectionStartEvent;
-import org.openmuc.j60870.IeQualifierOfInterrogation;
-import org.openmuc.j60870.IeQualifierOfSetPointCommand;
-import org.openmuc.j60870.IeQuality;
-import org.openmuc.j60870.IeScaledValue;
-import org.openmuc.j60870.IeShortFloat;
-import org.openmuc.j60870.IeSingleCommand;
-import org.openmuc.j60870.IeSinglePointWithQuality;
-import org.openmuc.j60870.IeSingleProtectionEvent;
 import org.openmuc.j60870.IeSingleProtectionEvent.EventState;
-import org.openmuc.j60870.IeStatusAndStatusChanges;
-import org.openmuc.j60870.IeTime16;
-import org.openmuc.j60870.IeTime24;
-import org.openmuc.j60870.IeTime56;
-import org.openmuc.j60870.IeValueWithTransientState;
-import org.openmuc.j60870.InformationElement;
-import org.openmuc.j60870.InformationObject;
-import org.openmuc.j60870.Server;
-import org.openmuc.j60870.ServerEventListener;
-import org.openmuc.j60870.TypeId;
-import org.openmuc.j60870.Util;
+
+import java.io.IOException;
+import java.net.InetAddress;
 
 public class ClientServerITest implements ServerEventListener, ConnectionEventListener {
 
@@ -104,13 +74,12 @@ public class ClientServerITest implements ServerEventListener, ConnectionEventLi
                     Assert.assertEquals(3, singleCommand.getQualifier());
 
                     serverConnection.send(new ASdu(TypeId.C_SC_NA_1, false, CauseOfTransmission.ACTIVATION_CON, false,
-                            false, 0, aSdu.getCommonAddress(), new InformationObject[] {
-                                    new InformationObject(0, new InformationElement[][] { { singleCommand } }) }));
+                            false, 0, aSdu.getCommonAddress(), new InformationObject[]{
+                            new InformationObject(0, new InformationElement[][]{{singleCommand}})}));
 
                     // answer Single Command - END
 
-                }
-                else if (serverCounter == 2) {
+                } else if (serverCounter == 2) {
 
                     // answer clock synchronization
 
@@ -122,15 +91,14 @@ public class ClientServerITest implements ServerEventListener, ConnectionEventLi
                     serverTimestamp = System.currentTimeMillis();
 
                     aSdu = new ASdu(TypeId.C_CS_NA_1, false, CauseOfTransmission.ACTIVATION_CON, false, false, 0,
-                            aSdu.getCommonAddress(), new InformationObject[] { new InformationObject(0,
-                                    new InformationElement[][] { { new IeTime56(serverTimestamp) } }) });
+                            aSdu.getCommonAddress(), new InformationObject[]{new InformationObject(0,
+                            new InformationElement[][]{{new IeTime56(serverTimestamp)}})});
 
                     serverConnection.send(aSdu);
 
                     // answer clock synchronization - END
 
-                }
-                else if (serverCounter == 3) {
+                } else if (serverCounter == 3) {
 
                     // answer Double Command with time tag
 
@@ -145,8 +113,7 @@ public class ClientServerITest implements ServerEventListener, ConnectionEventLi
                     serverConnection.send(new ASdu(TypeId.C_DC_TA_1, false, CauseOfTransmission.ACTIVATION_CON, false,
                             false, 0, aSdu.getCommonAddress(), aSdu.getInformationObjects()));
                     // answer Double Command with time tag - End
-                }
-                else if (serverCounter == 4) {
+                } else if (serverCounter == 4) {
 
                     // answer set-point normalized value command
 
@@ -154,17 +121,15 @@ public class ClientServerITest implements ServerEventListener, ConnectionEventLi
                             false, 0, aSdu.getCommonAddress(), aSdu.getInformationObjects()));
                     // answer set-point normalized value command - End
 
-                }
-                else if (serverCounter == 5) {
+                } else if (serverCounter == 5) {
 
                     Assert.assertEquals(TypeId.C_IC_NA_1, aSdu.getTypeIdentification());
 
                     serverConnection.send(new ASdu(TypeId.C_IC_NA_1, false, CauseOfTransmission.ACTIVATION_CON, false,
-                            false, 0, aSdu.getCommonAddress(), new InformationObject[] { new InformationObject(0,
-                                    new InformationElement[][] { { new IeQualifierOfInterrogation(20) } }) }));
+                            false, 0, aSdu.getCommonAddress(), new InformationObject[]{new InformationObject(0,
+                            new InformationElement[][]{{new IeQualifierOfInterrogation(20)}})}));
 
-                }
-                else if (serverCounter == 6) {
+                } else if (serverCounter == 6) {
 
                     Assert.assertEquals(TypeId.M_SP_NA_1, aSdu.getTypeIdentification());
 
@@ -173,150 +138,150 @@ public class ClientServerITest implements ServerEventListener, ConnectionEventLi
                     // 1
                     serverConnection.send(new ASdu(TypeId.M_SP_NA_1, false, CauseOfTransmission.SPONTANEOUS, false,
                             false, 0, aSdu.getCommonAddress(),
-                            new InformationObject[] {
+                            new InformationObject[]{
                                     new InformationObject(1,
-                                            new InformationElement[][] {
-                                                    { new IeSinglePointWithQuality(true, true, true, true, true) } }),
-                                    new InformationObject(2, new InformationElement[][] {
-                                            { new IeSinglePointWithQuality(false, false, false, false, false) } }) }));
+                                            new InformationElement[][]{
+                                                    {new IeSinglePointWithQuality(true, true, true, true, true)}}),
+                                    new InformationObject(2, new InformationElement[][]{
+                                            {new IeSinglePointWithQuality(false, false, false, false, false)}})}));
 
                     // 2
                     serverConnection
                             .send(new ASdu(TypeId.M_SP_NA_1, true, CauseOfTransmission.SPONTANEOUS, false, false, 0,
                                     aSdu.getCommonAddress(),
-                                    new InformationObject[] { new InformationObject(1, new InformationElement[][] {
-                                            { new IeSinglePointWithQuality(true, true, true, true, true) },
-                                            { new IeSinglePointWithQuality(false, false, false, false, false) } }) }));
+                                    new InformationObject[]{new InformationObject(1, new InformationElement[][]{
+                                            {new IeSinglePointWithQuality(true, true, true, true, true)},
+                                            {new IeSinglePointWithQuality(false, false, false, false, false)}})}));
 
                     // 3
                     serverConnection.send(new ASdu(TypeId.M_SP_TA_1, false, CauseOfTransmission.SPONTANEOUS, false,
                             false, 0, aSdu.getCommonAddress(),
-                            new InformationObject[] {
+                            new InformationObject[]{
                                     new InformationObject(1,
-                                            new InformationElement[][] {
-                                                    { new IeSinglePointWithQuality(true, true, true, true, true),
-                                                            new IeTime24(50000) } }),
+                                            new InformationElement[][]{
+                                                    {new IeSinglePointWithQuality(true, true, true, true, true),
+                                                            new IeTime24(50000)}}),
                                     new InformationObject(2,
-                                            new InformationElement[][] {
-                                                    { new IeSinglePointWithQuality(false, false, false, false, false),
-                                                            new IeTime24(60000) } }) }));
+                                            new InformationElement[][]{
+                                                    {new IeSinglePointWithQuality(false, false, false, false, false),
+                                                            new IeTime24(60000)}})}));
 
                     // 4
                     serverConnection.send(new ASdu(TypeId.M_DP_NA_1, false, CauseOfTransmission.SPONTANEOUS, false,
                             false, 0, aSdu.getCommonAddress(),
-                            new InformationObject[] { new InformationObject(1,
-                                    new InformationElement[][] {
-                                            { new IeDoublePointWithQuality(DoublePointInformation.OFF, true, true, true,
-                                                    true) } }) }));
+                            new InformationObject[]{new InformationObject(1,
+                                    new InformationElement[][]{
+                                            {new IeDoublePointWithQuality(DoublePointInformation.OFF, true, true, true,
+                                                    true)}})}));
 
                     // 5
                     serverConnection.send(new ASdu(TypeId.M_ST_NA_1, true, CauseOfTransmission.SPONTANEOUS, false,
                             false, 0, aSdu.getCommonAddress(),
-                            new InformationObject[] { new InformationObject(1,
-                                    new InformationElement[][] {
-                                            { new IeValueWithTransientState(-5, true),
-                                                    new IeQuality(true, true, true, true, true) },
-                                            { new IeValueWithTransientState(-5, false),
-                                                    new IeQuality(true, true, true, true, true) },
-                                            { new IeValueWithTransientState(-64, true),
-                                                    new IeQuality(true, true, true, true, true) },
-                                            { new IeValueWithTransientState(10, false),
-                                                    new IeQuality(true, true, true, true, true) } }) }));
+                            new InformationObject[]{new InformationObject(1,
+                                    new InformationElement[][]{
+                                            {new IeValueWithTransientState(-5, true),
+                                                    new IeQuality(true, true, true, true, true)},
+                                            {new IeValueWithTransientState(-5, false),
+                                                    new IeQuality(true, true, true, true, true)},
+                                            {new IeValueWithTransientState(-64, true),
+                                                    new IeQuality(true, true, true, true, true)},
+                                            {new IeValueWithTransientState(10, false),
+                                                    new IeQuality(true, true, true, true, true)}})}));
 
                     // 6
                     serverConnection.send(new ASdu(TypeId.M_BO_NA_1, true, CauseOfTransmission.SPONTANEOUS, false,
                             false, 0, aSdu.getCommonAddress(),
-                            new InformationObject[] { new InformationObject(1,
-                                    new InformationElement[][] {
-                                            { new IeBinaryStateInformation(0xff),
-                                                    new IeQuality(true, true, true, true, true) },
-                                            { new IeBinaryStateInformation(0xffffffff),
-                                                    new IeQuality(true, true, true, true, true) } }) }));
+                            new InformationObject[]{new InformationObject(1,
+                                    new InformationElement[][]{
+                                            {new IeBinaryStateInformation(0xff),
+                                                    new IeQuality(true, true, true, true, true)},
+                                            {new IeBinaryStateInformation(0xffffffff),
+                                                    new IeQuality(true, true, true, true, true)}})}));
 
                     // 7
                     serverConnection.send(new ASdu(TypeId.M_ME_NA_1, true, CauseOfTransmission.SPONTANEOUS, false,
                             false, 0, aSdu.getCommonAddress(),
-                            new InformationObject[] { new InformationObject(1, new InformationElement[][] {
-                                    { new IeNormalizedValue(-32768), new IeQuality(true, true, true, true, true) },
-                                    { new IeNormalizedValue(0), new IeQuality(true, true, true, true, true) } }) }));
+                            new InformationObject[]{new InformationObject(1, new InformationElement[][]{
+                                    {new IeNormalizedValue(-32768), new IeQuality(true, true, true, true, true)},
+                                    {new IeNormalizedValue(0), new IeQuality(true, true, true, true, true)}})}));
 
                     // 8
                     serverConnection.send(new ASdu(TypeId.M_ME_NB_1, true, CauseOfTransmission.SPONTANEOUS, false,
                             false, 0, aSdu.getCommonAddress(),
-                            new InformationObject[] { new InformationObject(1, new InformationElement[][] {
-                                    { new IeScaledValue(-32768), new IeQuality(true, true, true, true, true) },
-                                    { new IeScaledValue(10), new IeQuality(true, true, true, true, true) },
-                                    { new IeScaledValue(-5), new IeQuality(true, true, true, true, true) } }) }));
+                            new InformationObject[]{new InformationObject(1, new InformationElement[][]{
+                                    {new IeScaledValue(-32768), new IeQuality(true, true, true, true, true)},
+                                    {new IeScaledValue(10), new IeQuality(true, true, true, true, true)},
+                                    {new IeScaledValue(-5), new IeQuality(true, true, true, true, true)}})}));
 
                     serverConnection.send(new ASdu(TypeId.M_ME_NC_1, true, CauseOfTransmission.SPONTANEOUS, false,
                             false, 0, aSdu.getCommonAddress(),
-                            new InformationObject[] { new InformationObject(1, new InformationElement[][] {
-                                    { new IeShortFloat(-32768.2f), new IeQuality(true, true, true, true, true) },
-                                    { new IeShortFloat(10.5f), new IeQuality(true, true, true, true, true) } }) }));
+                            new InformationObject[]{new InformationObject(1, new InformationElement[][]{
+                                    {new IeShortFloat(-32768.2f), new IeQuality(true, true, true, true, true)},
+                                    {new IeShortFloat(10.5f), new IeQuality(true, true, true, true, true)}})}));
 
                     // 10
                     serverConnection.send(new ASdu(TypeId.M_IT_NA_1, true, CauseOfTransmission.SPONTANEOUS, false,
                             false, 0, aSdu.getCommonAddress(),
-                            new InformationObject[] { new InformationObject(1,
-                                    new InformationElement[][] {
-                                            { new IeBinaryCounterReading(-300, 5, true, true, true) },
-                                            { new IeBinaryCounterReading(-300, 4, false, false, false) } }) }));
+                            new InformationObject[]{new InformationObject(1,
+                                    new InformationElement[][]{
+                                            {new IeBinaryCounterReading(-300, 5, true, true, true)},
+                                            {new IeBinaryCounterReading(-300, 4, false, false, false)}})}));
 
                     serverConnection.send(new ASdu(TypeId.M_EP_TA_1, false, CauseOfTransmission.SPONTANEOUS, false,
                             false, 0, aSdu.getCommonAddress(),
-                            new InformationObject[] {
+                            new InformationObject[]{
                                     new InformationObject(1,
-                                            new InformationElement[][] { {
+                                            new InformationElement[][]{{
                                                     new IeSingleProtectionEvent(IeSingleProtectionEvent.EventState.OFF,
                                                             true, true, true, true, true),
-                                                    new IeTime16(300), new IeTime24(400) } }),
+                                                    new IeTime16(300), new IeTime24(400)}}),
                                     new InformationObject(2,
-                                            new InformationElement[][] { {
+                                            new InformationElement[][]{{
                                                     new IeSingleProtectionEvent(IeSingleProtectionEvent.EventState.ON,
                                                             false, false, false, false, false),
-                                                    new IeTime16(300), new IeTime24(400) } }) }));
+                                                    new IeTime16(300), new IeTime24(400)}})}));
 
                     // 12
                     serverConnection.send(new ASdu(TypeId.M_EP_TB_1, false, CauseOfTransmission.SPONTANEOUS, false,
                             false, 0, aSdu.getCommonAddress(),
-                            new InformationObject[] { new InformationObject(1,
-                                    new InformationElement[][] {
-                                            { new IeProtectionStartEvent(true, true, true, true, true, true),
+                            new InformationObject[]{new InformationObject(1,
+                                    new InformationElement[][]{
+                                            {new IeProtectionStartEvent(true, true, true, true, true, true),
                                                     new IeProtectionQuality(true, true, true, true, true),
-                                                    new IeTime16(300), new IeTime24(400) } }) }));
+                                                    new IeTime16(300), new IeTime24(400)}})}));
 
                     serverConnection.send(new ASdu(TypeId.M_PS_NA_1, false, CauseOfTransmission.SPONTANEOUS, false,
                             false, 0, aSdu.getCommonAddress(),
-                            new InformationObject[] { new InformationObject(1,
-                                    new InformationElement[][] { { new IeStatusAndStatusChanges(0xff0000ff),
-                                            new IeQuality(true, true, true, true, true) } }) }));
+                            new InformationObject[]{new InformationObject(1,
+                                    new InformationElement[][]{{new IeStatusAndStatusChanges(0xff0000ff),
+                                            new IeQuality(true, true, true, true, true)}})}));
 
                     Thread.sleep(1000);
 
                     // 14
                     serverConnection.send(new ASdu(TypeId.M_ME_ND_1, false, CauseOfTransmission.SPONTANEOUS, false,
-                            false, 0, aSdu.getCommonAddress(), new InformationObject[] { new InformationObject(1,
-                                    new InformationElement[][] { { new IeNormalizedValue(3) } }) }));
+                            false, 0, aSdu.getCommonAddress(), new InformationObject[]{new InformationObject(1,
+                            new InformationElement[][]{{new IeNormalizedValue(3)}})}));
 
                     serverConnection
                             .send(new ASdu(TypeId.M_SP_TB_1, false, CauseOfTransmission.SPONTANEOUS, false, false, 0,
                                     aSdu.getCommonAddress(),
-                                    new InformationObject[] {
+                                    new InformationObject[]{
                                             new InformationObject(1,
-                                                    new InformationElement[][] { {
+                                                    new InformationElement[][]{{
                                                             new IeSinglePointWithQuality(true, true, true, true, true),
-                                                            new IeTime56(serverTimestamp) } }) }));
+                                                            new IeTime56(serverTimestamp)}})}));
 
                     // 16
                     serverConnection.send(new ASdu(TypeId.M_IT_TB_1, false, CauseOfTransmission.SPONTANEOUS, false,
                             false, 0, aSdu.getCommonAddress(),
-                            new InformationObject[] { new InformationObject(1,
-                                    new InformationElement[][] {
-                                            { new IeBinaryCounterReading(-300, 5, true, true, true),
-                                                    new IeTime56(serverTimestamp) } }) }));
+                            new InformationObject[]{new InformationObject(1,
+                                    new InformationElement[][]{
+                                            {new IeBinaryCounterReading(-300, 5, true, true, true),
+                                                    new IeTime56(serverTimestamp)}})}));
 
                     serverConnection.send(new ASdu(TypeId.PRIVATE_136, false, 1, CauseOfTransmission.SPONTANEOUS, false,
-                            false, 0, aSdu.getCommonAddress(), new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 }));
+                            false, 0, aSdu.getCommonAddress(), new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9}));
                 }
 
             } catch (Exception e) {
@@ -370,12 +335,12 @@ public class ClientServerITest implements ServerEventListener, ConnectionEventLi
 
             clientConnection.send(
                     new ASdu(TypeId.M_SP_NA_1, false, CauseOfTransmission.SPONTANEOUS, false, false, 0, commonAddress,
-                            new InformationObject[] {
+                            new InformationObject[]{
                                     new InformationObject(1,
-                                            new InformationElement[][] {
-                                                    { new IeSinglePointWithQuality(true, true, true, true, true) } }),
-                                    new InformationObject(2, new InformationElement[][] {
-                                            { new IeSinglePointWithQuality(false, false, false, false, false) } }) }));
+                                            new InformationElement[][]{
+                                                    {new IeSinglePointWithQuality(true, true, true, true, true)}}),
+                                    new InformationObject(2, new InformationElement[][]{
+                                            {new IeSinglePointWithQuality(false, false, false, false, false)}})}));
 
             Thread.sleep(3000);
 
@@ -388,8 +353,7 @@ public class ClientServerITest implements ServerEventListener, ConnectionEventLi
         } catch (Exception e) {
             if (exception != null) {
                 throw new AssertionError(exception);
-            }
-            else {
+            } else {
                 throw e;
             }
         } finally {
@@ -460,8 +424,7 @@ public class ClientServerITest implements ServerEventListener, ConnectionEventLi
                 Assert.assertEquals(false, io2.isSubstituted());
 
                 counter2++;
-            }
-            else if (counter == 2) {
+            } else if (counter == 2) {
                 IeSinglePointWithQuality pointWithQuality = (IeSinglePointWithQuality) aSdu.getInformationObjects()[0]
                         .getInformationElements()[0][0];
 
@@ -481,8 +444,7 @@ public class ClientServerITest implements ServerEventListener, ConnectionEventLi
                 Assert.assertEquals(false, io2.isSubstituted());
 
                 counter2++;
-            }
-            else if (counter == 3) {
+            } else if (counter == 3) {
                 IeSinglePointWithQuality pointWithQuality = (IeSinglePointWithQuality) aSdu.getInformationObjects()[0]
                         .getInformationElements()[0][0];
                 IeTime24 time24 = (IeTime24) aSdu.getInformationObjects()[0].getInformationElements()[0][1];
@@ -496,8 +458,7 @@ public class ClientServerITest implements ServerEventListener, ConnectionEventLi
                 Assert.assertEquals(50000, time24.getTimeInMs());
 
                 counter2++;
-            }
-            else if (counter == 4) {
+            } else if (counter == 4) {
                 IeDoublePointWithQuality doublePointWithQuality = (IeDoublePointWithQuality) aSdu
                         .getInformationObjects()[0].getInformationElements()[0][0];
 
@@ -510,8 +471,7 @@ public class ClientServerITest implements ServerEventListener, ConnectionEventLi
 
                 counter2++;
 
-            }
-            else if (counter == 5) {
+            } else if (counter == 5) {
 
                 IeValueWithTransientState valueWithTransientState = (IeValueWithTransientState) aSdu
                         .getInformationObjects()[0].getInformationElements()[0][0];
@@ -538,8 +498,7 @@ public class ClientServerITest implements ServerEventListener, ConnectionEventLi
                 Assert.assertEquals(false, valueWithTransientState4.isTransientState());
 
                 counter2++;
-            }
-            else if (counter == 6) {
+            } else if (counter == 6) {
 
                 IeBinaryStateInformation binaryStateInformation = (IeBinaryStateInformation) aSdu
                         .getInformationObjects()[0].getInformationElements()[0][0];
@@ -553,8 +512,7 @@ public class ClientServerITest implements ServerEventListener, ConnectionEventLi
 
                 Assert.assertEquals(0xffffffff, binaryStateInformation2.getValue());
                 counter2++;
-            }
-            else if (counter == 7) {
+            } else if (counter == 7) {
 
                 IeNormalizedValue normalizedValue = (IeNormalizedValue) aSdu.getInformationObjects()[0]
                         .getInformationElements()[0][0];
@@ -566,8 +524,7 @@ public class ClientServerITest implements ServerEventListener, ConnectionEventLi
 
                 Assert.assertEquals(0, normalizedValue2.getUnnormalizedValue());
                 counter2++;
-            }
-            else if (counter == 8) {
+            } else if (counter == 8) {
 
                 IeScaledValue scaledValue = (IeScaledValue) aSdu.getInformationObjects()[0]
                         .getInformationElements()[0][0];
@@ -579,8 +536,7 @@ public class ClientServerITest implements ServerEventListener, ConnectionEventLi
 
                 Assert.assertEquals(10, scaledValue2.getUnnormalizedValue());
                 counter2++;
-            }
-            else if (counter == 9) {
+            } else if (counter == 9) {
 
                 IeShortFloat scaledValue = (IeShortFloat) aSdu.getInformationObjects()[0]
                         .getInformationElements()[0][0];
@@ -592,8 +548,7 @@ public class ClientServerITest implements ServerEventListener, ConnectionEventLi
 
                 Assert.assertEquals(10.5, scaledValue2.getValue(), 0.1);
                 counter2++;
-            }
-            else if (counter == 10) {
+            } else if (counter == 10) {
 
                 IeBinaryCounterReading binaryCounterReading = (IeBinaryCounterReading) aSdu.getInformationObjects()[0]
                         .getInformationElements()[0][0];
@@ -613,8 +568,7 @@ public class ClientServerITest implements ServerEventListener, ConnectionEventLi
                 Assert.assertEquals(false, binaryCounterReading2.isCounterAdjusted());
                 Assert.assertEquals(false, binaryCounterReading2.isInvalid());
                 counter2++;
-            }
-            else if (counter == 11) {
+            } else if (counter == 11) {
 
                 IeSingleProtectionEvent singleProtectionEvent = (IeSingleProtectionEvent) aSdu
                         .getInformationObjects()[0].getInformationElements()[0][0];
@@ -642,8 +596,7 @@ public class ClientServerITest implements ServerEventListener, ConnectionEventLi
                 Assert.assertEquals(false, singleProtectionEvent2.isNotTopical());
                 Assert.assertEquals(false, singleProtectionEvent2.isSubstituted());
                 counter2++;
-            }
-            else if (counter == 12) {
+            } else if (counter == 12) {
 
                 IeProtectionStartEvent singleProtectionEvent = (IeProtectionStartEvent) aSdu.getInformationObjects()[0]
                         .getInformationElements()[0][0];
@@ -668,8 +621,7 @@ public class ClientServerITest implements ServerEventListener, ConnectionEventLi
                 Assert.assertEquals(300, time16.getTimeInMs());
 
                 counter2++;
-            }
-            else if (counter == 13) {
+            } else if (counter == 13) {
 
                 IeStatusAndStatusChanges statusAndStatusChanges = (IeStatusAndStatusChanges) aSdu
                         .getInformationObjects()[0].getInformationElements()[0][0];
@@ -681,8 +633,7 @@ public class ClientServerITest implements ServerEventListener, ConnectionEventLi
                 Assert.assertEquals(false, statusAndStatusChanges.hasStatusChanged(9));
 
                 counter2++;
-            }
-            else if (counter == 14) {
+            } else if (counter == 14) {
 
                 IeNormalizedValue normalizedValue = (IeNormalizedValue) aSdu.getInformationObjects()[0]
                         .getInformationElements()[0][0];
@@ -690,16 +641,14 @@ public class ClientServerITest implements ServerEventListener, ConnectionEventLi
                 Assert.assertEquals(3, normalizedValue.getUnnormalizedValue());
 
                 counter2++;
-            }
-            else if (counter == 15) {
+            } else if (counter == 15) {
 
                 IeTime56 time56 = (IeTime56) aSdu.getInformationObjects()[0].getInformationElements()[0][1];
 
                 Assert.assertEquals(serverTimestamp, time56.getTimestamp());
 
                 counter2++;
-            }
-            else if (counter == 16) {
+            } else if (counter == 16) {
 
                 IeBinaryCounterReading binaryCounterReading = (IeBinaryCounterReading) aSdu.getInformationObjects()[0]
                         .getInformationElements()[0][0];
@@ -711,11 +660,10 @@ public class ClientServerITest implements ServerEventListener, ConnectionEventLi
                 Assert.assertEquals(true, binaryCounterReading.isInvalid());
 
                 counter2++;
-            }
-            else if (counter == 17) {
+            } else if (counter == 17) {
 
                 Assert.assertNull(aSdu.getInformationObjects());
-                Assert.assertArrayEquals(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 }, aSdu.getPrivateInformation());
+                Assert.assertArrayEquals(new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9}, aSdu.getPrivateInformation());
 
                 counter2++;
             }
