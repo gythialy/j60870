@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright 2014-17 Fraunhofer ISE
  *
  * This file is part of j60870.
@@ -16,7 +16,6 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with j60870.  If not, see <http://www.gnu.org/licenses/>.
- *
  */
 package org.openmuc.j60870;
 
@@ -26,7 +25,7 @@ import java.io.IOException;
 /**
  * Represents a short floating point number (R32-IEEE STD 754) information element.
  * 
- * @author Stefan Feuerhahn
+ * 
  * 
  */
 public class IeShortFloat extends InformationElement {

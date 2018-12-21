@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Represents a single command (SCO) information element.
  * 
- * @author Stefan Feuerhahn
+ * 
  * 
  */
 public class IeSingleCommand extends IeAbstractQualifierOfCommand {

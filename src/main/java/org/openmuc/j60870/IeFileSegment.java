@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Represents the segment of a file as transferred by ASDUs of type F_SG_NA_1 (125).
  * 
- * @author Stefan Feuerhahn
+ * 
  * 
  */
 public class IeFileSegment extends InformationElement {

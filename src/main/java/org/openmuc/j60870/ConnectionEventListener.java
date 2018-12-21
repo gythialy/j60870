@@ -29,7 +29,7 @@ import java.io.IOException;
  * {@link Connection#waitForStartDT(ConnectionEventListener, int)} method. Incoming ASDUs are queued so that
  * {@link #newASdu(ASdu)} is never called simultaneously for the same connection.
  *
- * @author Stefan Feuerhahn
+ * 
  *
  */
 public interface ConnectionEventListener {

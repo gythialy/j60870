@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Represents a quality descriptor for events of protection equipment (QDP) information element.
  * 
- * @author Stefan Feuerhahn
+ * 
  * 
  */
 public class IeProtectionQuality extends IeAbstractQuality {

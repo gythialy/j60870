@@ -47,8 +47,6 @@ import org.openmuc.j60870.internal.ConnectionSettings;
  * <li>A list of Information Objects containing the actual actual data in the form of Information Elements.</li>
  * </ul>
  *
- * @author Stefan Feuerhahn
- *
  */
 public class ASdu {
 

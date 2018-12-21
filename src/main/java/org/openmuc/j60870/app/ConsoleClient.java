@@ -55,7 +55,8 @@ public final class ConsoleClient {
             .setMandatory()
             .buildStringParameter("host");
     private static final IntCliParameter portParam = new CliParameterBuilder("-p")
-            .setDescription("The port to connect to.").buildIntParameter("port", 2404);
+            .setDescription("The port to connect to.")
+            .buildIntParameter("port", 2404);
     private static final IntCliParameter commonAddrParam = new CliParameterBuilder("-ca")
             .setDescription("The address of the target station or the broad cast address.")
             .buildIntParameter("common_address", 1);

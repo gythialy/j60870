@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Represents a file ready qualifier (FRQ) information element.
  * 
- * @author Stefan Feuerhahn
+ * 
  * 
  */
 public class IeFileReadyQualifier extends InformationElement {

@@ -28,7 +28,7 @@ import java.util.Map;
  * Parts IEC 60870-5-101 and IEC 60870-5-104 define what CauseOfTransmissions are allowed for the different ASDU types.
  * CauseOfTransmissions 44 to 47 are meant for replies to commands with undefined values.
  * 
- * @author Stefan Feuerhahn
+ * 
  * 
  */
 public enum CauseOfTransmission {

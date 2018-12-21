@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Represents a binary counter reading (BCR) information element.
  * 
- * @author Stefan Feuerhahn
+ * 
  * 
  */
 public class IeBinaryCounterReading extends InformationElement {

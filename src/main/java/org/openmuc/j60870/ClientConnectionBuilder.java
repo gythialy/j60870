@@ -38,9 +38,6 @@ import javax.net.ssl.SSLSocketFactory;
  * Note that the configured lengths of the fields COT, CA and IOA have to be the same for all communicating nodes in a
  * network. The default values used by {@link ClientConnectionBuilder} are those most commonly used in IEC 60870-5-104
  * communication.
- *
- * @author Stefan Feuerhahn
- *
  */
 public class ClientConnectionBuilder extends CommonBuilder<ClientConnectionBuilder> {
 

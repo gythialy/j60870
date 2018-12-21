@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Represents a single-point information with quality descriptor (SIQ) information element.
  * 
- * @author Stefan Feuerhahn
+ * 
  * 
  */
 public class IeSinglePointWithQuality extends IeAbstractQuality {

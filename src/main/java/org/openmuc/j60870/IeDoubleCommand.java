@@ -28,7 +28,7 @@ import java.util.Map;
 /**
  * Represents a double command (DCO) information element.
  * 
- * @author Stefan Feuerhahn
+ * 
  * 
  */
 public class IeDoubleCommand extends IeAbstractQualifierOfCommand {

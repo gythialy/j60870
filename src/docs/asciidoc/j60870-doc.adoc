@@ -80,6 +80,11 @@ https://www.openmuc.org/faq/
 
 Developers:
 
+* Dirk Zimmermann
+* Albrecht Schall
+
+Former Developers:
+
 * Stefan Feuerhahn
 
 

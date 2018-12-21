@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Represents a double-point information with quality descriptor (DIQ) information element.
  * 
- * @author Stefan Feuerhahn
+ * 
  * 
  */
 public class IeDoublePointWithQuality extends IeAbstractQuality {

@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Represents a qualifier of reset process command (QRP) information element.
  * 
- * @author Stefan Feuerhahn
+ * 
  * 
  */
 public class IeQualifierOfResetProcessCommand extends InformationElement {

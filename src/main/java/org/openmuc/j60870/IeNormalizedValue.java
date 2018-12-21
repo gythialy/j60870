@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Represents a normalized value (NVA) information element.
  * 
- * @author Stefan Feuerhahn
+ * 
  * 
  */
 public class IeNormalizedValue extends InformationElement {
@@ -35,7 +35,7 @@ public class IeNormalizedValue extends InformationElement {
 
     /**
      * Normalized value is a value in the range from -1 to (1-1/(2^15)). The normalized value is encoded as a 16 bit
-     * integer ranging from -32768 to 32767. In order to get the normalized value the integer value is devided by 32768.
+     * integer ranging from -32768 to 32767. In order to get the normalized value the integer value is divided by 32768.
      * Use this constructor to initialize the value exactly using the integer value in the range from -32768 to 32767.
      * 
      * @param value

@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Represents a qualifier of set-point command (QOS) information element.
  * 
- * @author Stefan Feuerhahn
+ * 
  * 
  */
 public class IeQualifierOfSetPointCommand extends InformationElement {

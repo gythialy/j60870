@@ -34,7 +34,7 @@ import java.util.Map;
  * and "TA" for with timestamp)</li>
  * </ul>
  * 
- * @author Stefan Feuerhahn
+ * 
  * 
  */
 public enum TypeId {

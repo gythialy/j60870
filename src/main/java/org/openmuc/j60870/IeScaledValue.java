@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Represents a scaled value (SVA) information element.
  * 
- * @author Stefan Feuerhahn
+ * 
  * 
  */
 public class IeScaledValue extends IeNormalizedValue {

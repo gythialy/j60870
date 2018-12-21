@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Represents an acknowledge file or section qualifier (AFQ) information element.
  * 
- * @author Stefan Feuerhahn
+ * 
  * 
  */
 public class IeAckFileOrSectionQualifier extends InformationElement {

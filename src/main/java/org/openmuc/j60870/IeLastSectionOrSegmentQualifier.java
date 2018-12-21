@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Represents a last section or segment qualifier (LSQ) information element.
  * 
- * @author Stefan Feuerhahn
+ * 
  * 
  */
 public class IeLastSectionOrSegmentQualifier extends InformationElement {

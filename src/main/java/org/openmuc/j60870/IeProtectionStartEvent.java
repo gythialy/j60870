@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Represents a start events of protection equipment (SPE) information element.
  * 
- * @author Stefan Feuerhahn
+ * 
  * 
  */
 public class IeProtectionStartEvent extends InformationElement {

@@ -28,7 +28,7 @@ import java.util.Map;
 /**
  * Represents a regulating step command (RCO) information element.
  * 
- * @author Stefan Feuerhahn
+ * 
  * 
  */
 public class IeRegulatingStepCommand extends IeAbstractQualifierOfCommand {

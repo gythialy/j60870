@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Represents a length of file or section (LOF) information element.
  * 
- * @author Stefan Feuerhahn
+ * 
  * 
  */
 public class IeLengthOfFileOrSection extends InformationElement {

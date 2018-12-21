@@ -52,7 +52,7 @@ import org.openmuc.j60870.internal.ConnectionSettings;
  * automatically closed and a new connection will have to be built up. The command methods do not wait for an
  * acknowledgment but return right after the command has been sent.
  *
- * @author Stefan Feuerhahn
+ * 
  *
  */
 public class Connection {

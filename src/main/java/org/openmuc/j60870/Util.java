@@ -23,7 +23,7 @@ package org.openmuc.j60870;
 /**
  * Class offering static utility functions.
  * 
- * @author Stefan Feuerhahn
+ * 
  * 
  */
 public class Util {

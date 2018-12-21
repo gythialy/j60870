@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Represents a status of file (SOF) information element.
  * 
- * @author Stefan Feuerhahn
+ * 
  * 
  */
 public class IeStatusOfFile extends InformationElement {

@@ -28,7 +28,7 @@ import javax.xml.bind.DatatypeConverter;
 /**
  * Represents a binary state information (BSI) information element.
  * 
- * @author Stefan Feuerhahn
+ * 
  * 
  */
 public class IeBinaryStateInformation extends InformationElement {

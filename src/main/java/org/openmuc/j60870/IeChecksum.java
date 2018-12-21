@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Represents a checksum (CHS) information element.
  * 
- * @author Stefan Feuerhahn
+ * 
  * 
  */
 public class IeChecksum extends InformationElement {

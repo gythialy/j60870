@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Represents a qualifier of parameter of measured values (QPM) information element.
  * 
- * @author Stefan Feuerhahn
+ * 
  * 
  */
 public class IeQualifierOfParameterOfMeasuredValues extends InformationElement {

@@ -28,7 +28,7 @@ import java.util.TimeZone;
 /**
  * Represents a seven octet binary time (CP56Time2a) information element.
  * 
- * @author Stefan Feuerhahn
+ * 
  * 
  */
 public class IeTime56 extends InformationElement {

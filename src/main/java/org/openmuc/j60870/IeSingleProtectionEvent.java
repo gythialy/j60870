@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Represents a single event of protection equipment (SEP) information element.
  * 
- * @author Stefan Feuerhahn
+ * 
  * 
  */
 public class IeSingleProtectionEvent extends InformationElement {

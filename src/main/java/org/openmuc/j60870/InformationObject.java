@@ -36,7 +36,7 @@ import org.openmuc.j60870.internal.ConnectionSettings;
  * containing only single information elements sets.</li>
  * </ul>
  * 
- * @author Stefan Feuerhahn
+ * 
  * 
  */
 public class InformationObject {
@@ -284,7 +284,7 @@ public class InformationObject {
             break;
         // 60
         case C_RC_TA_1:
-            informationElements = new InformationElement[][] { { new IeBinaryStateInformation(is), new IeTime56(is) } };
+            informationElements = new InformationElement[][] { { new IeRegulatingStepCommand(is), new IeTime56(is) } };
             break;
         // 61
         case C_SE_TA_1:

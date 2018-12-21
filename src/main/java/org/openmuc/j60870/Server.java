@@ -30,7 +30,7 @@ import org.openmuc.j60870.internal.ConnectionSettings;
 /**
  * The server is used to start listening for IEC 60870-5-104 client connections.
  * 
- * @author Stefan Feuerhahn
+ * 
  * 
  */
 public class Server {

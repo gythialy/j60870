@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Represents a value with transient state indication (VTI) information element.
  * 
- * @author Stefan Feuerhahn
+ * 
  * 
  */
 public class IeValueWithTransientState extends InformationElement {

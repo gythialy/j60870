@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Represents a status and status change detection (SCD) information element.
  * 
- * @author Stefan Feuerhahn
+ * 
  * 
  */
 public class IeStatusAndStatusChanges extends InformationElement {
