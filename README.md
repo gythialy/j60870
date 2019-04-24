@@ -1,4 +1,6 @@
-#  IEC 60870-5-104 - Overview [![Build Status](https://travis-ci.org/gythialy/j60870.svg)](https://travis-ci.org/gythialy/j60870)
+#  IEC 60870-5-104 
+
+## Overview [![Build Status](https://travis-ci.com/gythialy/j60870.svg)](https://travis-ci.org/gythialy/j60870)
 
 This is UNOFFICIAL, fork from [openmuc](https://www.openmuc.org/iec-60870-5-104/).
 
@@ -6,4 +8,6 @@ j60870 is a library implementing the IEC 60870-5-104 communication standard. The
 
 Read the [user guide](https://gythialy.github.io/j60870/) on how to get started with the library.
 
-Author: Stefan Feuerhahn
+## LICENSE
+
+[GNU GENERAL PUBLIC LICENSE](license/gpl-3.0.txt) 
