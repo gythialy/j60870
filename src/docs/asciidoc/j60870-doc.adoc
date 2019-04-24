@@ -22,7 +22,7 @@ found in the folder /build/libs.
 
 The easiest way to get started is by taking a look at the code of the
 console client and the sample server which can be found here:
-src/main/java/org/openmuc/j60870/app/ . These applications in
+cli-app/src/main/java/org/openmuc/j60870/app/ . These applications in
 combination with the javadoc should satisfy most of your documentation
 needs.
 
@@ -30,7 +30,7 @@ Here is a short summary of the steps to get a client running:
 
 * Create and configure an instance of ClientConnectionBuilder.
 
-* Connect to the server using ClientConnectionBuilder.connect() which
+* Connect to the server using ClientConnectionBuilder.build() which
   returns the connection. The client is now connected to the server
   via TCP/IP.
 

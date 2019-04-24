@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-17 Fraunhofer ISE
+ * Copyright 2014-19 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -20,9 +20,9 @@
  */
 package org.openmuc.j60870;
 
-import org.openmuc.j60870.internal.ConnectionSettings;
+import java.io.IOException;
 
-class CommonBuilder<T extends CommonBuilder<T>> {
+abstract class CommonBuilder<T extends CommonBuilder<T, C>, C> {
 
     final ConnectionSettings settings = new ConnectionSettings();
 
@@ -47,7 +47,7 @@ class CommonBuilder<T extends CommonBuilder<T>> {
         if (length != 1 && length != 2) {
             throw new IllegalArgumentException("invalid length");
         }
-        settings.cotFieldLength = length;
+        settings.setCotFieldLength(length);
         return self();
     }
 
@@ -61,7 +61,7 @@ class CommonBuilder<T extends CommonBuilder<T>> {
         if (length != 1 && length != 2) {
             throw new IllegalArgumentException("invalid length");
         }
-        settings.cotFieldLength = length;
+        settings.setCommonAddressFieldLength(length);
         return self();
     }
 
@@ -76,7 +76,7 @@ class CommonBuilder<T extends CommonBuilder<T>> {
         if (length < 1 || length > 3) {
             throw new IllegalArgumentException("invalid length: " + length);
         }
-        settings.ioaFieldLength = length;
+        settings.setIoaFieldLength(length);
         return self();
     }
 
@@ -90,11 +90,8 @@ class CommonBuilder<T extends CommonBuilder<T>> {
      * @return this builder
      */
     public T setMaxTimeNoAckReceived(int time) {
-        if (time < 1000 || time > 255000) {
-            throw new IllegalArgumentException(
-                    "invalid timeout: " + time + ", time must be between 1000ms and 255000ms");
-        }
-        settings.maxTimeNoAckReceived = time;
+        checkTimeRange(time);
+        settings.setMaxTimeNoAckReceived(time);
         return self();
     }
 
@@ -107,12 +104,16 @@ class CommonBuilder<T extends CommonBuilder<T>> {
      * @return this builder
      */
     public T setMaxTimeNoAckSent(int time) {
+        checkTimeRange(time);
+        settings.setMaxTimeNoAckSent(time);
+        return self();
+    }
+
+    private void checkTimeRange(int time) {
         if (time < 1000 || time > 255000) {
             throw new IllegalArgumentException(
                     "invalid timeout: " + time + ", time must be between 1000ms and 255000ms");
         }
-        settings.maxTimeNoAckSent = time;
-        return self();
     }
 
     /**
@@ -127,7 +128,7 @@ class CommonBuilder<T extends CommonBuilder<T>> {
             throw new IllegalArgumentException(
                     "invalid timeout: " + time + ", time must be between 1000ms and 172800000ms");
         }
-        settings.maxIdleTime = time;
+        settings.setMaxIdleTime(time);
         return self();
     }
 
@@ -144,8 +145,29 @@ class CommonBuilder<T extends CommonBuilder<T>> {
         if (maxNum < 1 || maxNum > 32767) {
             throw new IllegalArgumentException("invalid maxNum: " + maxNum + ", must be a value between 1 and 32767");
         }
-        settings.maxUnconfirmedIPdusReceived = maxNum;
+        settings.setMaxUnconfirmedIPdusReceived(maxNum);
         return self();
     }
+
+    /**
+     * Sets SO_TIMEOUT with the specified timeout, in milliseconds.
+     *
+     * @param time the timeout in milliseconds. Default is 5 s, minimum 100 ms.
+     * @return this builder
+     */
+    public T setMessageFragmentTimeout(int time) {
+        if (time < 100) {
+            throw new IllegalArgumentException("invalid timeout: " + time + ", time must be bigger then 100ms");
+        }
+        settings.setMessageFragmentTimeout(time);
+        return self();
+    }
+
+    public T useSharedThreadPool() {
+        settings.setUseSharedThreadPool(true);
+        return self();
+    }
+
+    public abstract C build() throws IOException;
 
 }

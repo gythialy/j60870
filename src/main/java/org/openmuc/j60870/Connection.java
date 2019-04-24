@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-17 Fraunhofer ISE
+ * Copyright 2014-19 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -20,232 +20,61 @@
  */
 package org.openmuc.j60870;
 
-import org.openmuc.j60870.APdu.APCI_TYPE;
-import org.openmuc.j60870.internal.ConnectionSettings;
+import org.openmuc.j60870.APdu.ApciType;
+import org.openmuc.j60870.ie.*;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.concurrent.*;
+import java.text.MessageFormat;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
- * Represents a connection between a client and a server. It is created either through an instance of
+ * Represents an open connection to a specific 60870 server. It is created either through an instance of
  * {@link ClientConnectionBuilder} or passed to {@link ServerEventListener}. Once it has been closed it cannot be opened
  * again. A newly created connection has successfully build up a TCP/IP connection to the server. Before receiving ASDUs
  * or sending commands one has to call {@link Connection#startDataTransfer(ConnectionEventListener, int)} or
  * {@link Connection#waitForStartDT(ConnectionEventListener, int)}. Afterwards incoming ASDUs are forwarded to the
  * {@link ConnectionEventListener}. Incoming ASDUs are queued so that {@link ConnectionEventListener#newASdu(ASdu)} is
  * never called simultaneously for the same connection.
+ *
  * <p>
  * Connection offers a method for every possible command defined by IEC 60870 (e.g. singleCommand). Every command
  * function may throw an IOException indicating a fatal connection error. In this case the connection will be
  * automatically closed and a new connection will have to be built up. The command methods do not wait for an
  * acknowledgment but return right after the command has been sent.
+ * </p>
  */
-public class Connection {
-
-    private final Socket socket;
-    private final ServerThread serverThread;
-    private final DataOutputStream os;
-    private final DataInputStream is;
-
-    private boolean closed = false;
-    private boolean dataTransferStarted = false;
-
-    private final ConnectionSettings settings;
-    private ConnectionEventListener aSduListener = null;
-
-    private int sendSequenceNumber = 0;
-    private int receiveSequenceNumber = 0;
-    private int acknowledgedReceiveSequenceNumber = 0;
-    private int acknowledgedSendSequenceNumber = 0;
-
-    private int originatorAddress = 0;
-
-    private final byte[] buffer = new byte[255];
-
+public class Connection implements AutoCloseable {
     private static final byte[] TESTFR_CON_BUFFER = new byte[]{0x68, 0x04, (byte) 0x83, 0x00, 0x00, 0x00};
     private static final byte[] TESTFR_ACT_BUFFER = new byte[]{0x68, 0x04, (byte) 0x43, 0x00, 0x00, 0x00};
     private static final byte[] STARTDT_ACT_BUFFER = new byte[]{0x68, 0x04, 0x07, 0x00, 0x00, 0x00};
     private static final byte[] STARTDT_CON_BUFFER = new byte[]{0x68, 0x04, 0x0b, 0x00, 0x00, 0x00};
 
-    private final ScheduledExecutorService maxTimeNoAckSentTimer = Executors.newSingleThreadScheduledExecutor();
-    private ScheduledFuture<?> maxTimeNoAckSentFuture = null;
-
-    private final ScheduledExecutorService maxTimeNoAckReceivedTimer = Executors.newSingleThreadScheduledExecutor();
-    private ScheduledFuture<?> maxTimeNoAckReceivedFuture = null;
-
-    private final ScheduledExecutorService maxIdleTimeTimer = Executors.newSingleThreadScheduledExecutor();
-    private ScheduledFuture<?> maxIdleTimeTimerFuture = null;
-
-    private final ScheduledExecutorService maxTimeNoTestConReceivedTimer = Executors.newSingleThreadScheduledExecutor();
-    private ScheduledFuture<?> maxTimeNoTestConReceivedFuture = null;
-
-    private IOException closedIOException = null;
-
+    private final Socket socket;
+    private final ServerThread serverThread;
+    private final DataOutputStream os;
+    private final ConnectionSettings settings;
+    private final byte[] buffer = new byte[255];
+    private final TimeoutManager timeoutManager;
+    private final TimeoutTask maxTimeNoTestConReceived;
+    private final TimeoutTask maxTimeNoAckReceived;
+    private final TimeoutTask maxIdleTimeTimer;
+    private final TimeoutTask maxTimeNoAckSentTimer;
+    private final ExecutorService executor;
+    private volatile boolean closed;
+    private boolean dataTransferStarted;
+    private ConnectionEventListener aSduListener;
+    private int sendSequenceNumber;
+    private int receiveSequenceNumber;
+    private int acknowledgedReceiveSequenceNumber;
+    private int acknowledgedSendSequenceNumber;
+    private int originatorAddress;
+    private IOException closedIOException;
     private CountDownLatch startdtactSignal;
     private CountDownLatch startdtConSignal;
-    private final ExecutorService newAsduNotificationExecutor = Executors.newSingleThreadExecutor();
-
-    private class ConnectionReader extends Thread {
-
-        @Override
-        public void run() {
-
-            try {
-                while (true) {
-
-                    socket.setSoTimeout(0);
-
-                    if (is.readByte() != 0x68) {
-                        throw new IOException("Message does not start with 0x68");
-                    }
-
-                    socket.setSoTimeout(settings.messageFragmentTimeout);
-
-                    final APdu aPdu = new APdu(is, settings);
-
-                    synchronized (Connection.this) {
-
-                        switch (aPdu.getApciType()) {
-                            case I_FORMAT:
-
-                                if (dataTransferStarted == false) {
-                                    break;
-                                }
-
-                                if (receiveSequenceNumber != aPdu.getSendSeqNumber()) {
-                                    throw new IOException("Got unexpected send sequence number: " + aPdu.getSendSeqNumber()
-                                            + ", expected: " + receiveSequenceNumber);
-                                }
-
-                                receiveSequenceNumber = (aPdu.getSendSeqNumber() + 1) % 32768;
-
-                                handleReceiveSequenceNumber(aPdu);
-
-                                if (aSduListener != null) {
-                                    newAsduNotificationExecutor.execute(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            aSduListener.newASdu(aPdu.getASdu());
-                                        }
-                                    });
-                                }
-
-                                int numUnconfirmedIPdusReceived = getSequenceNumberDifference(receiveSequenceNumber,
-                                        acknowledgedReceiveSequenceNumber);
-
-                                if (numUnconfirmedIPdusReceived > settings.maxUnconfirmedIPdusReceived) {
-                                    sendSFormatPdu();
-                                    if (maxTimeNoAckSentFuture != null) {
-                                        maxTimeNoAckSentFuture.cancel(true);
-                                        maxTimeNoAckSentFuture = null;
-                                    }
-                                } else {
-
-                                    if (maxTimeNoAckSentFuture == null) {
-
-                                        maxTimeNoAckSentFuture = maxTimeNoAckSentTimer.schedule(new Runnable() {
-                                            @Override
-                                            public void run() {
-
-                                                synchronized (Connection.this) {
-                                                    if (Thread.interrupted()) {
-                                                        return;
-                                                    }
-                                                    try {
-                                                        sendSFormatPdu();
-                                                    } catch (IOException e) {
-                                                    }
-                                                    maxTimeNoAckSentFuture = null;
-                                                }
-                                            }
-                                        }, settings.maxTimeNoAckSent, TimeUnit.MILLISECONDS);
-                                    }
-                                }
-                                resetMaxIdleTimeTimer();
-
-                                break;
-                            case STARTDT_CON:
-                                if (startdtConSignal != null) {
-                                    startdtConSignal.countDown();
-                                }
-                                resetMaxIdleTimeTimer();
-                                break;
-                            case STARTDT_ACT:
-                                if (startdtactSignal != null) {
-                                    startdtactSignal.countDown();
-                                }
-                                break;
-                            case S_FORMAT:
-                                handleReceiveSequenceNumber(aPdu);
-                                resetMaxIdleTimeTimer();
-                                break;
-                            case TESTFR_ACT:
-                                os.write(TESTFR_CON_BUFFER, 0, TESTFR_CON_BUFFER.length);
-                                os.flush();
-                                resetMaxIdleTimeTimer();
-                                break;
-                            case TESTFR_CON:
-                                if (maxTimeNoTestConReceivedFuture != null) {
-                                    maxTimeNoTestConReceivedFuture.cancel(true);
-                                    maxTimeNoTestConReceivedFuture = null;
-                                }
-                                resetMaxIdleTimeTimer();
-                                break;
-                            default:
-                                throw new IOException("Got unexpected message with APCI Type: " + aPdu.getApciType());
-                        }
-
-                    }
-
-                }
-            } catch (EOFException e2) {
-                closedIOException = new EOFException("Socket was closed by remote host.");
-            } catch (IOException e2) {
-                closedIOException = e2;
-            } catch (Exception e2) {
-                closedIOException = new IOException("Unexpected Exception", e2);
-            } finally {
-                synchronized (Connection.this) {
-                    if (closed == false) {
-                        close();
-                        if (aSduListener != null) {
-                            aSduListener.connectionClosed(closedIOException);
-                        }
-                    }
-                    maxTimeNoAckSentTimer.shutdownNow();
-                    maxTimeNoAckReceivedTimer.shutdownNow();
-                    maxIdleTimeTimer.shutdownNow();
-                    maxTimeNoTestConReceivedTimer.shutdownNow();
-                    newAsduNotificationExecutor.shutdownNow();
-                }
-            }
-        }
-
-        private void handleReceiveSequenceNumber(final APdu aPdu) throws IOException {
-            if (acknowledgedSendSequenceNumber != aPdu.getReceiveSeqNumber()) {
-
-                if (getSequenceNumberDifference(aPdu.getReceiveSeqNumber(),
-                        acknowledgedSendSequenceNumber) > getNumUnconfirmedIPdusSent()) {
-                    throw new IOException("Got unexpected receive sequence number: " + aPdu.getReceiveSeqNumber()
-                            + ", expected a number between: " + acknowledgedSendSequenceNumber + " and "
-                            + sendSequenceNumber);
-                }
-
-                if (maxTimeNoAckReceivedFuture != null) {
-                    maxTimeNoAckReceivedFuture.cancel(true);
-                    maxTimeNoAckReceivedFuture = null;
-                }
-
-                acknowledgedSendSequenceNumber = aPdu.getReceiveSeqNumber();
-
-                if (sendSequenceNumber != acknowledgedSendSequenceNumber) {
-                    scheduleMaxTimeNoAckReceivedFuture();
-                }
-
-            }
-        }
-    }
 
     Connection(Socket socket, ServerThread serverThread, ConnectionSettings settings) throws IOException {
 
@@ -253,16 +82,6 @@ public class Connection {
             os = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
         } catch (IOException e) {
             socket.close();
-            throw e;
-        }
-        try {
-            is = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
-        } catch (IOException e) {
-            try {
-                // this will also close the socket
-                os.close();
-            } catch (Exception e1) {
-            }
             throw e;
         }
 
@@ -276,6 +95,25 @@ public class Connection {
         ConnectionReader connectionReader = new ConnectionReader();
         connectionReader.start();
 
+        this.maxTimeNoTestConReceived = new MaxTimeNoAckReceivedTimer();
+        this.maxTimeNoAckReceived = new MaxTimeNoAckReceivedTimer();
+        this.maxIdleTimeTimer = new MaxIdleTimeTimer();
+        this.maxTimeNoAckSentTimer = new MaxTimeNoAckSentTimer();
+
+        if (settings.useSharedThreadPool()) {
+            this.executor = ConnectionSettings.getThreadPool();
+        } else {
+            this.executor = Executors.newFixedThreadPool(2);
+        }
+        ConnectionSettings.incremntConnectionsCounter();
+
+        this.timeoutManager = new TimeoutManager();
+        this.executor.execute(this.timeoutManager);
+
+    }
+
+    private static int sequenceNumberDiff(int num1, int num2) {
+        return Math.abs(num1 - num2);
     }
 
     /**
@@ -285,17 +123,16 @@ public class Connection {
      * @param listener the listener that is notified of incoming ASDUs
      * @param timeout  the maximum time in ms to wait for a STARDT CON message after sending the STARTDT ACT message. If set
      *                 to zero, timeout is disabled.
-     * @throws IOException      if any kind of IOException occurs
-     * @throws TimeoutException if the configured response timeout runs out
+     * @throws IOException if any kind of IOException occurs.
      */
-    public void startDataTransfer(ConnectionEventListener listener, int timeout) throws IOException, TimeoutException {
+    public void startDataTransfer(ConnectionEventListener listener, int timeout) throws IOException {
         if (timeout < 0) {
-            throw new IllegalArgumentException("timeout may not be negative");
+            throw new IllegalArgumentException("Timeout may not be negative.");
         }
 
         synchronized (this) {
             startdtConSignal = new CountDownLatch(1);
-            os.write(STARTDT_ACT_BUFFER, 0, STARTDT_ACT_BUFFER.length);
+            os.write(STARTDT_ACT_BUFFER);
         }
         os.flush();
 
@@ -303,21 +140,25 @@ public class Connection {
             try {
                 startdtConSignal.await();
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
         } else {
-            boolean success = true;
+            boolean success;
             try {
                 success = startdtConSignal.await(timeout, TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
+                success = true;
+                Thread.currentThread().interrupt();
             }
+
             if (!success) {
-                throw new TimeoutException();
+                throw new InterruptedIOException("Request timed out.");
             }
         }
 
         synchronized (this) {
             this.aSduListener = listener;
-            dataTransferStarted = true;
+            this.dataTransferStarted = true;
         }
     }
 
@@ -328,10 +169,9 @@ public class Connection {
      * @param listener the listener that is to be notified of incoming ASDUs and disconnect events
      * @param timeout  the maximum time in ms to wait for STARTDT ACT message before throwing a TimeoutException. If set to
      *                 zero, timeout is disabled.
-     * @throws IOException      if a fatal communication error occurred
-     * @throws TimeoutException if the given timeout runs out before the STARTDT ACT message is received.
+     * @throws IOException if a fatal communication error occurred
      */
-    public void waitForStartDT(ConnectionEventListener listener, int timeout) throws IOException, TimeoutException {
+    public void waitForStartDT(ConnectionEventListener listener, int timeout) throws IOException {
 
         if (timeout < 0) {
             throw new IllegalArgumentException("timeout may not be negative");
@@ -341,15 +181,17 @@ public class Connection {
             try {
                 startdtactSignal.await();
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
         } else {
             boolean success = true;
             try {
                 success = startdtactSignal.await(timeout, TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
             if (!success) {
-                throw new TimeoutException();
+                throw new InterruptedIOException();
             }
         }
 
@@ -364,15 +206,23 @@ public class Connection {
     }
 
     private void sendSFormatPdu() throws IOException {
-        APdu requestAPdu = new APdu(0, receiveSequenceNumber, APCI_TYPE.S_FORMAT, null);
-        requestAPdu.encode(buffer, settings);
+        int length = new APdu(0, receiveSequenceNumber, ApciType.S_FORMAT, null).encode(buffer, settings);
 
-        os.write(buffer, 0, 6);
+        os.write(buffer, 0, length);
         os.flush();
 
         acknowledgedReceiveSequenceNumber = receiveSequenceNumber;
 
         resetMaxIdleTimeTimer();
+    }
+
+    /**
+     * Get the configured Originator Address.
+     *
+     * @return the Originator Address
+     */
+    public int getOriginatorAddress() {
+        return originatorAddress;
     }
 
     /**
@@ -390,56 +240,48 @@ public class Connection {
         this.originatorAddress = originatorAddress;
     }
 
-    /**
-     * Get the configured Originator Address.
-     *
-     * @return the Originator Address
-     */
-    public int getOriginatorAddress() {
-        return originatorAddress;
-    }
-
-    public int getNumUnconfirmedIPdusSent() {
+    public int getNumUnconfirmedAPdusSent() {
         synchronized (this) {
-            return getSequenceNumberDifference(sendSequenceNumber, acknowledgedSendSequenceNumber);
+            return sequenceNumberDiff(sendSequenceNumber, acknowledgedSendSequenceNumber);
         }
     }
 
     /**
-     * Will close the TCP connection to the server if its still open and free any resources of this connection.
+     * Will close the TCP connection if its still open and free any resources of this connection.
      */
+    @Override
     public synchronized void close() {
-        if (!closed) {
+        if (closed) {
+            return;
+        }
+
+        try {
+            // close the socket, which also closes the streams
+            socket.close();
+        } catch (Exception e) {
+            // ignore this here
+        } finally {
             closed = true;
             dataTransferStarted = false;
-            try {
-                // will also close socket
-                os.close();
-            } catch (Exception e) {
-            }
-            try {
-                is.close();
-            } catch (Exception e) {
-            }
-            if (serverThread != null) {
-                serverThread.connectionClosedSignal();
-            }
+        }
+
+        if (serverThread != null) {
+            serverThread.connectionClosedSignal();
         }
     }
 
     public synchronized void send(ASdu aSdu) throws IOException {
 
         acknowledgedReceiveSequenceNumber = receiveSequenceNumber;
-        APdu requestAPdu = new APdu(sendSequenceNumber, receiveSequenceNumber, APCI_TYPE.I_FORMAT, aSdu);
-        sendSequenceNumber = (sendSequenceNumber + 1) % 32768;
+        APdu requestAPdu = new APdu(sendSequenceNumber, receiveSequenceNumber, ApciType.I_FORMAT, aSdu);
+        sendSequenceNumber = (sendSequenceNumber + 1) % (1 << 15); // 32768 = 2^15
 
-        if (maxTimeNoAckSentFuture != null) {
-            maxTimeNoAckSentFuture.cancel(true);
-            maxTimeNoAckSentFuture = null;
+        if (this.maxTimeNoAckSentTimer.isPlanned()) {
+            this.maxTimeNoAckSentTimer.cancel();
         }
 
-        if (maxTimeNoAckReceivedFuture == null) {
-            scheduleMaxTimeNoAckReceivedFuture();
+        if (!this.maxTimeNoAckReceived.isPlanned()) {
+            this.timeoutManager.addTimerTask(this.maxTimeNoAckReceived);
         }
 
         int length = requestAPdu.encode(buffer, settings);
@@ -448,90 +290,28 @@ public class Connection {
         resetMaxIdleTimeTimer();
     }
 
-    private void scheduleMaxTimeNoAckReceivedFuture() {
-        maxTimeNoAckReceivedFuture = maxTimeNoAckReceivedTimer.schedule(new Runnable() {
-            @Override
-            public void run() {
-
-                synchronized (Connection.this) {
-                    if (Thread.interrupted()) {
-                        return;
-                    }
-                    close();
-                    maxTimeNoAckReceivedFuture = null;
-                    if (aSduListener != null) {
-                        aSduListener.connectionClosed(new IOException(
-                                "The maximum time that no confirmation was received (t1) has been exceeded. t1 = "
-                                        + settings.maxTimeNoAckReceived + "ms"));
-                    }
-                }
-            }
-        }, settings.maxTimeNoAckReceived, TimeUnit.MILLISECONDS);
-    }
-
-    private void scheduleMaxTimeNoTestConReceivedFuture() {
-        maxTimeNoTestConReceivedFuture = maxTimeNoTestConReceivedTimer.schedule(new Runnable() {
-            @Override
-            public void run() {
-
-                synchronized (Connection.this) {
-                    if (Thread.interrupted()) {
-                        return;
-                    }
-                    close();
-                    maxTimeNoTestConReceivedFuture = null;
-                    if (aSduListener != null) {
-                        aSduListener.connectionClosed(new IOException(
-                                "The maximum time that no test frame confirmation was received (t1) has been exceeded. t1 = "
-                                        + settings.maxTimeNoAckReceived + "ms"));
-                    }
-                }
-            }
-        }, settings.maxTimeNoAckReceived, TimeUnit.MILLISECONDS);
-    }
-
-    private int getSequenceNumberDifference(int x, int y) {
-        int difference = x - y;
-        if (difference < 0) {
-            difference += 32768;
-        }
-        return difference;
-    }
-
     private void resetMaxIdleTimeTimer() {
-        if (maxIdleTimeTimerFuture != null) {
-            maxIdleTimeTimerFuture.cancel(true);
-        }
-        maxIdleTimeTimerFuture = maxIdleTimeTimer.schedule(new Runnable() {
-            @Override
-            public void run() {
-
-                synchronized (Connection.this) {
-                    if (Thread.interrupted()) {
-                        return;
-                    }
-                    try {
-                        os.write(TESTFR_ACT_BUFFER, 0, TESTFR_ACT_BUFFER.length);
-                        os.flush();
-                    } catch (IOException e) {
-                    }
-                    maxIdleTimeTimerFuture = null;
-                    scheduleMaxTimeNoTestConReceivedFuture();
-                }
-            }
-        }, settings.maxIdleTime, TimeUnit.MILLISECONDS);
+        this.maxIdleTimeTimer.cancel();
+        this.timeoutManager.addTimerTask(maxIdleTimeTimer);
     }
 
     public void sendConfirmation(ASdu aSdu) throws IOException {
-        CauseOfTransmission cot = aSdu.getCauseOfTransmission();
-        if (cot == CauseOfTransmission.ACTIVATION) {
-            cot = CauseOfTransmission.ACTIVATION_CON;
-        } else if (cot == CauseOfTransmission.DEACTIVATION) {
-            cot = CauseOfTransmission.DEACTIVATION_CON;
-        }
+        CauseOfTransmission cot = cotFrom(aSdu);
         send(new ASdu(aSdu.getTypeIdentification(), aSdu.isSequenceOfElements(), cot, aSdu.isTestFrame(),
                 aSdu.isNegativeConfirm(), aSdu.getOriginatorAddress(), aSdu.getCommonAddress(),
                 aSdu.getInformationObjects()));
+    }
+
+    private CauseOfTransmission cotFrom(ASdu aSdu) {
+        CauseOfTransmission cot = aSdu.getCauseOfTransmission();
+        switch (cot) {
+            case ACTIVATION:
+                return CauseOfTransmission.ACTIVATION_CON;
+            case DEACTIVATION:
+                return CauseOfTransmission.DEACTIVATION_CON;
+            default:
+                return cot;
+        }
     }
 
     /**
@@ -545,9 +325,8 @@ public class Connection {
      */
     public void singleCommand(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
                               IeSingleCommand singleCommand) throws IOException {
-        ASdu aSdu = new ASdu(TypeId.C_SC_NA_1, false, cot, false, false, originatorAddress, commonAddress,
-                new InformationObject[]{new InformationObject(informationObjectAddress,
-                        new InformationElement[][]{{singleCommand}})});
+        ASdu aSdu = new ASdu(ASduType.C_SC_NA_1, false, cot, false, false, originatorAddress, commonAddress,
+                new InformationObject(informationObjectAddress, singleCommand));
         send(aSdu);
     }
 
@@ -563,9 +342,9 @@ public class Connection {
      */
     public void singleCommandWithTimeTag(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
                                          IeSingleCommand singleCommand, IeTime56 timeTag) throws IOException {
-        ASdu aSdu = new ASdu(TypeId.C_SC_TA_1, false, cot, false, false, originatorAddress, commonAddress,
-                new InformationObject[]{new InformationObject(informationObjectAddress,
-                        new InformationElement[][]{{singleCommand, timeTag}})});
+
+        ASdu aSdu = new ASdu(ASduType.C_SC_TA_1, false, cot, false, false, originatorAddress, commonAddress,
+                new InformationObject(informationObjectAddress, singleCommand, timeTag));
         send(aSdu);
     }
 
@@ -581,9 +360,8 @@ public class Connection {
     public void doubleCommand(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
                               IeDoubleCommand doubleCommand) throws IOException {
 
-        ASdu aSdu = new ASdu(TypeId.C_DC_NA_1, false, cot, false, false, originatorAddress, commonAddress,
-                new InformationObject[]{new InformationObject(informationObjectAddress,
-                        new InformationElement[][]{{doubleCommand}})});
+        ASdu aSdu = new ASdu(ASduType.C_DC_NA_1, false, cot, false, false, originatorAddress, commonAddress,
+                new InformationObject(informationObjectAddress, doubleCommand));
         send(aSdu);
     }
 
@@ -600,9 +378,8 @@ public class Connection {
     public void doubleCommandWithTimeTag(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
                                          IeDoubleCommand doubleCommand, IeTime56 timeTag) throws IOException {
 
-        ASdu aSdu = new ASdu(TypeId.C_DC_TA_1, false, cot, false, false, originatorAddress, commonAddress,
-                new InformationObject[]{new InformationObject(informationObjectAddress,
-                        new InformationElement[][]{{doubleCommand, timeTag}})});
+        ASdu aSdu = new ASdu(ASduType.C_DC_TA_1, false, cot, false, false, originatorAddress, commonAddress,
+                new InformationObject(informationObjectAddress, doubleCommand, timeTag));
         send(aSdu);
     }
 
@@ -618,9 +395,8 @@ public class Connection {
     public void regulatingStepCommand(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
                                       IeRegulatingStepCommand regulatingStepCommand) throws IOException {
 
-        ASdu aSdu = new ASdu(TypeId.C_RC_NA_1, false, cot, false, false, originatorAddress, commonAddress,
-                new InformationObject[]{new InformationObject(informationObjectAddress,
-                        new InformationElement[][]{{regulatingStepCommand}})});
+        ASdu aSdu = new ASdu(ASduType.C_RC_NA_1, false, cot, false, false, originatorAddress, commonAddress,
+                new InformationObject(informationObjectAddress, regulatingStepCommand));
         send(aSdu);
     }
 
@@ -638,9 +414,8 @@ public class Connection {
                                                  int informationObjectAddress, IeRegulatingStepCommand regulatingStepCommand, IeTime56 timeTag)
             throws IOException {
 
-        ASdu aSdu = new ASdu(TypeId.C_RC_TA_1, false, cot, false, false, originatorAddress, commonAddress,
-                new InformationObject[]{new InformationObject(informationObjectAddress,
-                        new InformationElement[][]{{regulatingStepCommand, timeTag}})});
+        ASdu aSdu = new ASdu(ASduType.C_RC_TA_1, false, cot, false, false, originatorAddress, commonAddress,
+                new InformationObject(informationObjectAddress, regulatingStepCommand, timeTag));
         send(aSdu);
     }
 
@@ -657,9 +432,9 @@ public class Connection {
     public void setNormalizedValueCommand(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
                                           IeNormalizedValue normalizedValue, IeQualifierOfSetPointCommand qualifier) throws IOException {
 
-        ASdu aSdu = new ASdu(TypeId.C_SE_NA_1, false, cot, false, false, originatorAddress, commonAddress,
-                new InformationObject[]{new InformationObject(informationObjectAddress,
-                        new InformationElement[][]{{normalizedValue, qualifier}})});
+        ASdu aSdu = new ASdu(ASduType.C_SE_NA_1, false, cot, false, false, originatorAddress, commonAddress,
+                new InformationObject(informationObjectAddress, normalizedValue, qualifier));
+
         send(aSdu);
     }
 
@@ -670,7 +445,7 @@ public class Connection {
      * @param cot                      the cause of transmission. Allowed are activation and deactivation.
      * @param informationObjectAddress the information object address.
      * @param normalizedValue          the value to be sent.
-     * @param qualifier                the qualifier to be sent.
+     * @param qualifier                the qualifier to be sent.executor
      * @param timeTag                  the time tag to be sent.
      * @throws IOException if a fatal communication error occurred.
      */
@@ -678,9 +453,9 @@ public class Connection {
                                                      int informationObjectAddress, IeNormalizedValue normalizedValue, IeQualifierOfSetPointCommand qualifier,
                                                      IeTime56 timeTag) throws IOException {
 
-        ASdu aSdu = new ASdu(TypeId.C_SE_TA_1, false, cot, false, false, originatorAddress, commonAddress,
-                new InformationObject[]{new InformationObject(informationObjectAddress,
-                        new InformationElement[][]{{normalizedValue, qualifier, timeTag}})});
+        ASdu aSdu = new ASdu(ASduType.C_SE_TA_1, false, cot, false, false, originatorAddress, commonAddress,
+                new InformationObject(informationObjectAddress, normalizedValue, qualifier, timeTag));
+
         send(aSdu);
     }
 
@@ -697,9 +472,9 @@ public class Connection {
     public void setScaledValueCommand(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
                                       IeScaledValue scaledValue, IeQualifierOfSetPointCommand qualifier) throws IOException {
 
-        ASdu aSdu = new ASdu(TypeId.C_SE_NB_1, false, cot, false, false, originatorAddress, commonAddress,
-                new InformationObject[]{new InformationObject(informationObjectAddress,
-                        new InformationElement[][]{{scaledValue, qualifier}})});
+        ASduType typeId = ASduType.C_SE_NB_1;
+        ASdu aSdu = new ASdu(typeId, false, cot, false, false, originatorAddress, commonAddress,
+                new InformationObject(informationObjectAddress, scaledValue, qualifier));
         send(aSdu);
     }
 
@@ -718,9 +493,8 @@ public class Connection {
                                                  int informationObjectAddress, IeScaledValue scaledValue, IeQualifierOfSetPointCommand qualifier,
                                                  IeTime56 timeTag) throws IOException {
 
-        ASdu aSdu = new ASdu(TypeId.C_SE_TB_1, false, cot, false, false, originatorAddress, commonAddress,
-                new InformationObject[]{new InformationObject(informationObjectAddress,
-                        new InformationElement[][]{{scaledValue, qualifier, timeTag}})});
+        ASdu aSdu = new ASdu(ASduType.C_SE_TB_1, false, cot, false, false, originatorAddress, commonAddress,
+                new InformationObject(informationObjectAddress, scaledValue, qualifier, timeTag));
         send(aSdu);
     }
 
@@ -730,16 +504,15 @@ public class Connection {
      * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
      * @param cot                      the cause of transmission. Allowed are activation and deactivation.
      * @param informationObjectAddress the information object address.
-     * @param shortFloat               the value to be sent.
+     * @param floatVal                 the value to be sent.
      * @param qualifier                the qualifier to be sent.
      * @throws IOException if a fatal communication error occurred.
      */
     public void setShortFloatCommand(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
-                                     IeShortFloat shortFloat, IeQualifierOfSetPointCommand qualifier) throws IOException {
+                                     IeShortFloat floatVal, IeQualifierOfSetPointCommand qualifier) throws IOException {
 
-        ASdu aSdu = new ASdu(TypeId.C_SE_NC_1, false, cot, false, false, originatorAddress, commonAddress,
-                new InformationObject[]{new InformationObject(informationObjectAddress,
-                        new InformationElement[][]{{shortFloat, qualifier}})});
+        ASdu aSdu = new ASdu(ASduType.C_SE_NC_1, false, cot, false, false, originatorAddress, commonAddress,
+                new InformationObject(informationObjectAddress, floatVal, qualifier));
         send(aSdu);
     }
 
@@ -758,9 +531,9 @@ public class Connection {
                                                 int informationObjectAddress, IeShortFloat shortFloat, IeQualifierOfSetPointCommand qualifier,
                                                 IeTime56 timeTag) throws IOException {
 
-        ASdu aSdu = new ASdu(TypeId.C_SE_TC_1, false, cot, false, false, originatorAddress, commonAddress,
-                new InformationObject[]{new InformationObject(informationObjectAddress,
-                        new InformationElement[][]{{shortFloat, qualifier, timeTag}})});
+        ASdu aSdu = new ASdu(ASduType.C_SE_TC_1, false, cot, false, false, originatorAddress, commonAddress,
+                new InformationObject(informationObjectAddress, shortFloat, qualifier, timeTag));
+
         send(aSdu);
     }
 
@@ -776,9 +549,8 @@ public class Connection {
     public void bitStringCommand(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
                                  IeBinaryStateInformation binaryStateInformation) throws IOException {
 
-        ASdu aSdu = new ASdu(TypeId.C_BO_NA_1, false, cot, false, false, originatorAddress, commonAddress,
-                new InformationObject[]{new InformationObject(informationObjectAddress,
-                        new InformationElement[][]{{binaryStateInformation}})});
+        ASdu aSdu = new ASdu(ASduType.C_BO_NA_1, false, cot, false, false, originatorAddress, commonAddress,
+                new InformationObject(informationObjectAddress, binaryStateInformation));
         send(aSdu);
     }
 
@@ -795,9 +567,8 @@ public class Connection {
     public void bitStringCommandWithTimeTag(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
                                             IeBinaryStateInformation binaryStateInformation, IeTime56 timeTag) throws IOException {
 
-        ASdu aSdu = new ASdu(TypeId.C_BO_TA_1, false, cot, false, false, originatorAddress, commonAddress,
-                new InformationObject[]{new InformationObject(informationObjectAddress,
-                        new InformationElement[][]{{binaryStateInformation, timeTag}})});
+        ASdu aSdu = new ASdu(ASduType.C_BO_TA_1, false, cot, false, false, originatorAddress, commonAddress,
+                new InformationObject(informationObjectAddress, binaryStateInformation, timeTag));
         send(aSdu);
     }
 
@@ -811,8 +582,9 @@ public class Connection {
      */
     public void interrogation(int commonAddress, CauseOfTransmission cot, IeQualifierOfInterrogation qualifier)
             throws IOException {
-        ASdu aSdu = new ASdu(TypeId.C_IC_NA_1, false, cot, false, false, originatorAddress, commonAddress,
-                new InformationObject[]{new InformationObject(0, new InformationElement[][]{{qualifier}})});
+        ASdu aSdu = new ASdu(ASduType.C_IC_NA_1, false, cot, false, false, originatorAddress, commonAddress,
+                new InformationObject(0, qualifier));
+
         send(aSdu);
     }
 
@@ -826,8 +598,8 @@ public class Connection {
      */
     public void counterInterrogation(int commonAddress, CauseOfTransmission cot,
                                      IeQualifierOfCounterInterrogation qualifier) throws IOException {
-        ASdu aSdu = new ASdu(TypeId.C_CI_NA_1, false, cot, false, false, originatorAddress, commonAddress,
-                new InformationObject[]{new InformationObject(0, new InformationElement[][]{{qualifier}})});
+        ASdu aSdu = new ASdu(ASduType.C_CI_NA_1, false, cot, false, false, originatorAddress, commonAddress,
+                new InformationObject(0, qualifier));
         send(aSdu);
     }
 
@@ -839,9 +611,8 @@ public class Connection {
      * @throws IOException if a fatal communication error occurred.
      */
     public void readCommand(int commonAddress, int informationObjectAddress) throws IOException {
-        ASdu aSdu = new ASdu(TypeId.C_RD_NA_1, false, CauseOfTransmission.REQUEST, false, false, originatorAddress,
-                commonAddress, new InformationObject[]{
-                new InformationObject(informationObjectAddress, new InformationElement[0][0])});
+        ASdu aSdu = new ASdu(ASduType.C_RD_NA_1, false, CauseOfTransmission.REQUEST, false, false, originatorAddress,
+                commonAddress, new InformationObject(informationObjectAddress));
         send(aSdu);
     }
 
@@ -853,12 +624,10 @@ public class Connection {
      * @throws IOException if a fatal communication error occurred.
      */
     public void synchronizeClocks(int commonAddress, IeTime56 time) throws IOException {
-        InformationObject io = new InformationObject(0, new InformationElement[][]{{time}});
+        InformationObject io = new InformationObject(0, time);
 
-        InformationObject[] ios = new InformationObject[]{io};
-
-        ASdu aSdu = new ASdu(TypeId.C_CS_NA_1, false, CauseOfTransmission.ACTIVATION, false, false, originatorAddress,
-                commonAddress, ios);
+        ASdu aSdu = new ASdu(ASduType.C_CS_NA_1, false, CauseOfTransmission.ACTIVATION, false, false, originatorAddress,
+                commonAddress, io);
 
         send(aSdu);
     }
@@ -870,9 +639,9 @@ public class Connection {
      * @throws IOException if a fatal communication error occurred.
      */
     public void testCommand(int commonAddress) throws IOException {
-        ASdu aSdu = new ASdu(TypeId.C_TS_NA_1, false, CauseOfTransmission.ACTIVATION, false, false, originatorAddress,
-                commonAddress, new InformationObject[]{
-                new InformationObject(0, new InformationElement[][]{{new IeFixedTestBitPattern()}})});
+        ASdu aSdu = new ASdu(ASduType.C_TS_NA_1, false, CauseOfTransmission.ACTIVATION, false, false, originatorAddress,
+                commonAddress, new InformationObject(0, new IeFixedTestBitPattern()));
+
         send(aSdu);
     }
 
@@ -884,9 +653,8 @@ public class Connection {
      * @throws IOException if a fatal communication error occurred.
      */
     public void resetProcessCommand(int commonAddress, IeQualifierOfResetProcessCommand qualifier) throws IOException {
-        ASdu aSdu = new ASdu(TypeId.C_RP_NA_1, false, CauseOfTransmission.ACTIVATION, false, false, originatorAddress,
-                commonAddress,
-                new InformationObject[]{new InformationObject(0, new InformationElement[][]{{qualifier}})});
+        ASdu aSdu = new ASdu(ASduType.C_RP_NA_1, false, CauseOfTransmission.ACTIVATION, false, false, originatorAddress,
+                commonAddress, new InformationObject(0, qualifier));
         send(aSdu);
     }
 
@@ -899,8 +667,8 @@ public class Connection {
      * @throws IOException if a fatal communication error occurred.
      */
     public void delayAcquisitionCommand(int commonAddress, CauseOfTransmission cot, IeTime16 time) throws IOException {
-        ASdu aSdu = new ASdu(TypeId.C_CD_NA_1, false, cot, false, false, originatorAddress, commonAddress,
-                new InformationObject[]{new InformationObject(0, new InformationElement[][]{{time}})});
+        ASdu aSdu = new ASdu(ASduType.C_CD_NA_1, false, cot, false, false, originatorAddress, commonAddress,
+                new InformationObject(0, time));
         send(aSdu);
     }
 
@@ -914,9 +682,8 @@ public class Connection {
      */
     public void testCommandWithTimeTag(int commonAddress, IeTestSequenceCounter testSequenceCounter, IeTime56 time)
             throws IOException {
-        ASdu aSdu = new ASdu(TypeId.C_TS_TA_1, false, CauseOfTransmission.ACTIVATION, false, false, originatorAddress,
-                commonAddress, new InformationObject[]{
-                new InformationObject(0, new InformationElement[][]{{testSequenceCounter, time}})});
+        ASdu aSdu = new ASdu(ASduType.C_TS_TA_1, false, CauseOfTransmission.ACTIVATION, false, false, originatorAddress,
+                commonAddress, new InformationObject(0, testSequenceCounter, time));
         send(aSdu);
     }
 
@@ -931,9 +698,8 @@ public class Connection {
      */
     public void parameterNormalizedValueCommand(int commonAddress, int informationObjectAddress,
                                                 IeNormalizedValue normalizedValue, IeQualifierOfParameterOfMeasuredValues qualifier) throws IOException {
-        ASdu aSdu = new ASdu(TypeId.P_ME_NA_1, false, CauseOfTransmission.ACTIVATION, false, false, originatorAddress,
-                commonAddress, new InformationObject[]{new InformationObject(informationObjectAddress,
-                new InformationElement[][]{{normalizedValue, qualifier}})});
+        ASdu aSdu = new ASdu(ASduType.P_ME_NA_1, false, CauseOfTransmission.ACTIVATION, false, false, originatorAddress,
+                commonAddress, new InformationObject(informationObjectAddress, normalizedValue, qualifier));
         send(aSdu);
     }
 
@@ -948,9 +714,8 @@ public class Connection {
      */
     public void parameterScaledValueCommand(int commonAddress, int informationObjectAddress, IeScaledValue scaledValue,
                                             IeQualifierOfParameterOfMeasuredValues qualifier) throws IOException {
-        ASdu aSdu = new ASdu(TypeId.P_ME_NB_1, false, CauseOfTransmission.ACTIVATION, false, false, originatorAddress,
-                commonAddress, new InformationObject[]{new InformationObject(informationObjectAddress,
-                new InformationElement[][]{{scaledValue, qualifier}})});
+        ASdu aSdu = new ASdu(ASduType.P_ME_NB_1, false, CauseOfTransmission.ACTIVATION, false, false, originatorAddress,
+                commonAddress, new InformationObject(informationObjectAddress, scaledValue, qualifier));
         send(aSdu);
     }
 
@@ -965,9 +730,8 @@ public class Connection {
      */
     public void parameterShortFloatCommand(int commonAddress, int informationObjectAddress, IeShortFloat shortFloat,
                                            IeQualifierOfParameterOfMeasuredValues qualifier) throws IOException {
-        ASdu aSdu = new ASdu(TypeId.P_ME_NC_1, false, CauseOfTransmission.ACTIVATION, false, false, originatorAddress,
-                commonAddress, new InformationObject[]{new InformationObject(informationObjectAddress,
-                new InformationElement[][]{{shortFloat, qualifier}})});
+        ASdu aSdu = new ASdu(ASduType.P_ME_NC_1, false, CauseOfTransmission.ACTIVATION, false, false, originatorAddress,
+                commonAddress, new InformationObject(informationObjectAddress, shortFloat, qualifier));
         send(aSdu);
     }
 
@@ -982,83 +746,293 @@ public class Connection {
      */
     public void parameterActivation(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
                                     IeQualifierOfParameterActivation qualifier) throws IOException {
-        ASdu aSdu = new ASdu(TypeId.P_AC_NA_1, false, cot, false, false, originatorAddress, commonAddress,
-                new InformationObject[]{new InformationObject(informationObjectAddress,
-                        new InformationElement[][]{{qualifier}})});
+        ASdu aSdu = new ASdu(ASduType.P_AC_NA_1, false, cot, false, false, originatorAddress, commonAddress,
+                new InformationObject(informationObjectAddress, qualifier));
         send(aSdu);
     }
 
     public void fileReady(int commonAddress, int informationObjectAddress, IeNameOfFile nameOfFile,
                           IeLengthOfFileOrSection lengthOfFile, IeFileReadyQualifier qualifier) throws IOException {
-        ASdu aSdu = new ASdu(TypeId.F_FR_NA_1, false, CauseOfTransmission.FILE_TRANSFER, false, false,
+        ASdu aSdu = new ASdu(ASduType.F_FR_NA_1, false, CauseOfTransmission.FILE_TRANSFER, false, false,
                 originatorAddress, commonAddress,
-                new InformationObject[]{new InformationObject(informationObjectAddress,
-                        new InformationElement[][]{{nameOfFile, lengthOfFile, qualifier}})});
+                new InformationObject(informationObjectAddress, nameOfFile, lengthOfFile, qualifier));
         send(aSdu);
     }
 
     public void sectionReady(int commonAddress, int informationObjectAddress, IeNameOfFile nameOfFile,
                              IeNameOfSection nameOfSection, IeLengthOfFileOrSection lengthOfSection, IeSectionReadyQualifier qualifier)
             throws IOException {
-        ASdu aSdu = new ASdu(TypeId.F_SR_NA_1, false, CauseOfTransmission.FILE_TRANSFER, false, false,
+        ASdu aSdu = new ASdu(ASduType.F_SR_NA_1, false, CauseOfTransmission.FILE_TRANSFER, false, false,
                 originatorAddress, commonAddress,
-                new InformationObject[]{new InformationObject(informationObjectAddress,
-                        new InformationElement[][]{{nameOfFile, nameOfSection, lengthOfSection, qualifier}})});
+                new InformationObject(informationObjectAddress, nameOfFile, nameOfSection, lengthOfSection, qualifier));
         send(aSdu);
     }
 
     public void callOrSelectFiles(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
                                   IeNameOfFile nameOfFile, IeNameOfSection nameOfSection, IeSelectAndCallQualifier qualifier)
             throws IOException {
-        ASdu aSdu = new ASdu(TypeId.F_SC_NA_1, false, cot, false, false, originatorAddress, commonAddress,
-                new InformationObject[]{new InformationObject(informationObjectAddress,
-                        new InformationElement[][]{{nameOfFile, nameOfSection, qualifier}})});
+        ASdu aSdu = new ASdu(ASduType.F_SC_NA_1, false, cot, false, false, originatorAddress, commonAddress,
+                new InformationObject(informationObjectAddress, nameOfFile, nameOfSection, qualifier));
         send(aSdu);
     }
 
     public void lastSectionOrSegment(int commonAddress, int informationObjectAddress, IeNameOfFile nameOfFile,
                                      IeNameOfSection nameOfSection, IeLastSectionOrSegmentQualifier qualifier, IeChecksum checksum)
             throws IOException {
-        ASdu aSdu = new ASdu(TypeId.F_LS_NA_1, false, CauseOfTransmission.FILE_TRANSFER, false, false,
+        ASdu aSdu = new ASdu(ASduType.F_LS_NA_1, false, CauseOfTransmission.FILE_TRANSFER, false, false,
                 originatorAddress, commonAddress,
-                new InformationObject[]{new InformationObject(informationObjectAddress,
-                        new InformationElement[][]{{nameOfFile, nameOfSection, qualifier, checksum}})});
+                new InformationObject(informationObjectAddress, nameOfFile, nameOfSection, qualifier, checksum));
         send(aSdu);
     }
 
     public void ackFileOrSection(int commonAddress, int informationObjectAddress, IeNameOfFile nameOfFile,
                                  IeNameOfSection nameOfSection, IeAckFileOrSectionQualifier qualifier) throws IOException {
-        ASdu aSdu = new ASdu(TypeId.F_AF_NA_1, false, CauseOfTransmission.FILE_TRANSFER, false, false,
+        ASdu aSdu = new ASdu(ASduType.F_AF_NA_1, false, CauseOfTransmission.FILE_TRANSFER, false, false,
                 originatorAddress, commonAddress,
-                new InformationObject[]{new InformationObject(informationObjectAddress,
-                        new InformationElement[][]{{nameOfFile, nameOfSection, qualifier}})});
+                new InformationObject(informationObjectAddress, nameOfFile, nameOfSection, qualifier));
         send(aSdu);
     }
 
     public void sendSegment(int commonAddress, int informationObjectAddress, IeNameOfFile nameOfFile,
                             IeNameOfSection nameOfSection, IeFileSegment segment) throws IOException {
-        ASdu aSdu = new ASdu(TypeId.F_SG_NA_1, false, CauseOfTransmission.FILE_TRANSFER, false, false,
+        ASdu aSdu = new ASdu(ASduType.F_SG_NA_1, false, CauseOfTransmission.FILE_TRANSFER, false, false,
                 originatorAddress, commonAddress,
-                new InformationObject[]{new InformationObject(informationObjectAddress,
-                        new InformationElement[][]{{nameOfFile, nameOfSection, segment}})});
+                new InformationObject(informationObjectAddress, nameOfFile, nameOfSection, segment));
         send(aSdu);
     }
 
     public void sendDirectory(int commonAddress, int informationObjectAddress, InformationElement[][] directory)
             throws IOException {
-        ASdu aSdu = new ASdu(TypeId.F_DR_TA_1, false, CauseOfTransmission.FILE_TRANSFER, false, false,
-                originatorAddress, commonAddress,
-                new InformationObject[]{new InformationObject(informationObjectAddress, directory)});
+        ASdu aSdu = new ASdu(ASduType.F_DR_TA_1, false, CauseOfTransmission.FILE_TRANSFER, false, false,
+                originatorAddress, commonAddress, new InformationObject(informationObjectAddress, directory));
         send(aSdu);
     }
 
     public void queryLog(int commonAddress, int informationObjectAddress, IeNameOfFile nameOfFile,
                          IeTime56 rangeStartTime, IeTime56 rangeEndTime) throws IOException {
-        ASdu aSdu = new ASdu(TypeId.F_SC_NB_1, false, CauseOfTransmission.FILE_TRANSFER, false, false,
+        ASdu aSdu = new ASdu(ASduType.F_SC_NB_1, false, CauseOfTransmission.FILE_TRANSFER, false, false,
                 originatorAddress, commonAddress,
-                new InformationObject[]{new InformationObject(informationObjectAddress,
-                        new InformationElement[][]{{nameOfFile, rangeStartTime, rangeEndTime}})});
+                new InformationObject(informationObjectAddress, nameOfFile, rangeStartTime, rangeEndTime));
         send(aSdu);
+    }
+
+    /**
+     * Time-out for acknowledges in case of no data messages t2 < t1 (t2: default 10)
+     */
+    private class MaxTimeNoAckSentTimer extends TimeoutTask {
+
+        public MaxTimeNoAckSentTimer() {
+            super(settings.getMaxTimeNoAckSent());
+        }
+
+        @Override
+        public void execute() {
+
+            synchronized (Connection.this) {
+                if (Thread.interrupted()) {
+                    return;
+                }
+                try {
+                    sendSFormatPdu();
+                } catch (IOException e) {
+                }
+            }
+        }
+    }
+
+    /**
+     * Time-out for sending test frames in case of a long idle state (t3: default 20 s)
+     */
+    private class MaxIdleTimeTimer extends TimeoutTask {
+        public MaxIdleTimeTimer() {
+            super(Connection.this.settings.getMaxIdleTime());
+        }
+
+        @Override
+        public void execute() {
+
+            synchronized (Connection.this) {
+                if (Thread.interrupted()) {
+                    return;
+                }
+                try {
+                    os.write(TESTFR_ACT_BUFFER, 0, TESTFR_ACT_BUFFER.length);
+                    os.flush();
+                } catch (IOException e) {
+                }
+                timeoutManager.addTimerTask(maxTimeNoTestConReceived);
+            }
+        }
+
+    }
+
+    /**
+     * Time-out of send or test APDUs (t2: default 15 s)
+     */
+    private class MaxTimeNoAckReceivedTimer extends TimeoutTask {
+
+        public MaxTimeNoAckReceivedTimer() {
+            super(Connection.this.settings.getMaxTimeNoAckReceived());
+        }
+
+        @Override
+        public void execute() {
+
+            synchronized (Connection.this) {
+                if (Thread.interrupted()) {
+                    return;
+                }
+                close();
+                if (aSduListener != null) {
+                    aSduListener.connectionClosed(new IOException(
+                            "The maximum time that no confirmation was received (t1) has been exceeded. t1 = "
+                                    + settings.getMaxTimeNoAckReceived() + "ms"));
+                }
+            }
+        }
+    }
+
+    private class ConnectionReader extends Thread {
+
+        @Override
+        public void run() {
+            try {
+                while (true) {
+                    final APdu aPdu = APdu.decode(socket, settings);
+
+                    synchronized (Connection.this) {
+
+                        switch (aPdu.getApciType()) {
+                            case I_FORMAT:
+                                handleIFrame(aPdu);
+                                break;
+                            case S_FORMAT:
+                                handleReceiveSequenceNumber(aPdu.getReceiveSeqNumber());
+                                break;
+                            case STARTDT_CON:
+                                if (startdtConSignal != null) {
+                                    startdtConSignal.countDown();
+                                }
+                                break;
+                            case STARTDT_ACT:
+                                if (startdtactSignal != null) {
+                                    startdtactSignal.countDown();
+                                }
+                                continue;
+                            case TESTFR_ACT:
+                                os.write(TESTFR_CON_BUFFER, 0, TESTFR_CON_BUFFER.length);
+                                os.flush();
+                                break;
+                            case TESTFR_CON:
+                                maxTimeNoTestConReceived.cancel();
+                                break;
+                            default:
+                                // should not occur.
+                                throw new IOException("Got unexpected message with APCI Type: " + aPdu.getApciType());
+                        }
+                        resetMaxIdleTimeTimer();
+
+                    }
+
+                }
+            } catch (EOFException e) {
+                closedIOException = new IOException("Connection was closed by server.", e);
+            } catch (IOException e) {
+                closedIOException = e;
+            } catch (Exception e) {
+                closedIOException = new IOException("Unexpected Exception.", e);
+            } finally {
+                synchronized (Connection.this) {
+                    if (!closed) {
+                        close();
+                        if (aSduListener != null) {
+                            aSduListener.connectionClosed(closedIOException);
+                        }
+                    }
+                    closeTheadPool();
+                }
+            }
+        }
+
+        private void closeTheadPool() {
+            if (settings.useSharedThreadPool()) {
+                ConnectionSettings.decrementConnectionsCounter();
+            } else {
+                executor.shutdownNow();
+            }
+        }
+
+        private void handleIFrame(final APdu aPdu) throws IOException {
+            if (!dataTransferStarted) {
+                return;
+            }
+
+            updateReceiveSeqNum(aPdu.getSendSeqNumber());
+
+            handleReceiveSequenceNumber(aPdu.getReceiveSeqNumber());
+
+            if (aSduListener != null) {
+                executor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        aSduListener.newASdu(aPdu.getASdu());
+                    }
+                });
+            }
+
+            int numUnconfirmedIPdusReceived = sequenceNumberDiff(receiveSequenceNumber,
+                    acknowledgedReceiveSequenceNumber);
+
+            if (numUnconfirmedIPdusReceived > settings.getMaxUnconfirmedIPdusReceived()) {
+                sendSFormatPdu();
+                if (maxTimeNoAckSentTimer.isPlanned()) {
+                    maxTimeNoAckSentTimer.cancel();
+                }
+            } else if (!maxTimeNoAckSentTimer.isPlanned()
+                    || (maxTimeNoAckSentTimer.isPlanned() && numUnconfirmedIPdusReceived == 1)) {
+                timeoutManager.addTimerTask(maxTimeNoAckSentTimer);
+            }
+
+        }
+
+        private void updateReceiveSeqNum(int sendSeqNumber) throws IOException {
+            verifySeqNumber(sendSeqNumber);
+            receiveSequenceNumber = (sendSeqNumber + 1) % (1 << 15); // 32768
+        }
+
+        private void verifySeqNumber(int sendSeqNumber) throws IOException {
+            if (receiveSequenceNumber != sendSeqNumber) {
+                String msg = MessageFormat.format("Got unexpected send sequence number: {0}, expected: {1}.",
+                        sendSeqNumber, receiveSequenceNumber);
+                throw new IOException(msg);
+            }
+        }
+
+        private void handleReceiveSequenceNumber(int receiveSeqNumber) throws IOException {
+            if (acknowledgedSendSequenceNumber == receiveSeqNumber) {
+                return;
+            }
+
+            int diff = sequenceNumberDiff(receiveSeqNumber, acknowledgedSendSequenceNumber);
+            if (diff > getNumUnconfirmedAPdusSent()) {
+                String msg = MessageFormat.format(
+                        "Got unexpected receive sequence number: {0}, expected a number between: {1} and {2}.",
+                        receiveSeqNumber, acknowledgedSendSequenceNumber, sendSequenceNumber);
+                throw new IOException(msg);
+            }
+
+            if (maxTimeNoAckReceived.isPlanned()) {
+                maxTimeNoAckReceived.cancel();
+            }
+
+            acknowledgedSendSequenceNumber = receiveSeqNumber;
+
+            if (sendSequenceNumber != acknowledgedSendSequenceNumber) {
+                timeoutManager.addTimerTask(maxTimeNoAckReceived);
+            }
+
+        }
+
     }
 
 }

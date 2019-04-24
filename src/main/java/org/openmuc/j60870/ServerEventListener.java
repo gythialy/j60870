@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-17 Fraunhofer ISE
+ * Copyright 2014-19 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -21,10 +21,11 @@
 package org.openmuc.j60870;
 
 import java.io.IOException;
+import java.util.EventListener;
 
-public interface ServerEventListener {
+public interface ServerEventListener extends EventListener {
 
-    public void connectionIndication(Connection connection);
+    void connectionIndication(Connection connection);
 
     /**
      * This function is only called when an IOException in ServerSocket.accept() occurred which was not forced using
@@ -32,8 +33,8 @@ public interface ServerEventListener {
      *
      * @param e The IOException caught form ServerSocket.accept()
      */
-    public void serverStoppedListeningIndication(IOException e);
+    void serverStoppedListeningIndication(IOException e);
 
-    public void connectionAttemptFailed(IOException e);
+    void connectionAttemptFailed(IOException e);
 
 }

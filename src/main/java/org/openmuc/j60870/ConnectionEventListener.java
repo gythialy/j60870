@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-17 Fraunhofer ISE
+ * Copyright 2014-19 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -21,6 +21,7 @@
 package org.openmuc.j60870;
 
 import java.io.IOException;
+import java.util.EventListener;
 
 /**
  * The listener interface for receiving incoming ASDUs and connection closed events. The class that is interested in
@@ -29,22 +30,22 @@ import java.io.IOException;
  * {@link Connection#waitForStartDT(ConnectionEventListener, int)} method. Incoming ASDUs are queued so that
  * {@link #newASdu(ASdu)} is never called simultaneously for the same connection.
  */
-public interface ConnectionEventListener {
+public interface ConnectionEventListener extends EventListener {
 
     /**
      * Invoked when a new ASDU arrives.
      *
      * @param aSdu the ASDU that arrived.
      */
-    public void newASdu(ASdu aSdu);
+    void newASdu(ASdu aSdu);
 
     /**
      * Invoked when an IOException occurred while listening for incoming ASDUs. An IOException implies that the
      * {@link Connection} that feeds this listener was automatically closed and can no longer be used to send commands
      * or receive ASDUs.
      *
-     * @param e the exception that occurred.
+     * @param cause the exception that occurred.
      */
-    public void connectionClosed(IOException e);
+    void connectionClosed(IOException cause);
 
 }

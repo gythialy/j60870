@@ -1,20 +1,22 @@
 #!/bin/bash
 
-JARS_LOCATION="../build/libs"
+JARS_LOCATION_APP="../cli-app/build/libs"
+JARS_LOCATION_LIB="../build/libs-all"
 MAIN_CLASS="org.openmuc.j60870.app.ConsoleClient"
 SYSPROPS=""
 PARAMS=""
 
 SCRIPT_HOME=`dirname $0`
 
-CLASSPATH=$(JARS=("$SCRIPT_HOME"/"$JARS_LOCATION"/*.jar); IFS=:; echo "${JARS[*]}")
+CLASSPATH_LIB=$(JARS=("$SCRIPT_HOME"/"$JARS_LOCATION_LIB"/*.jar); IFS=:; echo "${JARS[*]}")
+CLASSPATH_APP=$(JARS=("$SCRIPT_HOME"/"$JARS_LOCATION_APP"/*.jar); IFS=:; echo "${JARS[*]}")
 
 for i in $@; do 
     if [[ $i == -D* ]]; then
-	    SYSPROPS="$SYSPROPS $i";
+        SYSPROPS="$SYSPROPS $i";
     else
-	    PARAMS="$PARAMS $i";
+        PARAMS="$PARAMS $i";
     fi
 done
 
-java $SYSPROPS -cp $CLASSPATH $MAIN_CLASS $PARAMS
+java $SYSPROPS -cp $CLASSPATH_LIB:$CLASSPATH_APP $MAIN_CLASS $PARAMS

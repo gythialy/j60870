@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-17 Fraunhofer ISE
+ * Copyright 2014-19 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -20,33 +20,88 @@
  */
 package org.openmuc.j60870;
 
-import org.openmuc.j60870.internal.ConnectionSettings;
-
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
-final class ServerThread extends Thread {
+class ServerThread implements Runnable {
 
     private final ServerSocket serverSocket;
     private final ConnectionSettings settings;
     private final int maxConnections;
     private final ServerEventListener serverSapListener;
-
-    private boolean stopServer = false;
+    private final ExecutorService executor;
+    private volatile boolean stopServer = false;
     private int numConnections = 0;
 
     ServerThread(ServerSocket serverSocket, ConnectionSettings settings, int maxConnections,
-                 ServerEventListener serverSapListener) {
+                 ServerEventListener serverSapListener, ExecutorService exec) {
         this.serverSocket = serverSocket;
         this.settings = settings;
         this.maxConnections = maxConnections;
         this.serverSapListener = serverSapListener;
+
+        this.executor = exec;
     }
 
-    private class ConnectionHandler extends Thread {
+    @Override
+    public void run() {
+
+        Socket clientSocket = null;
+
+        while (!stopServer) {
+            try {
+                clientSocket = serverSocket.accept();
+            } catch (IOException e) {
+                if (!stopServer) {
+                    serverSapListener.serverStoppedListeningIndication(e);
+                }
+                return;
+            }
+
+            boolean startConnection = false;
+
+            synchronized (this) {
+                if (numConnections < maxConnections) {
+                    numConnections++;
+                    startConnection = true;
+                }
+            }
+
+            if (startConnection) {
+                ConnectionHandler connectionHandler = new ConnectionHandler(clientSocket, this);
+                executor.execute(connectionHandler);
+            } else {
+                serverSapListener.connectionAttemptFailed(new IOException(
+                        "Maximum number of connections reached. Ignoring connection request. Maximum number of connections: "
+                                + maxConnections));
+            }
+
+        }
+    }
+
+    void connectionClosedSignal() {
+        synchronized (this) {
+            numConnections--;
+        }
+    }
+
+    /**
+     * Stops listening for new connections. Existing connections are not touched.
+     */
+    void stopServer() {
+        stopServer = true;
+        if (serverSocket.isBound()) {
+            try {
+                serverSocket.close();
+            } catch (IOException e) {
+                // ignore any errors.
+            }
+        }
+    }
+
+    private class ConnectionHandler implements Runnable {
 
         private final Socket socket;
         private final ServerThread serverThread;
@@ -69,68 +124,6 @@ final class ServerThread extends Thread {
                 return;
             }
             serverSapListener.connectionIndication(serverConnection);
-        }
-    }
-
-    @Override
-    public void run() {
-
-        ExecutorService executor = Executors.newCachedThreadPool();
-        try {
-
-            Socket clientSocket = null;
-
-            while (true) {
-                try {
-                    clientSocket = serverSocket.accept();
-                } catch (IOException e) {
-                    if (stopServer == false) {
-                        serverSapListener.serverStoppedListeningIndication(e);
-                    }
-                    return;
-                }
-
-                boolean startConnection = false;
-
-                synchronized (this) {
-                    if (numConnections < maxConnections) {
-                        numConnections++;
-                        startConnection = true;
-                    }
-                }
-
-                if (startConnection) {
-                    ConnectionHandler connectionHandler = new ConnectionHandler(clientSocket, this);
-                    executor.execute(connectionHandler);
-                } else {
-                    serverSapListener.connectionAttemptFailed(new IOException(
-                            "Maximum number of connections reached. Ignoring connection request. Maximum number of connections: "
-                                    + maxConnections));
-                }
-
-            }
-        } finally {
-            executor.shutdown();
-        }
-
-    }
-
-    void connectionClosedSignal() {
-        synchronized (this) {
-            numConnections--;
-        }
-    }
-
-    /**
-     * Stops listening for new connections. Existing connections are not touched.
-     */
-    void stopServer() {
-        stopServer = true;
-        if (serverSocket.isBound()) {
-            try {
-                serverSocket.close();
-            } catch (IOException e) {
-            }
         }
     }
 

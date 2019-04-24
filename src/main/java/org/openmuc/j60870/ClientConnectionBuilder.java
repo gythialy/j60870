@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-17 Fraunhofer ISE
+ * Copyright 2014-19 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -24,27 +24,33 @@ import javax.net.SocketFactory;
 import javax.net.ssl.SSLSocketFactory;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.UnknownHostException;
 
 /**
  * The client connection builder is used to connect to IEC 60870-5-104 servers. A client application that wants to
  * connect to a server should first create an instance of {@link ClientConnectionBuilder}. Next all the necessary
- * configuration parameters can be set. Finally the {@link ClientConnectionBuilder#connect() connect} function is called
- * to connect to the server. An instance of {@link ClientConnectionBuilder} can be used to create an unlimited number of
+ * configuration parameters can be set. Finally the {@link ClientConnectionBuilder#build()} function is called to
+ * connect to the server. An instance of {@link ClientConnectionBuilder} can be used to create an unlimited number of
  * connections. Changing the parameters of a {@link ClientConnectionBuilder} has no affect on connections that have
  * already been created.
+ *
  * <p>
  * Note that the configured lengths of the fields COT, CA and IOA have to be the same for all communicating nodes in a
  * network. The default values used by {@link ClientConnectionBuilder} are those most commonly used in IEC 60870-5-104
  * communication.
+ * </p>
  */
-public class ClientConnectionBuilder extends CommonBuilder<ClientConnectionBuilder> {
+public class ClientConnectionBuilder extends CommonBuilder<ClientConnectionBuilder, Connection> {
 
-    private SocketFactory socketFactory = SocketFactory.getDefault();
+    private static final int DEFAULT_PORT = 2404;
+
+    private SocketFactory socketFactory;
     private InetAddress address;
-    private int port = 2404;
-    InetAddress localAddr = null;
-    int localPort;
+    private int port;
+    private InetAddress localAddr;
+    private int localPort;
 
     /**
      * Creates a client connection builder that can be used to connect to the given address.
@@ -53,6 +59,15 @@ public class ClientConnectionBuilder extends CommonBuilder<ClientConnectionBuild
      */
     public ClientConnectionBuilder(InetAddress address) {
         this.address = address;
+        this.port = DEFAULT_PORT;
+
+        this.localAddr = null;
+
+        this.socketFactory = SocketFactory.getDefault();
+    }
+
+    public ClientConnectionBuilder(String inetAddress) throws UnknownHostException {
+        this(InetAddress.getByName(inetAddress));
     }
 
     /**
@@ -109,15 +124,19 @@ public class ClientConnectionBuilder extends CommonBuilder<ClientConnectionBuild
      * @return the {@link Connection} object that can be used to communicate with the server.
      * @throws IOException if any kind of error occurs during connection build up.
      */
-    public Connection connect() throws IOException {
+    @Override
+    public Connection build() throws IOException {
         Socket socket;
+
         if (localAddr == null) {
-            socket = socketFactory.createSocket(address, port);
+            socket = socketFactory.createSocket();
+            socket.setSoTimeout(settings.getMessageFragmentTimeout());
+            socket.connect(new InetSocketAddress(address, port), settings.getMessageFragmentTimeout());
         } else {
             socket = socketFactory.createSocket(address, port, localAddr, localPort);
+            socket.setSoTimeout(settings.getMessageFragmentTimeout());
         }
-
-        return new Connection(socket, null, settings.getCopy());
+        return new Connection(socket, null, new ConnectionSettings(settings));
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-17 Fraunhofer ISE
+ * Copyright 2014-19 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -29,7 +29,6 @@ import java.util.Map;
  * CauseOfTransmissions 44 to 47 are meant for replies to commands with undefined values.
  */
 public enum CauseOfTransmission {
-
     PERIODIC(1),
     BACKGROUND_SCAN(2),
     SPONTANEOUS(3),
@@ -70,8 +69,6 @@ public enum CauseOfTransmission {
     UNKNOWN_COMMON_ADDRESS_OF_ASDU(46),
     UNKNOWN_INFORMATION_OBJECT_ADDRESS(47);
 
-    private final int id;
-
     private static final Map<Integer, CauseOfTransmission> idMap = new HashMap<>();
 
     static {
@@ -82,8 +79,21 @@ public enum CauseOfTransmission {
         }
     }
 
+    private final int id;
+
     private CauseOfTransmission(int id) {
         this.id = id;
+    }
+
+    /**
+     * Returns the CauseOfTransmission that corresponds to the given ID. Returns <code>null</code> if no
+     * CauseOfTransmission with the given ID exists.
+     *
+     * @param id the ID.
+     * @return the CauseOfTransmission that corresponds to the given ID.
+     */
+    public static CauseOfTransmission causeFor(int id) {
+        return idMap.get(id);
     }
 
     /**
@@ -93,17 +103,6 @@ public enum CauseOfTransmission {
      */
     public int getId() {
         return id;
-    }
-
-    /**
-     * Returns the CauseOfTransmission that corresponds to the given ID. Returns <code>null</code> if no
-     * CauseOfTransmission with the given ID exists.
-     *
-     * @param id the ID
-     * @return the CauseOfTransmission that corresponds to the given ID
-     */
-    public static CauseOfTransmission getInstance(int id) {
-        return idMap.get(id);
     }
 
 }

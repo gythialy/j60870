@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-17 Fraunhofer ISE
+ * Copyright 2014-19 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -24,6 +24,9 @@ package org.openmuc.j60870;
  * Class offering static utility functions.
  */
 public class Util {
+
+    private Util() {
+    }
 
     /**
      * Returns the Information Object Address (IOA) calculated from the given bytes. The first byte is the least

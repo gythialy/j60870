@@ -1,4 +1,4 @@
-Copyright 2014-17 Fraunhofer ISE
+Copyright 2014-18 Fraunhofer ISE
 
 This file is part of j60870.
 For more information visit http://www.openmuc.org

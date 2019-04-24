@@ -1,7 +1,7 @@
 
 project.ext {
 
-  cfgVersion = "1.2.1"
+  cfgVersion = "1.3.0"
   
   cfgGroup = "org.openmuc"
 
@@ -42,12 +42,21 @@ tasks.withType(Tar) {
       include "gradlew.bat"
       include "build/libs/**"
       include "src/**"
+      include "cli-app/**"
     }
 
     if (name.equals("tar") ){
       exclude "**/dependencies/**/src"
+      exclude "**/.project"
+      exclude "**/.classpath"
+      exclude "**/.gradle"
+      exclude "**/.settings"
+      exclude "**/bin"
     }
 
+    from("./build/") {
+      include "settings.gradle"
+    }
   }
 
   into(project.name + "/doc/user-guide/") {
@@ -80,8 +89,15 @@ apply plugin: "signing"
 jar {
   manifest {
     name = "j60870"
-    instruction "Export-Package", "!*.internal.*,*"
+    instruction "Export-Package", "!org.openmuc.j60870.internal.internal.*,*"
   }
+}
+
+dependencies {
+  testCompile group: "org.powermock", name: "powermock-module-junit4", version: "1.6.4"
+  testCompile group: "org.powermock", name: "powermock-api-mockito", version: "1.6.4"
+  testCompile group: "pl.pragmatists", name: "JUnitParams", version: "1.1.0"
+  testCompile group: "org.awaitility", name: "awaitility-proxy", version: "3.1.3"
 }
 
 uploadArchives {

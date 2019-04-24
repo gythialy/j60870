@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-17 Fraunhofer ISE
+ * Copyright 2014-19 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -20,104 +20,122 @@
  */
 package org.openmuc.j60870;
 
-import org.openmuc.j60870.internal.ConnectionSettings;
+import org.openmuc.j60870.internal.ExtendedDataInputStream;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.net.Socket;
+import java.text.MessageFormat;
 
-final class APdu {
+class APdu {
 
-    public enum APCI_TYPE {
-        I_FORMAT,
-        S_FORMAT,
-        TESTFR_CON,
-        TESTFR_ACT,
-        STOPDT_CON,
-        STOPDT_ACT,
-        STARTDT_CON,
-        STARTDT_ACT;
-    }
-
-    private int sendSeqNum = 0;
-
-    private int receiveSeqNum = 0;
-
-    private APCI_TYPE apciType;
-
-    private ASdu aSdu = null;
-
-    APdu(int sendSeqNum, int receiveSeqNum, APCI_TYPE apciType, ASdu aSdu) {
+    private static final int CONTROL_FIELDS_LENGTH = 4;
+    /**
+     * Since the length of the control field is control field is 4 octets.
+     */
+    private static final int MIN_APDU_LENGTH = CONTROL_FIELDS_LENGTH;
+    /**
+     * The maximum length of APDU for both directions is 253. APDU max = 255 minus start and length octet.
+     */
+    private static final int MAX_APDU_LENGTH = 253;
+    /**
+     * START flag of an APDU.
+     */
+    private static final byte START_FLAG = 0x68;
+    private final int sendSeqNum;
+    private final int receiveSeqNum;
+    private final ApciType apciType;
+    private final ASdu aSdu;
+    public APdu(int sendSeqNum, int receiveSeqNum, ApciType apciType, ASdu aSdu) {
         this.sendSeqNum = sendSeqNum;
         this.receiveSeqNum = receiveSeqNum;
         this.apciType = apciType;
         this.aSdu = aSdu;
     }
 
-    APdu(DataInputStream is, ConnectionSettings settings) throws IOException {
+    @SuppressWarnings("resource")
+    public static APdu decode(Socket socket, ConnectionSettings settings) throws IOException {
+        socket.setSoTimeout(0);
 
-        int length = is.readByte() & 0xff;
+        ExtendedDataInputStream is = new ExtendedDataInputStream(socket.getInputStream());
 
-        if (length < 4 || length > 253) {
-            throw new IOException("APDU contain invalid length: " + length);
+        if (is.readByte() != START_FLAG) {
+            throw new IOException("Message does not start with START flag (0x68). Broken connection.");
         }
 
-        byte[] aPduHeader = new byte[4];
-        is.readFully(aPduHeader);
+        socket.setSoTimeout(settings.getMessageFragmentTimeout());
 
-        if ((aPduHeader[0] & 0x01) == 0) {
-            apciType = APCI_TYPE.I_FORMAT;
-            sendSeqNum = ((aPduHeader[0] & 0xfe) >> 1) + ((aPduHeader[1] & 0xff) << 7);
-            receiveSeqNum = ((aPduHeader[2] & 0xfe) >> 1) + ((aPduHeader[3] & 0xff) << 7);
+        int length = readApduLength(is);
 
-            aSdu = new ASdu(is, settings, length - 4);
-        } else if ((aPduHeader[0] & 0x02) == 0) {
-            apciType = APCI_TYPE.S_FORMAT;
-            receiveSeqNum = ((aPduHeader[2] & 0xfe) >> 1) + ((aPduHeader[3] & 0xff) << 7);
-        } else {
-            if (aPduHeader[0] == (byte) 0x83) {
-                apciType = APCI_TYPE.TESTFR_CON;
-            } else if (aPduHeader[0] == 0x43) {
-                apciType = APCI_TYPE.TESTFR_ACT;
-            } else if (aPduHeader[0] == 0x23) {
-                apciType = APCI_TYPE.STOPDT_CON;
-            } else if (aPduHeader[0] == 0x13) {
-                apciType = APCI_TYPE.STOPDT_ACT;
-            } else if (aPduHeader[0] == 0x0B) {
-                apciType = APCI_TYPE.STARTDT_CON;
-            } else {
-                apciType = APCI_TYPE.STARTDT_ACT;
-            }
+        byte[] aPduControlFields = readControlFields(is);
+
+        ApciType apciType = ApciType.apciTypeFor(aPduControlFields[0]);
+        switch (apciType) {
+            case I_FORMAT:
+                int sendSeqNum = seqNumFrom(aPduControlFields[0], aPduControlFields[1]);
+                int receiveSeqNum = seqNumFrom(aPduControlFields[2], aPduControlFields[3]);
+
+                int aSduLength = length - CONTROL_FIELDS_LENGTH;
+
+                return new APdu(sendSeqNum, receiveSeqNum, apciType, ASdu.decode(is, settings, aSduLength));
+            case S_FORMAT:
+                return new APdu(0, seqNumFrom(aPduControlFields[2], aPduControlFields[3]), apciType, null);
+
+            default:
+                return new APdu(0, 0, apciType, null);
         }
 
     }
 
-    int encode(byte[] buffer, ConnectionSettings settings) throws IOException {
+    private static int seqNumFrom(byte b1, byte b2) {
+        return ((b1 & 0xfe) >> 1) + ((b2 & 0xff) << 7);
+    }
 
-        buffer[0] = 0x68;
+    private static int readApduLength(DataInputStream is) throws IOException {
+        int length = is.readUnsignedByte();
 
-        int length = 4;
+        if (length < MIN_APDU_LENGTH || length > MAX_APDU_LENGTH) {
+            String msg = MessageFormat
+                    .format("APDU has an invalid length must be between 4 and 253.\nReceived length was: {0}.", length);
+            throw new IOException(msg);
+        }
+        return length;
+    }
 
-        if (apciType == APCI_TYPE.I_FORMAT) {
+    private static byte[] readControlFields(DataInputStream is) throws IOException {
+        byte[] aPduControlFields = new byte[CONTROL_FIELDS_LENGTH];
+        is.readFully(aPduControlFields);
+        return aPduControlFields;
+    }
+
+    private static void setV3To5zero(byte[] buffer) {
+        buffer[3] = 0x00;
+        buffer[4] = 0x00;
+        buffer[5] = 0x00;
+    }
+
+    public int encode(byte[] buffer, ConnectionSettings settings) {
+
+        buffer[0] = START_FLAG;
+
+        int length = CONTROL_FIELDS_LENGTH;
+
+        if (apciType == ApciType.I_FORMAT) {
             buffer[2] = (byte) (sendSeqNum << 1);
             buffer[3] = (byte) (sendSeqNum >> 7);
-            buffer[4] = (byte) (receiveSeqNum << 1);
-            buffer[5] = (byte) (receiveSeqNum >> 7);
+            writeReceiveSeqNumTo(buffer);
+
             length += aSdu.encode(buffer, 6, settings);
-        } else if (apciType == APCI_TYPE.STARTDT_ACT) {
+        } else if (apciType == ApciType.STARTDT_ACT) {
             buffer[2] = 0x07;
-            buffer[3] = 0x00;
-            buffer[4] = 0x00;
-            buffer[5] = 0x00;
-        } else if (apciType == APCI_TYPE.STARTDT_CON) {
+            setV3To5zero(buffer);
+        } else if (apciType == ApciType.STARTDT_CON) {
             buffer[2] = 0x0b;
-            buffer[3] = 0x00;
-            buffer[4] = 0x00;
-            buffer[5] = 0x00;
-        } else if (apciType == APCI_TYPE.S_FORMAT) {
+            setV3To5zero(buffer);
+        } else if (apciType == ApciType.S_FORMAT) {
             buffer[2] = 0x01;
             buffer[3] = 0x00;
-            buffer[4] = (byte) (receiveSeqNum << 1);
-            buffer[5] = (byte) (receiveSeqNum >> 7);
+            writeReceiveSeqNumTo(buffer);
         }
 
         buffer[1] = (byte) length;
@@ -126,20 +144,76 @@ final class APdu {
 
     }
 
-    APCI_TYPE getApciType() {
+    private void writeReceiveSeqNumTo(byte[] buffer) {
+        buffer[4] = (byte) (receiveSeqNum << 1);
+        buffer[5] = (byte) (receiveSeqNum >> 7);
+    }
+
+    public ApciType getApciType() {
         return apciType;
     }
 
-    int getSendSeqNumber() {
+    public int getSendSeqNumber() {
         return sendSeqNum;
     }
 
-    int getReceiveSeqNumber() {
+    public int getReceiveSeqNumber() {
         return receiveSeqNum;
     }
 
-    ASdu getASdu() {
+    public ASdu getASdu() {
         return aSdu;
+    }
+
+    public enum ApciType {
+        /**
+         * Numbered information transfer. I format APDUs always contain an ASDU.
+         */
+        I_FORMAT,
+        /**
+         * Numbered supervisory functions. S format APDUs consist of the APCI only.
+         */
+        S_FORMAT,
+
+        // Unnumbered control functions.
+
+        TESTFR_CON,
+        TESTFR_ACT,
+        STOPDT_CON,
+        STOPDT_ACT,
+        STARTDT_CON,
+        STARTDT_ACT;
+
+        private static ApciType apciTypeFor(byte controlField1) {
+            if ((controlField1 & 0x01) == 0) {
+                return ApciType.I_FORMAT;
+            }
+
+            switch ((controlField1 & 0x03)) {
+                case 1:
+                    return ApciType.S_FORMAT;
+                case 3:
+                default:
+                    return unnumberedFormatFor(controlField1);
+            }
+
+        }
+
+        private static ApciType unnumberedFormatFor(byte controlField1) {
+            if ((controlField1 & 0x80) == 0x80) {
+                return ApciType.TESTFR_CON;
+            } else if (controlField1 == 0x43) {
+                return ApciType.TESTFR_ACT;
+            } else if (controlField1 == 0x23) {
+                return ApciType.STOPDT_CON;
+            } else if (controlField1 == 0x13) {
+                return ApciType.STOPDT_ACT;
+            } else if (controlField1 == 0x0B) {
+                return ApciType.STARTDT_CON;
+            } else {
+                return ApciType.STARTDT_ACT;
+            }
+        }
     }
 
 }

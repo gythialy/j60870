@@ -1,0 +1,3 @@
+include "cli-app"
+
+project(":cli-app").projectDir = file("cli-app")

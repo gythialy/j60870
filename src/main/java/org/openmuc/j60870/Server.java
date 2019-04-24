@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-17 Fraunhofer ISE
+ * Copyright 2014-19 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -20,28 +20,83 @@
  */
 package org.openmuc.j60870;
 
-import org.openmuc.j60870.internal.ConnectionSettings;
-
 import javax.net.ServerSocketFactory;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * The server is used to start listening for IEC 60870-5-104 client connections.
  */
 public class Server {
 
-    private ServerThread serverThread;
-
     private final int port;
     private final InetAddress bindAddr;
     private final int backlog;
     private final ServerSocketFactory serverSocketFactory;
     private final int maxConnections;
-
     private final ConnectionSettings settings;
+    private ServerThread serverThread;
+    private ExecutorService exec;
 
-    public static class Builder extends CommonBuilder<Builder> {
+    private Server(Builder builder) {
+        port = builder.port;
+        bindAddr = builder.bindAddr;
+        backlog = builder.backlog;
+        serverSocketFactory = builder.serverSocketFactory;
+        maxConnections = builder.maxConnections;
+        settings = new ConnectionSettings(builder.settings);
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Starts a new thread that listens on the configured port. This method is non-blocking.
+     *
+     * @param listener the ServerConnectionListener that will be notified when remote clients are connecting or the server
+     *                 stopped listening.
+     * @throws IOException if any kind of error occures while creating the server socket.
+     */
+    public void start(ServerEventListener listener) throws IOException {
+        ConnectionSettings.incremntConnectionsCounter();
+        if (this.settings.useSharedThreadPool()) {
+            this.exec = ConnectionSettings.getThreadPool();
+        } else {
+            this.exec = Executors.newCachedThreadPool();
+        }
+        serverThread = new ServerThread(serverSocketFactory.createServerSocket(port, backlog, bindAddr), settings,
+                maxConnections, listener, exec);
+        this.exec.execute(this.serverThread);
+    }
+
+    /**
+     * Stop listening for new connections. Existing connections are not touched.
+     */
+    public void stop() {
+        if (serverThread == null) {
+            return;
+        }
+
+        serverThread.stopServer();
+
+        if (this.settings.useSharedThreadPool()) {
+            ConnectionSettings.decrementConnectionsCounter();
+        } else {
+            this.exec.shutdown();
+        }
+
+        serverThread = null;
+    }
+
+    /**
+     * The server builder which builds a 60870 server instance.
+     *
+     * @see Server#builder()
+     */
+    public static class Builder extends CommonBuilder<Builder, Server> {
 
         private int port = 2404;
         private InetAddress bindAddr = null;
@@ -49,6 +104,9 @@ public class Server {
         private ServerSocketFactory serverSocketFactory = ServerSocketFactory.getDefault();
 
         private int maxConnections = 100;
+
+        private Builder() {
+        }
 
         /**
          * Sets the TCP port that the server will listen on. IEC 60870-5-104 usually uses port 2404.
@@ -109,40 +167,14 @@ public class Server {
             return this;
         }
 
+        /**
+         * To start/activate the server call {@link Server#start(ServerEventListener)} on the returned server.
+         */
+        @Override
         public Server build() {
             return new Server(this);
         }
 
-    }
-
-    private Server(Builder builder) {
-        port = builder.port;
-        bindAddr = builder.bindAddr;
-        backlog = builder.backlog;
-        serverSocketFactory = builder.serverSocketFactory;
-        maxConnections = builder.maxConnections;
-        settings = builder.settings.getCopy();
-    }
-
-    /**
-     * Starts a new thread that listens on the configured port. This method is non-blocking.
-     *
-     * @param listener the ServerConnectionListener that will be notified when remote clients are connecting or the server
-     *                 stopped listening.
-     * @throws IOException if any kind of error occures while creating the server socket.
-     */
-    public void start(ServerEventListener listener) throws IOException {
-        serverThread = new ServerThread(serverSocketFactory.createServerSocket(port, backlog, bindAddr), settings,
-                maxConnections, listener);
-        serverThread.start();
-    }
-
-    /**
-     * Stop listening for new connections. Existing connections are not touched.
-     */
-    public void stop() {
-        serverThread.stopServer();
-        serverThread = null;
     }
 
 }
