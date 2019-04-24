@@ -1,6 +1,6 @@
 #  IEC 60870-5-104 
 
-## Overview [![Build Status](https://travis-ci.com/gythialy/j60870.svg)](https://travis-ci.org/gythialy/j60870)
+## Overview [![Build Status](https://travis-ci.com/gythialy/j60870.svg)](https://travis-ci.com/gythialy/j60870)
 
 This is UNOFFICIAL, fork from [openmuc](https://www.openmuc.org/iec-60870-5-104/).
 
@@ -10,4 +10,5 @@ Read the [user guide](https://gythialy.github.io/j60870/) on how to get started 
 
 ## LICENSE
 
-[GNU GENERAL PUBLIC LICENSE](license/gpl-3.0.txt) 
+[GNU GENERAL PUBLIC LICENSE](license/gpl-3.0.txt)
+
