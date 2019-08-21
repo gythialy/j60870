@@ -1,6 +1,6 @@
 #  IEC 60870-5-104 
 
-## Overview [![Actions Status](https://github.com/gythialy/j60870/workflows/Main%20workflow/badge.svg)](https://github.com/gythialy/j60870/workflows/actions)
+## Overview [![Actions Status](https://github.com/gythialy/j60870/workflows/Main%20workflow/badge.svg)](https://github.com/gythialy/j60870/actions)
 
 This is UNOFFICIAL, fork from [openmuc](https://www.openmuc.org/iec-60870-5-104/).
 
