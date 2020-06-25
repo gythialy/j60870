@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-19 Fraunhofer ISE
+ * Copyright 2014-20 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -20,12 +20,13 @@
  */
 package org.openmuc.j60870;
 
-import org.openmuc.j60870.ie.InformationObject;
-import org.openmuc.j60870.internal.ExtendedDataInputStream;
-
-import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
 import java.text.MessageFormat;
+
+import javax.xml.bind.DatatypeConverter;
+
+import org.openmuc.j60870.ie.InformationObject;
+import org.openmuc.j60870.internal.ExtendedDataInputStream;
 
 /**
  * The application service data unit (ASDU). The ASDU is the payload of the application protocol data unit (APDU). Its

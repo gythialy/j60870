@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-19 Fraunhofer ISE
+ * Copyright 2014-20 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -20,12 +20,12 @@
  */
 package org.openmuc.j60870;
 
-import org.openmuc.j60870.internal.ExtendedDataInputStream;
-
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.text.MessageFormat;
+
+import org.openmuc.j60870.internal.ExtendedDataInputStream;
 
 class APdu {
 
@@ -131,6 +131,12 @@ class APdu {
             setV3To5zero(buffer);
         } else if (apciType == ApciType.STARTDT_CON) {
             buffer[2] = 0x0b;
+            setV3To5zero(buffer);
+        } else if (apciType == ApciType.STOPDT_ACT) {
+            buffer[2] = 0x13;
+            setV3To5zero(buffer);
+        } else if (apciType == ApciType.STOPDT_CON) {
+            buffer[2] = 0x23;
             setV3To5zero(buffer);
         } else if (apciType == ApciType.S_FORMAT) {
             buffer[2] = 0x01;

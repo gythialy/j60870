@@ -1,6 +1,5 @@
-
 eclipse.project.name = 'j60870-cli-app'
 
 dependencies {
-  compile project(':')
+    compile project(':')
 }

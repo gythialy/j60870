@@ -1,78 +1,82 @@
-
 project.ext {
 
-  cfgVersion = "1.3.0"
-  
-  cfgGroup = "org.openmuc"
+    cfgVersion = "1.4.0"
 
-  cfgCopyDependencies = false
+    cfgGroup = "org.openmuc"
 
-  cfgCopyToRoot = false
+    cfgCopyDependencies = false
 
-  cfgSignPom = true
+    cfgCopyToRoot = false
 
-  cfgRepository = project.properties.sonatypeRepository
+    cfgSignPom = true
 
-  cfgSnapshotRepository = project.properties.sonatypeSnapshotRepository
+    cfgRepository = project.properties.sonatypeRepository
 
-  cfgRepositoryUser = project.properties.sonatypeUser
+    cfgSnapshotRepository = project.properties.sonatypeSnapshotRepository
 
-  cfgRepositoryPass = project.properties.sonatypePass
+    cfgRepositoryUser = project.properties.sonatypeUser
 
-  javaProjects = allprojects
+    cfgRepositoryPass = project.properties.sonatypePass
 
-  distributionProjects = javaProjects
+    javaProjects = allprojects
 
-  docProjects = javaProjects
+    distributionProjects = allprojects.findAll {
+        it.getPath() == ":cli-app" ||
+                it.getPath() == ":"
+    }
 
-  repositoryProjects = javaProjects
+    repositoryProjects = allprojects.findAll {
+        it.getPath() == ":"
+    }
+
+    docProjects = distributionProjects
 }
 
 tasks.withType(Tar) {
 
-  into(project.name) {
-    from("./") {
-      include "build.gradle"
-      include "configuration.gradle"
-      include "license/**"
-      include "doc/CHANGELOG.txt"
-      include "run-scripts/**"
-      include "gradle/wrapper/**"
-      include "gradlew"
-      include "gradlew.bat"
-      include "build/libs/**"
-      include "src/**"
-      include "cli-app/**"
+    into(project.name) {
+        from("./") {
+            include "*.gradle"
+            include "license/**"
+            include "doc/CHANGELOG.txt"
+            include "run-scripts/**"
+            include "gradle/wrapper/**"
+            include "gradlew"
+            include "gradlew.bat"
+            include "build/libs/**"
+            include "src/**"
+            include "cli-app/**"
+        }
+
+        if (name.equals("tar")) {
+            exclude "**/dependencies/**/src"
+            exclude "**/bin"
+            exclude "**/.project"
+            exclude "**/.classpath"
+            exclude "**/.gradle"
+            exclude "**/.settings"
+
+        }
+
+        from("./build/") {
+            include "settings.gradle"
+        }
     }
 
-    if (name.equals("tar") ){
-      exclude "**/dependencies/**/src"
-      exclude "**/.project"
-      exclude "**/.classpath"
-      exclude "**/.gradle"
-      exclude "**/.settings"
-      exclude "**/bin"
+    into(project.name + "/doc/user-guide/") {
+        from("./build/asciidoc/html5/") {
+            include "**"
+        }
+        from("./build/asciidoc/pdf/") {
+            include "*.pdf"
+        }
     }
 
-    from("./build/") {
-      include "settings.gradle"
+    into(project.name + "/doc/") {
+        from("./build/docs/") {
+            include "javadoc/**"
+        }
     }
-  }
-
-  into(project.name + "/doc/user-guide/") {
-    from("./build/asciidoc/html5/") {
-      include "**"
-    }
-    from("./build/asciidoc/pdf/") {
-      include "*.pdf"
-    }
-  }
-
-  into(project.name + "/doc/") {
-    from("./build/docs/") {
-      include "javadoc/**"
-    }
-  }
 
 }
 
@@ -85,37 +89,36 @@ apply plugin: "osgi"
 apply plugin: "maven"
 apply plugin: "signing"
 
-
-jar {
-  manifest {
-    name = "j60870"
-    instruction "Export-Package", "!org.openmuc.j60870.internal.internal.*,*"
-  }
+dependencies {
+    testCompile group: "org.powermock", name: "powermock-module-junit4", version: "1.6.4"
+    testCompile group: "org.powermock", name: "powermock-api-mockito", version: "1.6.4"
+    testCompile group: "pl.pragmatists", name: "JUnitParams", version: "1.1.0"
+    testCompile group: "org.awaitility", name: "awaitility-proxy", version: "3.1.3"
 }
 
-dependencies {
-  testCompile group: "org.powermock", name: "powermock-module-junit4", version: "1.6.4"
-  testCompile group: "org.powermock", name: "powermock-api-mockito", version: "1.6.4"
-  testCompile group: "pl.pragmatists", name: "JUnitParams", version: "1.1.0"
-  testCompile group: "org.awaitility", name: "awaitility-proxy", version: "3.1.3"
+jar {
+    manifest {
+        name = "j60870"
+        instruction "Export-Package", "!org.openmuc.j60870.internal.internal.*,*"
+    }
 }
 
 uploadArchives {
-  repositories {
-    mavenDeployer {
-      pom.project {
-        name "j60870"
-        description "j60870 is an IEC 60870-5-104 client and server library."
-        
-        licenses {
-          license {
-            name "GNU General Public License"
-            url "http://www.gnu.org/copyleft/gpl-3.0.html"
-            distribution "repo"
-          }
+    repositories {
+        mavenDeployer {
+            pom.project {
+                name "j60870"
+                description "j60870 is an IEC 60870-5-104 client and server library."
+
+                licenses {
+                    license {
+                        name "GNU General Public License"
+                        url "http://www.gnu.org/copyleft/gpl-3.0.html"
+                        distribution "repo"
+                    }
+                }
+
+            }
         }
-        
-      }
     }
-  }
 }

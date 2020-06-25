@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-19 Fraunhofer ISE
+ * Copyright 2014-20 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -20,11 +20,12 @@
  */
 package org.openmuc.j60870;
 
-import javax.net.ServerSocketFactory;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import javax.net.ServerSocketFactory;
 
 /**
  * The server is used to start listening for IEC 60870-5-104 client connections.

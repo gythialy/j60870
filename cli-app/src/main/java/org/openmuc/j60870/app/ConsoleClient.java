@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-19 Fraunhofer ISE
+ * Copyright 2014-20 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -52,6 +52,8 @@ public final class ConsoleClient {
     private static final String CLOCK_SYNC_ACTION_KEY = "c";
     private static final String SINGLE_COMMAND_SELECT = "s";
     private static final String SINGLE_COMMAND_EXECUTE = "e";
+    private static final String SEND_STOPDT = "p";
+    private static final String SEND_STARTDT = "t";
 
     private static final StringCliParameter hostParam = new CliParameterBuilder("-h")
             .setDescription("The IP/domain address of the server you want to access.")
@@ -63,78 +65,17 @@ public final class ConsoleClient {
     private static final IntCliParameter commonAddrParam = new CliParameterBuilder("-ca")
             .setDescription("The address of the target station or the broad cast address.")
             .buildIntParameter("common_address", 1);
-    private static final IntCliParameter startDtTimeout = new CliParameterBuilder("-t")
-            .setDescription("Start DT timeout. For deactivating with set 0.")
-            .buildIntParameter("start_DT_timeout", 5000);
     private static final IntCliParameter startDtRetries = new CliParameterBuilder("-r")
             .setDescription("Send start DT retries.")
             .buildIntParameter("start_DT_retries", 1);
+    private static final IntCliParameter connectionTimeout = new CliParameterBuilder("-ct")
+            .setDescription("Connection timeout t0.")
+            .buildIntParameter("connection_timeout", 20_000);
     private static final IntCliParameter messageFragmentTimeout = new CliParameterBuilder("-mft")
             .setDescription("Message fragment timeout.")
-            .buildIntParameter("message_fragment_timeout", 5000);
-
-    private static Connection connection;
+            .buildIntParameter("message_fragment_timeout", 5_000);
     private static final ActionProcessor actionProcessor = new ActionProcessor(new ActionExecutor());
-
-    private static class ClientEventListener implements ConnectionEventListener {
-
-        @Override
-        public void newASdu(ASdu aSdu) {
-            println("\nReceived ASDU:\n", aSdu.toString());
-        }
-
-        @Override
-        public void connectionClosed(IOException e) {
-            println("Received connection closed signal. Reason: ");
-            if (!e.getMessage().isEmpty()) {
-                println(e.getMessage());
-            }
-            else {
-                println("unknown");
-            }
-            actionProcessor.close();
-        }
-
-    }
-
-    private static class ActionExecutor implements ActionListener {
-        @Override
-        public void actionCalled(String actionKey) throws ActionException {
-            try {
-                switch (actionKey) {
-                case INTERROGATION_ACTION_KEY:
-                    println("** Sending general interrogation command.");
-                    connection.interrogation(commonAddrParam.getValue(), CauseOfTransmission.ACTIVATION,
-                            new IeQualifierOfInterrogation(20));
-                    break;
-                case CLOCK_SYNC_ACTION_KEY:
-                    println("** Sending synchronize clocks command.");
-                    connection.synchronizeClocks(commonAddrParam.getValue(), new IeTime56(System.currentTimeMillis()));
-                    break;
-                case SINGLE_COMMAND_SELECT:
-                    println("** Sending single command select.");
-                    connection.singleCommand(commonAddrParam.getValue(), CauseOfTransmission.ACTIVATION, 5000,
-                            new IeSingleCommand(true, 0, true));
-                    break;
-                case SINGLE_COMMAND_EXECUTE:
-                    println("** Sending single command execute.");
-                    connection.singleCommand(commonAddrParam.getValue(), CauseOfTransmission.ACTIVATION, 5000,
-                            new IeSingleCommand(false, 0, false));
-                    break;
-                default:
-                    break;
-                }
-            } catch (Exception e) {
-                throw new ActionException(e);
-            }
-        }
-
-        @Override
-        public void quit() {
-            println("** Closing connection.");
-            connection.close();
-        }
-    }
+    private static Connection connection;
 
     public static void main(String[] args) {
         List<CliParameter> cliParameters = new ArrayList<>();
@@ -164,6 +105,7 @@ public final class ConsoleClient {
 
         ClientConnectionBuilder clientConnectionBuilder = new ClientConnectionBuilder(address)
                 .setMessageFragmentTimeout(messageFragmentTimeout.getValue())
+                .setConnectionTimeout(connectionTimeout.getValue())
                 .setPort(portParam.getValue());
 
         try {
@@ -187,14 +129,13 @@ public final class ConsoleClient {
         while (!connected && i <= retries) {
             try {
                 println("Send start DT. Try no. " + i);
-                connection.startDataTransfer(new ClientEventListener(), startDtTimeout.getValue());
+                connection.startDataTransfer(new ClientEventListener());
             } catch (InterruptedIOException e2) {
                 if (i == retries) {
                     println("Starting data transfer timed out. Closing connection. Because of no more retries.");
                     connection.close();
                     return;
-                }
-                else {
+                } else {
                     println("Got Timeout.class Next try.");
                     ++i;
                     continue;
@@ -211,6 +152,8 @@ public final class ConsoleClient {
         actionProcessor.addAction(new Action(CLOCK_SYNC_ACTION_KEY, "synchronize clocks C_CS_NA_1"));
         actionProcessor.addAction(new Action(SINGLE_COMMAND_SELECT, "single command select C_SC_NA_1"));
         actionProcessor.addAction(new Action(SINGLE_COMMAND_EXECUTE, "single command execute C_SC_NA_1"));
+        actionProcessor.addAction(new Action(SEND_STOPDT, "STOPDT act"));
+        actionProcessor.addAction(new Action(SEND_STARTDT, "STARTDT act"));
 
         actionProcessor.start();
     }
@@ -221,6 +164,73 @@ public final class ConsoleClient {
             sb.append(string);
         }
         System.out.println(sb.toString());
+    }
+
+    private static class ClientEventListener implements ConnectionEventListener {
+
+        @Override
+        public void newASdu(ASdu aSdu) {
+            println("\nReceived ASDU:\n", aSdu.toString());
+        }
+
+        @Override
+        public void connectionClosed(IOException e) {
+            println("Received connection closed signal. Reason: ");
+            if (!e.getMessage().isEmpty()) {
+                println(e.getMessage());
+            } else {
+                println("unknown");
+            }
+            actionProcessor.close();
+        }
+
+    }
+
+    private static class ActionExecutor implements ActionListener {
+        @Override
+        public void actionCalled(String actionKey) throws ActionException {
+            try {
+                switch (actionKey) {
+                    case INTERROGATION_ACTION_KEY:
+                        println("** Sending general interrogation command.");
+                        connection.interrogation(commonAddrParam.getValue(), CauseOfTransmission.ACTIVATION,
+                                new IeQualifierOfInterrogation(20));
+                        break;
+                    case CLOCK_SYNC_ACTION_KEY:
+                        println("** Sending synchronize clocks command.");
+                        connection.synchronizeClocks(commonAddrParam.getValue(), new IeTime56(System.currentTimeMillis()));
+                        break;
+                    case SINGLE_COMMAND_SELECT:
+                        println("** Sending single command select.");
+                        connection.singleCommand(commonAddrParam.getValue(), CauseOfTransmission.ACTIVATION, 5000,
+                                new IeSingleCommand(true, 0, true));
+                        break;
+                    case SINGLE_COMMAND_EXECUTE:
+                        println("** Sending single command execute.");
+                        connection.singleCommand(commonAddrParam.getValue(), CauseOfTransmission.ACTIVATION, 5000,
+                                new IeSingleCommand(false, 0, false));
+                        break;
+                    case SEND_STOPDT:
+                        println("** Sending STOPDT act.");
+                        connection.stopDataTransfer();
+                        break;
+                    case SEND_STARTDT:
+                        println("** Sending STARTDT act.");
+                        connection.startDataTransfer(new ClientEventListener());
+                        break;
+                    default:
+                        break;
+                }
+            } catch (Exception e) {
+                throw new ActionException(e);
+            }
+        }
+
+        @Override
+        public void quit() {
+            println("** Closing connection.");
+            connection.close();
+        }
     }
 
 }

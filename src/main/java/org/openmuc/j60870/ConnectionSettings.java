@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-19 Fraunhofer ISE
+ * Copyright 2014-20 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -41,8 +41,10 @@ class ConnectionSettings {
     private int maxTimeNoAckReceived;
     private int maxTimeNoAckSent;
     private int maxIdleTime;
+    private int connectionTimeout;
 
     private int maxUnconfirmedIPdusReceived;
+    private int maxNumOfOutstandingIPdus;
 
     private boolean useSharedThreadPool;
 
@@ -53,10 +55,12 @@ class ConnectionSettings {
         this.commonAddressFieldLength = 2;
         this.ioaFieldLength = 3;
 
+        this.connectionTimeout = 30_000;
         this.maxTimeNoAckReceived = 15_000;
         this.maxTimeNoAckSent = 10_000;
         this.maxIdleTime = 20_000;
         this.maxUnconfirmedIPdusReceived = 8;
+        this.maxNumOfOutstandingIPdus = 12;
 
         this.useSharedThreadPool = false;
     }
@@ -72,8 +76,11 @@ class ConnectionSettings {
         maxTimeNoAckReceived = connectionSettings.maxTimeNoAckReceived;
         maxTimeNoAckSent = connectionSettings.maxTimeNoAckSent;
         maxIdleTime = connectionSettings.maxIdleTime;
+        connectionTimeout = connectionSettings.connectionTimeout;
 
         maxUnconfirmedIPdusReceived = connectionSettings.maxUnconfirmedIPdusReceived;
+        maxNumOfOutstandingIPdus = connectionSettings.maxNumOfOutstandingIPdus;
+
         this.useSharedThreadPool = connectionSettings.useSharedThreadPool;
     }
 
@@ -157,6 +164,23 @@ class ConnectionSettings {
 
     public void setMaxUnconfirmedIPdusReceived(int maxUnconfirmedIPdusReceived) {
         this.maxUnconfirmedIPdusReceived = maxUnconfirmedIPdusReceived;
+    }
+
+    public int getMaxNumOfOutstandingIPdus() {
+        return this.maxNumOfOutstandingIPdus;
+    }
+
+    public void setMaxNumOfOutstandingIPdus(int maxNumOfOutstandingIPdus) {
+        this.maxNumOfOutstandingIPdus = maxNumOfOutstandingIPdus;
+    }
+
+    public int getConnectionTimeout() {
+        return this.connectionTimeout;
+    }
+
+    public void setConnectionTimeout(int time) {
+        this.connectionTimeout = time;
+
     }
 
     public void setUseSharedThreadPool(boolean useSharedThreadPool) {

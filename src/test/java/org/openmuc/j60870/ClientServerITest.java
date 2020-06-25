@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-19 Fraunhofer ISE
+ * Copyright 2014-20 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -20,25 +20,45 @@
  */
 package org.openmuc.j60870;
 
-import org.junit.Assert;
-import org.junit.Test;
-import org.openmuc.j60870.ie.*;
-import org.openmuc.j60870.ie.IeBinaryCounterReading.Flag;
-import org.openmuc.j60870.ie.IeDoubleCommand.DoubleCommandState;
-import org.openmuc.j60870.ie.IeDoublePointWithQuality.DoublePointInformation;
-import org.openmuc.j60870.ie.IeSingleProtectionEvent.EventState;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 
-import static org.junit.Assert.*;
+import org.junit.Assert;
+import org.junit.Test;
+import org.openmuc.j60870.ie.IeBinaryCounterReading;
+import org.openmuc.j60870.ie.IeBinaryCounterReading.Flag;
+import org.openmuc.j60870.ie.IeBinaryStateInformation;
+import org.openmuc.j60870.ie.IeDoubleCommand;
+import org.openmuc.j60870.ie.IeDoubleCommand.DoubleCommandState;
+import org.openmuc.j60870.ie.IeDoublePointWithQuality;
+import org.openmuc.j60870.ie.IeDoublePointWithQuality.DoublePointInformation;
+import org.openmuc.j60870.ie.IeNormalizedValue;
+import org.openmuc.j60870.ie.IeProtectionQuality;
+import org.openmuc.j60870.ie.IeProtectionStartEvent;
+import org.openmuc.j60870.ie.IeQualifierOfInterrogation;
+import org.openmuc.j60870.ie.IeQualifierOfSetPointCommand;
+import org.openmuc.j60870.ie.IeQuality;
+import org.openmuc.j60870.ie.IeScaledValue;
+import org.openmuc.j60870.ie.IeShortFloat;
+import org.openmuc.j60870.ie.IeSingleCommand;
+import org.openmuc.j60870.ie.IeSinglePointWithQuality;
+import org.openmuc.j60870.ie.IeSingleProtectionEvent;
+import org.openmuc.j60870.ie.IeSingleProtectionEvent.EventState;
+import org.openmuc.j60870.ie.IeStatusAndStatusChanges;
+import org.openmuc.j60870.ie.IeTime16;
+import org.openmuc.j60870.ie.IeTime24;
+import org.openmuc.j60870.ie.IeTime56;
+import org.openmuc.j60870.ie.IeValueWithTransientState;
+import org.openmuc.j60870.ie.InformationElement;
+import org.openmuc.j60870.ie.InformationObject;
 
 public class ClientServerITest {
 
     private static final int PORT = 2404;
-
-    static {
-        System.out.println(InformationObject.class);
-    }
 
     Server serverSap = null;
     int counter = 0;
@@ -48,6 +68,33 @@ public class ClientServerITest {
     Exception exception = null;
     volatile long clientTimestamp = 0;
     volatile long serverTimestamp = 0;
+    volatile boolean isClosed;
+
+    // @Test
+    public void testClientServerMultiThread() throws Exception {
+        serverSap = Server.builder().setPort(PORT).setMaxNumOfOutstandingIPdus(32_767).build();
+        serverSap.start(new ServerlisnerMultiThreadImpl());
+
+        try {
+            Connection clientConnection = new ClientConnectionBuilder("127.0.0.1").setPort(PORT).build();
+            isClosed = false;
+            clientConnection.startDataTransfer(new ConnectionListenerMultiThreadImpl(), 5000);
+            int commonAddress = 1;
+            clientConnection.interrogation(commonAddress, CauseOfTransmission.ACTIVATION,
+                    new IeQualifierOfInterrogation(20));
+            while (!isClosed) {
+                Thread.sleep(1);
+                System.out.println(isClosed);
+            }
+            clientConnection.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        // finally {
+        // serverSap.stop();
+        // }
+        assertNull("No exception expected,", exception);
+    }
 
     @Test
     public void testClientServerCom() throws Exception {
@@ -94,6 +141,64 @@ public class ClientServerITest {
             if (exception != null) {
                 throw exception;
             }
+        } finally {
+            serverSap.stop();
+        }
+
+    }
+
+    private class ServerReceiverMultiThread implements ConnectionEventListener {
+        private static final int AMOUNT_OF_THREADS_REPLY = 1;
+        private static final int AMOUNT_OF_MESSAGES = 10;
+
+        @Override
+        public void newASdu(final ASdu aSdu) {
+            if (aSdu.getTypeIdentification() == ASduType.C_IC_NA_1
+                    && aSdu.getCauseOfTransmission() == CauseOfTransmission.ACTIVATION) {
+                try {
+                    serverConnection.sendConfirmation(aSdu);
+
+                    for (int thread = 0; thread < AMOUNT_OF_THREADS_REPLY; thread++) {
+                        new Thread() {
+                            @Override
+                            public void run() {
+                                try {
+                                    for (int msg = 0; msg < AMOUNT_OF_MESSAGES; msg++) {
+                                        System.out
+                                                .println("serverConnection.isClosed() " + serverConnection.isClosed());
+                                        serverConnection.send(new ASdu(ASduType.M_SP_NA_1, false,
+                                                CauseOfTransmission.SPONTANEOUS, false, false, 0,
+                                                aSdu.getCommonAddress(),
+                                                new InformationObject[]{
+                                                        new InformationObject(1,
+                                                                new InformationElement[][]{
+                                                                        {new IeSinglePointWithQuality(true, true, true,
+                                                                                true, true)}}),
+                                                        new InformationObject(2,
+                                                                new InformationElement[][]{
+                                                                        {new IeSinglePointWithQuality(false, false,
+                                                                                false, false, false)}})}));
+                                        Thread.sleep(1);
+                                    }
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+
+                            ;
+                        }.start();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            serverConnection.close();
+        }
+
+        @Override
+        public void connectionClosed(IOException e) {
+            e.printStackTrace();
+            exception = e;
         }
 
     }
@@ -358,6 +463,29 @@ public class ClientServerITest {
 
     }
 
+    private class ServerlisnerMultiThreadImpl implements ServerEventListener {
+
+        @Override
+        public void connectionIndication(Connection connection) {
+            try {
+                serverConnection = connection;
+                connection.waitForStartDT(new ServerReceiverMultiThread(), 5000);
+            } catch (IOException e) {
+                fail("Received unexpected exception");
+            }
+
+        }
+
+        @Override
+        public void serverStoppedListeningIndication(IOException e) {
+        }
+
+        @Override
+        public void connectionAttemptFailed(IOException e) {
+        }
+
+    }
+
     private class ServerlisnerImpl implements ServerEventListener {
 
         @Override
@@ -377,6 +505,22 @@ public class ClientServerITest {
 
         @Override
         public void connectionAttemptFailed(IOException e) {
+        }
+
+    }
+
+    private class ConnectionListenerMultiThreadImpl implements ConnectionEventListener {
+
+        @Override
+        public void newASdu(ASdu aSdu) {
+            System.out.println(aSdu);
+            // noop
+        }
+
+        @Override
+        public void connectionClosed(IOException e) {
+            isClosed = true;
+            // e.printStackTrace();
         }
 
     }

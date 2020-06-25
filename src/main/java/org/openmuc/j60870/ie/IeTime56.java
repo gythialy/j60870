@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-19 Fraunhofer ISE
+ * Copyright 2014-20 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -74,6 +74,11 @@ public class IeTime56 extends InformationElement {
         this(timestamp, TimeZone.getDefault(), false);
     }
 
+    /**
+     * Creates a valid Time56 instance using the given byte array and the default time zone.
+     *
+     * @param value a Time56 decoded byte array that shall be set
+     */
     public IeTime56(byte[] value) {
         this.timeZone = TimeZone.getDefault();
         this.value = Arrays.copyOf(value, LENGTH);

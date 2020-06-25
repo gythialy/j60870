@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-19 Fraunhofer ISE
+ * Copyright 2014-20 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -20,13 +20,14 @@
  */
 package org.openmuc.j60870;
 
-import javax.net.SocketFactory;
-import javax.net.ssl.SSLSocketFactory;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+
+import javax.net.SocketFactory;
+import javax.net.ssl.SSLSocketFactory;
 
 /**
  * The client connection builder is used to connect to IEC 60870-5-104 servers. A client application that wants to
@@ -118,6 +119,20 @@ public class ClientConnectionBuilder extends CommonBuilder<ClientConnectionBuild
     }
 
     /**
+     * Sets connection time out t0, in milliseconds.
+     *
+     * @param time the timeout in milliseconds. Default is 20 s, if set to 0
+     * @return this builder
+     */
+    public ClientConnectionBuilder setConnectionTimeout(int time) {
+        if (time < 100) {
+            throw new IllegalArgumentException("invalid timeout: " + time + ", time must be bigger then 100ms");
+        }
+        settings.setConnectionTimeout(time);
+        return this;
+    }
+
+    /**
      * Connects to the server. The TCP/IP connection is build up and a {@link Connection} object is returned that can be
      * used to communicate with the server.
      *
@@ -126,16 +141,13 @@ public class ClientConnectionBuilder extends CommonBuilder<ClientConnectionBuild
      */
     @Override
     public Connection build() throws IOException {
-        Socket socket;
+        Socket socket = socketFactory.createSocket();
+        socket.setSoTimeout(settings.getMessageFragmentTimeout());
 
-        if (localAddr == null) {
-            socket = socketFactory.createSocket();
-            socket.setSoTimeout(settings.getMessageFragmentTimeout());
-            socket.connect(new InetSocketAddress(address, port), settings.getMessageFragmentTimeout());
-        } else {
-            socket = socketFactory.createSocket(address, port, localAddr, localPort);
-            socket.setSoTimeout(settings.getMessageFragmentTimeout());
+        if (localAddr != null) {
+            socket.bind(new InetSocketAddress(localAddr, localPort));
         }
+        socket.connect(new InetSocketAddress(address, port), settings.getConnectionTimeout());
         return new Connection(socket, null, new ConnectionSettings(settings));
     }
 

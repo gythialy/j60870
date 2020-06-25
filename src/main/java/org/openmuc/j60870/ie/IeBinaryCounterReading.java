@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-19 Fraunhofer ISE
+ * Copyright 2014-20 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -20,14 +20,14 @@
  */
 package org.openmuc.j60870.ie;
 
-import org.openmuc.j60870.internal.ExtendedDataInputStream;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.Set;
+
+import org.openmuc.j60870.internal.ExtendedDataInputStream;
 
 /**
  * Represents a binary counter reading (BCR) information element.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-19 Fraunhofer ISE
+ * Copyright 2014-20 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -20,9 +20,10 @@
  */
 package org.openmuc.j60870.ie;
 
-import javax.xml.bind.DatatypeConverter;
 import java.io.DataInputStream;
 import java.io.IOException;
+
+import javax.xml.bind.DatatypeConverter;
 
 /**
  * Represents a binary state information (BSI) information element.

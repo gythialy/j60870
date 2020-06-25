@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-19 Fraunhofer ISE
+ * Copyright 2014-20 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -16,6 +16,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with j60870.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 package org.openmuc.j60870.ie;
 

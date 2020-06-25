@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-19 Fraunhofer ISE
+ * Copyright 2014-20 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -47,7 +47,7 @@ class ServerThread implements Runnable {
 
     @Override
     public void run() {
-
+        Thread.currentThread().setName("ServerThread");
         Socket clientSocket = null;
 
         while (!stopServer) {
@@ -113,6 +113,7 @@ class ServerThread implements Runnable {
 
         @Override
         public void run() {
+            Thread.currentThread().setName("ConnectionHandler");
             Connection serverConnection;
             try {
                 serverConnection = new Connection(socket, serverThread, settings);

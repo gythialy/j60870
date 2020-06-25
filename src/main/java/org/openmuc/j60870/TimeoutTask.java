@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-19 Fraunhofer ISE
+ * Copyright 2014-20 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -29,12 +29,15 @@ abstract class TimeoutTask implements Comparable<TimeoutTask> {
     private boolean done;
 
     public TimeoutTask(int timeout) {
+
         this.timeout = timeout;
         this.done = false;
         this.canceled = false;
+        this.dueTime = 0;
     }
 
     void manExec() {
+
         if (canceled) {
             return;
         }
@@ -47,6 +50,7 @@ abstract class TimeoutTask implements Comparable<TimeoutTask> {
     }
 
     void updateDueTime() {
+
         this.dueTime = System.currentTimeMillis() + timeout;
         this.canceled = false;
         this.done = false;
@@ -55,28 +59,34 @@ abstract class TimeoutTask implements Comparable<TimeoutTask> {
     protected abstract void execute();
 
     public boolean isPlanned() {
-        return !this.canceled && !this.done;
+
+        return !this.canceled && !this.done && dueTime != 0;
     }
 
     public boolean isDone() {
+
         return done;
     }
 
     public void cancel() {
+
         this.canceled = true;
     }
 
     public long sleepTimeFromDueTime() {
+
         return dueTime - System.currentTimeMillis();
     }
 
     @Override
     public int compareTo(TimeoutTask o) {
+
         return Long.compare(this.dueTime, o.dueTime);
     }
 
     @Override
     public boolean equals(Object obj) {
+
         if (!(obj instanceof TimeoutTask)) {
             return false;
         }
@@ -88,6 +98,7 @@ abstract class TimeoutTask implements Comparable<TimeoutTask> {
 
     @Override
     public int hashCode() {
+
         return this.timeout ^ ((Boolean.valueOf(canceled).hashCode()) << 2) ^ Boolean.valueOf(done).hashCode();
     }
 
