@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-20 Fraunhofer ISE
+ * Copyright 2014-2022 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -47,5 +47,12 @@ public interface ConnectionEventListener extends EventListener {
      * @param cause the exception that occurred.
      */
     void connectionClosed(IOException cause);
+
+    /**
+     * Informs when the state of data transfer changed.
+     *
+     * @param stopped true if data transfer stopped, false if data transfer started
+     */
+    void dataTransferStateChanged(boolean stopped);
 
 }

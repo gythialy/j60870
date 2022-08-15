@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-20 Fraunhofer ISE
+ * Copyright 2014-2022 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -46,7 +46,7 @@ class TimeoutManager implements Runnable {
 
     private void removeDuplicates(TimeoutTask task) {
         while (queue.remove(task)) {
-            ;
+
         }
     }
 

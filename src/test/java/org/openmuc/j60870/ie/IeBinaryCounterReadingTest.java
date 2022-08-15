@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-20 Fraunhofer ISE
+ * Copyright 2014-2022 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -20,22 +20,18 @@
  */
 package org.openmuc.j60870.ie;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.util.EnumSet;
-
+import junitparams.JUnitParamsRunner;
+import junitparams.Parameters;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.openmuc.j60870.ie.IeBinaryCounterReading.Flag;
 import org.openmuc.j60870.internal.ExtendedDataInputStream;
 
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.EnumSet;
+
+import static org.junit.Assert.*;
 
 @RunWith(JUnitParamsRunner.class)
 public class IeBinaryCounterReadingTest {

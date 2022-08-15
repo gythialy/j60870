@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-20 Fraunhofer ISE
+ * Copyright 2014-2022 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -20,13 +20,12 @@
  */
 package org.openmuc.j60870;
 
-import java.io.IOException;
-import java.text.MessageFormat;
-
-import javax.xml.bind.DatatypeConverter;
-
 import org.openmuc.j60870.ie.InformationObject;
 import org.openmuc.j60870.internal.ExtendedDataInputStream;
+import org.openmuc.j60870.internal.HexUtils;
+
+import java.io.IOException;
+import java.text.MessageFormat;
 
 /**
  * The application service data unit (ASDU). The ASDU is the payload of the application protocol data unit (APDU). Its
@@ -316,7 +315,7 @@ public class ASdu {
             }
         } else {
             builder.append("\nPrivate Information:\n");
-            builder.append(DatatypeConverter.printHexBinary(this.privateInformation));
+            builder.append(HexUtils.bytesToHex(this.privateInformation));
         }
 
         return builder.toString();

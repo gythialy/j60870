@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-20 Fraunhofer ISE
+ * Copyright 2014-2022 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -20,41 +20,17 @@
  */
 package org.openmuc.j60870;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import org.junit.Assert;
+import org.junit.Test;
+import org.openmuc.j60870.ie.*;
+import org.openmuc.j60870.ie.IeBinaryCounterReading.Flag;
+import org.openmuc.j60870.ie.IeDoubleCommand.DoubleCommandState;
+import org.openmuc.j60870.ie.IeDoublePointWithQuality.DoublePointInformation;
+import org.openmuc.j60870.ie.IeSingleProtectionEvent.EventState;
 
 import java.io.IOException;
 
-import org.junit.Assert;
-import org.junit.Test;
-import org.openmuc.j60870.ie.IeBinaryCounterReading;
-import org.openmuc.j60870.ie.IeBinaryCounterReading.Flag;
-import org.openmuc.j60870.ie.IeBinaryStateInformation;
-import org.openmuc.j60870.ie.IeDoubleCommand;
-import org.openmuc.j60870.ie.IeDoubleCommand.DoubleCommandState;
-import org.openmuc.j60870.ie.IeDoublePointWithQuality;
-import org.openmuc.j60870.ie.IeDoublePointWithQuality.DoublePointInformation;
-import org.openmuc.j60870.ie.IeNormalizedValue;
-import org.openmuc.j60870.ie.IeProtectionQuality;
-import org.openmuc.j60870.ie.IeProtectionStartEvent;
-import org.openmuc.j60870.ie.IeQualifierOfInterrogation;
-import org.openmuc.j60870.ie.IeQualifierOfSetPointCommand;
-import org.openmuc.j60870.ie.IeQuality;
-import org.openmuc.j60870.ie.IeScaledValue;
-import org.openmuc.j60870.ie.IeShortFloat;
-import org.openmuc.j60870.ie.IeSingleCommand;
-import org.openmuc.j60870.ie.IeSinglePointWithQuality;
-import org.openmuc.j60870.ie.IeSingleProtectionEvent;
-import org.openmuc.j60870.ie.IeSingleProtectionEvent.EventState;
-import org.openmuc.j60870.ie.IeStatusAndStatusChanges;
-import org.openmuc.j60870.ie.IeTime16;
-import org.openmuc.j60870.ie.IeTime24;
-import org.openmuc.j60870.ie.IeTime56;
-import org.openmuc.j60870.ie.IeValueWithTransientState;
-import org.openmuc.j60870.ie.InformationElement;
-import org.openmuc.j60870.ie.InformationObject;
+import static org.junit.Assert.*;
 
 public class ClientServerITest {
 
@@ -78,7 +54,7 @@ public class ClientServerITest {
         try {
             Connection clientConnection = new ClientConnectionBuilder("127.0.0.1").setPort(PORT).build();
             isClosed = false;
-            clientConnection.startDataTransfer(new ConnectionListenerMultiThreadImpl(), 5000);
+            clientConnection.startDataTransfer(new ConnectionListenerMultiThreadImpl());
             int commonAddress = 1;
             clientConnection.interrogation(commonAddress, CauseOfTransmission.ACTIVATION,
                     new IeQualifierOfInterrogation(20));
@@ -104,7 +80,7 @@ public class ClientServerITest {
 
         try (Connection clientConnection = new ClientConnectionBuilder("127.0.0.1").setPort(PORT).build()) {
 
-            clientConnection.startDataTransfer(new ConnectionListenerImpl(), 5000);
+            clientConnection.startDataTransfer(new ConnectionListenerImpl());
 
             clientTimestamp = System.currentTimeMillis();
 
@@ -184,8 +160,6 @@ public class ClientServerITest {
                                     e.printStackTrace();
                                 }
                             }
-
-                            ;
                         }.start();
                     }
                 } catch (IOException e) {
@@ -199,6 +173,10 @@ public class ClientServerITest {
         public void connectionClosed(IOException e) {
             e.printStackTrace();
             exception = e;
+        }
+
+        @Override
+        public void dataTransferStateChanged(boolean stopped) {
         }
 
     }
@@ -461,19 +439,18 @@ public class ClientServerITest {
         public void connectionClosed(IOException e) {
         }
 
+        @Override
+        public void dataTransferStateChanged(boolean stopped) {
+        }
+
     }
 
     private class ServerlisnerMultiThreadImpl implements ServerEventListener {
 
         @Override
         public void connectionIndication(Connection connection) {
-            try {
-                serverConnection = connection;
-                connection.waitForStartDT(new ServerReceiverMultiThread(), 5000);
-            } catch (IOException e) {
-                fail("Received unexpected exception");
-            }
-
+            serverConnection = connection;
+            connection.setConnectionListener(new ServerReceiverMultiThread());
         }
 
         @Override
@@ -490,13 +467,8 @@ public class ClientServerITest {
 
         @Override
         public void connectionIndication(Connection connection) {
-            try {
-                serverConnection = connection;
-                connection.waitForStartDT(new ServerReceiver(), 5000);
-            } catch (IOException e) {
-                fail("Received unexpected exception");
-            }
-
+            serverConnection = connection;
+            connection.setConnectionListener(new ServerReceiver());
         }
 
         @Override
@@ -521,6 +493,10 @@ public class ClientServerITest {
         public void connectionClosed(IOException e) {
             isClosed = true;
             // e.printStackTrace();
+        }
+
+        @Override
+        public void dataTransferStateChanged(boolean stopped) {
         }
 
     }
@@ -810,6 +786,10 @@ public class ClientServerITest {
         public void connectionClosed(IOException e) {
             e.printStackTrace();
             Assert.fail(e.getMessage());
+        }
+
+        @Override
+        public void dataTransferStateChanged(boolean stopped) {
         }
 
     }

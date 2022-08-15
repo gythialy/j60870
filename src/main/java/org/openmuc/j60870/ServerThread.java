@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-20 Fraunhofer ISE
+ * Copyright 2014-2022 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -23,6 +23,7 @@ package org.openmuc.j60870;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 class ServerThread implements Runnable {
@@ -31,18 +32,19 @@ class ServerThread implements Runnable {
     private final ConnectionSettings settings;
     private final int maxConnections;
     private final ServerEventListener serverSapListener;
+    private final List<String> allowedClientIps;
     private final ExecutorService executor;
     private volatile boolean stopServer = false;
     private int numConnections = 0;
 
     ServerThread(ServerSocket serverSocket, ConnectionSettings settings, int maxConnections,
-                 ServerEventListener serverSapListener, ExecutorService exec) {
+                 ServerEventListener serverSapListener, ExecutorService exec, List<String> allowedClientIps) {
         this.serverSocket = serverSocket;
         this.settings = settings;
         this.maxConnections = maxConnections;
         this.serverSapListener = serverSapListener;
-
         this.executor = exec;
+        this.allowedClientIps = allowedClientIps;
     }
 
     @Override
@@ -58,6 +60,15 @@ class ServerThread implements Runnable {
                     serverSapListener.serverStoppedListeningIndication(e);
                 }
                 return;
+            }
+            if (allowedClientIps != null
+                    && !allowedClientIps.contains(clientSocket.getInetAddress().getHostAddress())) {
+                try {
+                    clientSocket.close();
+                } catch (IOException ignored) {
+                    // nothing to be done if closing causes error
+                }
+                continue;
             }
 
             boolean startConnection = false;
@@ -76,6 +87,10 @@ class ServerThread implements Runnable {
                 serverSapListener.connectionAttemptFailed(new IOException(
                         "Maximum number of connections reached. Ignoring connection request. Maximum number of connections: "
                                 + maxConnections));
+                try {
+                    clientSocket.close();
+                } catch (IOException e) {
+                }
             }
 
         }

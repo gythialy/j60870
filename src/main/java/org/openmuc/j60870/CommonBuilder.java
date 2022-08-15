@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-20 Fraunhofer ISE
+ * Copyright 2014-2022 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -133,9 +133,8 @@ abstract class CommonBuilder<T extends CommonBuilder<T, C>, C> {
     }
 
     /**
-     * Sets the number of maximum difference send sequence number to send acknowledge variable before the connection
-     * will automatically closed. This parameter is called k by the standard. Default is 12, minimum is 1, maximum is
-     * 32767.
+     * Sets the number of maximum difference send sequence number to send acknowledge variable before Connection.send
+     * will block. This parameter is called k by the standard. Default is 12, minimum is 1, maximum is 32767.
      *
      * @param maxNum the maximum number of sequentially numbered I format APDUs that the DTE may have outstanding
      * @return this builder

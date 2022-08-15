@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-20 Fraunhofer ISE
+ * Copyright 2014-2022 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -20,11 +20,11 @@
  */
 package org.openmuc.j60870.ie;
 
-import java.io.DataInputStream;
-import java.io.IOException;
-
 import org.openmuc.j60870.ASduType;
 import org.openmuc.j60870.internal.ExtendedDataInputStream;
+
+import java.io.DataInputStream;
+import java.io.IOException;
 
 /**
  * Every Information Object contains:

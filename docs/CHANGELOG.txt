@@ -1,0 +1,143 @@
+v1.5.0 02-Aug-2022
+-----------------
+- set minimum Java version to 1.8
+- removed deprecated methods:
+  * org.openmuc.j60870.Connection#waitForStartDT
+  * org.openmuc.j60870.Connection#startDataTransfer(ConnectionEventListener listener, int timeout),
+    replaced by org.openmuc.j60870.Connection#startDataTransfer(ConnectionEventListener listener)
+- added org.openmuc.j60870.ConnectionEventListener#dataTransferStateChanged(boolean) it 
+  notifies if STARTDT ACT or STOPDT ACT was handled
+- added sendConfirmation with Cause of transmission parameter
+- added server connection setting for a IP whitelist  
+- added getter for remote and local address
+- added sendActivationTermination for easier interrogation sequence
+- removed javax dependency
+- fixed not closing if max number of connection reached bug
+  thanks to Konstantinos Ntermitzoglou from inaccess
+- CLI app: 
+ * added Counter Interrogation Command in console client
+ * added time to logmessages
+
+v1.4.0 19-Jun-2020
+------------------
+- added STOPDT
+  * added STOPDT state
+  * added sendStopDataTransfer()
+- added parameter k (set maximum number of outstanding IPDuS)
+- added setConnectionTimeout (t0)
+- added org.openmuc.j60870.Connection#sendResponse with station address parameter
+- set methods to deprecated
+  * org.openmuc.j60870.Connection#waitForStartDT, will be removed
+  * org.openmuc.j60870.Connection#startDataTransfer(ConnectionEventListener listener, int timeout),
+    will be replaced by org.openmuc.j60870.Connection#startDataTransfer(ConnectionEventListener listener)
+- fixed TimeoutTask not working after start bug
+- fixed continue sending while waiting for acknowledgement
+- CLI app
+  * added STARTDT and STOPDT
+  * added set connection timeout (t0)
+
+v1.3.1 11-Jun-2019
+------------------
+- fixed sequence number overflow bug
+  thanks to Sven Liebehentze from Fraunhofer IEE
+
+v1.3.0 29-Mar-2019
+------------------
+- moved IE objects to separate package: org.openmuc.j60870.ie
+- renamed TypeId to ApduType
+- Builder: call build() instead of connect
+- reduced the number of active threads of a connection
+- added option for setting SO timeout
+- fixed wrong APCI parsing
+- fixed IeBinaryCounterReading bugs
+- fixed DST bug in IeTime56 getTimestamp
+- fixed bug with duplicated timeout tasks in queue
+- fixed maxTimeNoAckSentTimer bug
+- CLI app:
+  * CLI app is a separate project now
+  * added single commands
+  * added set S0 timeout
+  * added option for connection retries
+
+v1.2.1 11-Oct-2017
+------------------
+- fixed C_RC_TA_1 bug
+
+v1.2.0 04-Jan-2017
+------------------
+- CauseOfTransmission field can now be set explicilty when sending
+  SingleCommand (thanks to Dean Ouelette from RTDS).
+
+v1.1.1 04-Oct-2016
+------------------
+- replaced fixed thread pool by cached thread pool so that unused
+  threads are closed
+- ASDU notification correctly closed when connection is closed thanks
+  to Mr. Tellenbach
+- Client no longer closes connection if data is received before
+  START_DT CON message, but data is discarded instead.
+- improved normalized value and binary state information element
+  classes, but did not change API behaviour
+
+v1.1.0 06-Jun-2016
+------------------
+- Renamed ClientSap to ClientConnectionBuilder and ServerSap to
+  Server.Builder
+- fixed time conversion to ms of IeTime24 thanks to Juergen Wieferink
+  from BTC AG
+- added stopListening() to ServerSap allowing for clean close
+- refactored console client
+
+v1.0.0 24-Feb-2016
+------------------
+- fixed bug when creating multiple parallel connections using
+  the same ClientSap
+- fixed a synchronization problem in the server implementation
+- fixed toString() method of IeTime56 thanks to Jan Gall from Bosch
+
+v0.9 19-Nov-2014
+----------------
+- added full support for timers t1,t2 and t3
+- fixed bug in information element IeTime56
+- improved documentation
+
+v0.8 07-Aug-2014
+----------------
+- merged ClientConnection and ServerConnection to a single Connection
+  class, to allow reverse communication for server
+- make Connection functions thread safe
+- removed slf4j dependency
+
+v0.6 24-Apr-2014
+----------------
+- added client support for automatic sending of S format APDUs to
+  confirm incoming I format APDUs
+- added client support for automatic sending of TESTFRCON
+  messages when TESTFR ACT messages are received.
+
+v0.5 10-Apr-2014
+----------------
+- Common address higher than 255 are now supported
+- added util functions to calculate common address and information
+  object address from individual bytes
+- added support for private range Type IDs
+
+v0.4 21-Mar-2014
+----------------
+- added SampleServer
+- added sendConfirmation(ASdu aSdu) to ServerConnection for easy
+  sending of confirmation messages that are simple mirrors of incoming
+  requests except for the causeOfTransmission field.
+- renamed ioException callback function of ASduListener
+- modified build.gradle file to work with gradle v1.11
+
+v0.3 14-Mar-2014
+----------------
+- improved javadoc and added user guide
+- added support for all possible Type Identifications
+- added toString() method for every possible Information Element
+- added runscripts for ClientApp
+
+v0.2 28-Feb-2014
+----------------
+- first release

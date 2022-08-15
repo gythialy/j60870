@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-20 Fraunhofer ISE
+ * Copyright 2014-2022 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -20,15 +20,15 @@
  */
 package org.openmuc.j60870;
 
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 
 class ConnectionSettings {
-    private static final ThreadPoolExecutor threadPool;
+    private static final ExecutorService threadPool;
     private static volatile int numOpenConnections;
 
     static {
-        threadPool = (ThreadPoolExecutor) Executors.newCachedThreadPool();
+        threadPool = Executors.newCachedThreadPool();
         numOpenConnections = 0;
     }
 
@@ -84,7 +84,7 @@ class ConnectionSettings {
         this.useSharedThreadPool = connectionSettings.useSharedThreadPool;
     }
 
-    public static ThreadPoolExecutor getThreadPool() {
+    public static ExecutorService getThreadPool() {
         return threadPool;
     }
 

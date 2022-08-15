@@ -1,6 +1,6 @@
 name: Main workflow
 
-on: [push]
+on: [ push ]
 
 jobs:
   build:

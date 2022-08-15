@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-20 Fraunhofer ISE
+ * Copyright 2014-2022 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -20,14 +20,13 @@
  */
 package org.openmuc.j60870;
 
+import javax.net.SocketFactory;
+import javax.net.ssl.SSLSocketFactory;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
-
-import javax.net.SocketFactory;
-import javax.net.ssl.SSLSocketFactory;
 
 /**
  * The client connection builder is used to connect to IEC 60870-5-104 servers. A client application that wants to

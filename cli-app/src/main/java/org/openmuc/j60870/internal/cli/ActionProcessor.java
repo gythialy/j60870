@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-20 Fraunhofer ISE
+ * Copyright 2014-2022 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -20,14 +20,14 @@
  */
 package org.openmuc.j60870.internal.cli;
 
-import static java.lang.System.exit;
-import static java.lang.System.out;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.LinkedHashMap;
 import java.util.Map;
+
+import static java.lang.System.exit;
+import static java.lang.System.out;
 
 public class ActionProcessor {
 

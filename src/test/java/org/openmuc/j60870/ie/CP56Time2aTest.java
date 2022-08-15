@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-20 Fraunhofer ISE
+ * Copyright 2014-2022 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -20,15 +20,15 @@
  */
 package org.openmuc.j60870.ie;
 
-import static javax.xml.bind.DatatypeConverter.parseHexBinary;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-
-import java.util.TimeZone;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.TimeZone;
+
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.openmuc.j60870.internal.HexUtils.hexToBytes;
 
 public class CP56Time2aTest {
 
@@ -55,25 +55,25 @@ public class CP56Time2aTest {
     @Test
     public void testTimestampToCalendarInvalid() {
         // Time56: 29-10-13 16:30:54:596, invalid
-        testIeTime56(1383060654596l, true, "CET", false, parseHexBinary("44D59E105D0A0D"));
+        testIeTime56(1383060654596l, true, "CET", false, hexToBytes("44D59E105D0A0D"));
     }
 
     @Test
     public void testDSTTimestampToCalendarInvalid() {
         // Time56: 06-07-18 15:17:23:000 DST, invalid
-        testIeTime56(1530883043000l, true, "CET", true, parseHexBinary("D859918FA60712"));
+        testIeTime56(1530883043000l, true, "CET", true, hexToBytes("D859918FA60712"));
     }
 
     @Test
     public void testDstTimestampToCalendar() {
         // Time56: 28-10-18 02:59:59:999 DST
-        testIeTime56(1540688399999l, false, "CET", true, parseHexBinary("5FEA3B82FC0A12"));
+        testIeTime56(1540688399999l, false, "CET", true, hexToBytes("5FEA3B82FC0A12"));
     }
 
     @Test
     public void testTimestampToCalendar() {
         // Time56: 28-10-18 02:00:00:000
-        testIeTime56(1540688400000l, false, "CET", false, parseHexBinary("00000002FC0A12"));
+        testIeTime56(1540688400000l, false, "CET", false, hexToBytes("00000002FC0A12"));
     }
 
     @Test

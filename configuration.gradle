@@ -1,6 +1,6 @@
 project.ext {
 
-    cfgVersion = "1.4.0"
+    cfgVersion = "1.5.0"
 
     cfgGroup = "org.openmuc"
 
@@ -100,6 +100,14 @@ jar {
     manifest {
         name = "j60870"
         instruction "Export-Package", "!org.openmuc.j60870.internal.internal.*,*"
+    }
+}
+
+if (JavaVersion.current().isJava8Compatible()) {
+    allprojects {
+        tasks.withType(Javadoc) {
+            options.addStringOption('Xdoclint:none', '-quiet')
+        }
     }
 }
 

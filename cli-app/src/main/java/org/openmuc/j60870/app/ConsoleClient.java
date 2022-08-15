@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-20 Fraunhofer ISE
+ * Copyright 2014-2022 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -20,35 +20,26 @@
  */
 package org.openmuc.j60870.app;
 
+import org.openmuc.j60870.*;
+import org.openmuc.j60870.ie.IeQualifierOfCounterInterrogation;
+import org.openmuc.j60870.ie.IeQualifierOfInterrogation;
+import org.openmuc.j60870.ie.IeSingleCommand;
+import org.openmuc.j60870.ie.IeTime56;
+import org.openmuc.j60870.internal.cli.*;
+
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-
-import org.openmuc.j60870.ASdu;
-import org.openmuc.j60870.CauseOfTransmission;
-import org.openmuc.j60870.ClientConnectionBuilder;
-import org.openmuc.j60870.Connection;
-import org.openmuc.j60870.ConnectionEventListener;
-import org.openmuc.j60870.ie.IeQualifierOfInterrogation;
-import org.openmuc.j60870.ie.IeSingleCommand;
-import org.openmuc.j60870.ie.IeTime56;
-import org.openmuc.j60870.internal.cli.Action;
-import org.openmuc.j60870.internal.cli.ActionException;
-import org.openmuc.j60870.internal.cli.ActionListener;
-import org.openmuc.j60870.internal.cli.ActionProcessor;
-import org.openmuc.j60870.internal.cli.CliParameter;
-import org.openmuc.j60870.internal.cli.CliParameterBuilder;
-import org.openmuc.j60870.internal.cli.CliParseException;
-import org.openmuc.j60870.internal.cli.CliParser;
-import org.openmuc.j60870.internal.cli.IntCliParameter;
-import org.openmuc.j60870.internal.cli.StringCliParameter;
 
 public final class ConsoleClient {
 
     private static final String INTERROGATION_ACTION_KEY = "i";
+    private static final String COUNTER_INTERROGATION_ACTION_KEY = "ci";
     private static final String CLOCK_SYNC_ACTION_KEY = "c";
     private static final String SINGLE_COMMAND_SELECT = "s";
     private static final String SINGLE_COMMAND_EXECUTE = "e";
@@ -91,7 +82,7 @@ public final class ConsoleClient {
             cliParser.parseArguments(args);
         } catch (CliParseException e1) {
             System.err.println("Error parsing command line parameters: " + e1.getMessage());
-            println(cliParser.getUsageString());
+            log(cliParser.getUsageString());
             System.exit(1);
         }
 
@@ -99,7 +90,7 @@ public final class ConsoleClient {
         try {
             address = InetAddress.getByName(hostParam.getValue());
         } catch (UnknownHostException e) {
-            println("Unknown host: ", hostParam.getValue());
+            log("Unknown host: ", hostParam.getValue());
             return;
         }
 
@@ -111,7 +102,7 @@ public final class ConsoleClient {
         try {
             connection = clientConnectionBuilder.build();
         } catch (IOException e) {
-            println("Unable to connect to remote host: ", hostParam.getValue(), ".");
+            log("Unable to connect to remote host: ", hostParam.getValue(), ".");
             return;
         }
 
@@ -128,27 +119,28 @@ public final class ConsoleClient {
 
         while (!connected && i <= retries) {
             try {
-                println("Send start DT. Try no. " + i);
+                log("Send start DT. Try no. " + i);
                 connection.startDataTransfer(new ClientEventListener());
             } catch (InterruptedIOException e2) {
                 if (i == retries) {
-                    println("Starting data transfer timed out. Closing connection. Because of no more retries.");
+                    log("Starting data transfer timed out. Closing connection. Because of no more retries.");
                     connection.close();
                     return;
                 } else {
-                    println("Got Timeout.class Next try.");
+                    log("Got Timeout.class Next try.");
                     ++i;
                     continue;
                 }
             } catch (IOException e) {
-                println("Connection closed for the following reason: ", e.getMessage());
+                log("Connection closed for the following reason: ", e.getMessage());
                 return;
             }
             connected = true;
         }
-        println("successfully connected");
+        log("successfully connected");
 
         actionProcessor.addAction(new Action(INTERROGATION_ACTION_KEY, "interrogation C_IC_NA_1"));
+        actionProcessor.addAction(new Action(COUNTER_INTERROGATION_ACTION_KEY, "counter interrogation C_CI_NA_1"));
         actionProcessor.addAction(new Action(CLOCK_SYNC_ACTION_KEY, "synchronize clocks C_CS_NA_1"));
         actionProcessor.addAction(new Action(SINGLE_COMMAND_SELECT, "single command select C_SC_NA_1"));
         actionProcessor.addAction(new Action(SINGLE_COMMAND_EXECUTE, "single command execute C_SC_NA_1"));
@@ -158,10 +150,16 @@ public final class ConsoleClient {
         actionProcessor.start();
     }
 
-    private static void println(String... strings) {
+    private static void log(String... strings) {
+        String time = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss.SSS ").format(new Date());
+        println(time, strings);
+    }
+
+    private static void println(String string, String... strings) {
         StringBuilder sb = new StringBuilder();
-        for (String string : strings) {
-            sb.append(string);
+        sb.append(string);
+        for (String s : strings) {
+            sb.append(s);
         }
         System.out.println(sb.toString());
     }
@@ -170,18 +168,27 @@ public final class ConsoleClient {
 
         @Override
         public void newASdu(ASdu aSdu) {
-            println("\nReceived ASDU:\n", aSdu.toString());
+            log("\nReceived ASDU:\n", aSdu.toString());
         }
 
         @Override
         public void connectionClosed(IOException e) {
-            println("Received connection closed signal. Reason: ");
+            log("Received connection closed signal. Reason: ");
             if (!e.getMessage().isEmpty()) {
-                println(e.getMessage());
+                log(e.getMessage());
             } else {
-                println("unknown");
+                log("unknown");
             }
             actionProcessor.close();
+        }
+
+        @Override
+        public void dataTransferStateChanged(boolean stopped) {
+            String dtState = "started";
+            if (stopped) {
+                dtState = "stopped";
+            }
+            log("Data transfer was ", dtState);
         }
 
     }
@@ -192,30 +199,37 @@ public final class ConsoleClient {
             try {
                 switch (actionKey) {
                     case INTERROGATION_ACTION_KEY:
-                        println("** Sending general interrogation command.");
+                        log("** Sending general interrogation command.");
                         connection.interrogation(commonAddrParam.getValue(), CauseOfTransmission.ACTIVATION,
                                 new IeQualifierOfInterrogation(20));
                         break;
+                    case COUNTER_INTERROGATION_ACTION_KEY:
+                        log("Enter the freeze action: 0=read, 1=counter freeze wo reset, 2=counter freeze with reset, 3=counter reset");
+                        String reference = actionProcessor.getReader().readLine();
+                        log("** Sending counter interrogation command.");
+                        connection.counterInterrogation(commonAddrParam.getValue(), CauseOfTransmission.ACTIVATION,
+                                new IeQualifierOfCounterInterrogation(5, Integer.parseInt(reference)));
+                        break;
                     case CLOCK_SYNC_ACTION_KEY:
-                        println("** Sending synchronize clocks command.");
+                        log("** Sending synchronize clocks command.");
                         connection.synchronizeClocks(commonAddrParam.getValue(), new IeTime56(System.currentTimeMillis()));
                         break;
                     case SINGLE_COMMAND_SELECT:
-                        println("** Sending single command select.");
+                        log("** Sending single command select.");
                         connection.singleCommand(commonAddrParam.getValue(), CauseOfTransmission.ACTIVATION, 5000,
                                 new IeSingleCommand(true, 0, true));
                         break;
                     case SINGLE_COMMAND_EXECUTE:
-                        println("** Sending single command execute.");
+                        log("** Sending single command execute.");
                         connection.singleCommand(commonAddrParam.getValue(), CauseOfTransmission.ACTIVATION, 5000,
                                 new IeSingleCommand(false, 0, false));
                         break;
                     case SEND_STOPDT:
-                        println("** Sending STOPDT act.");
+                        log("** Sending STOPDT act.");
                         connection.stopDataTransfer();
                         break;
                     case SEND_STARTDT:
-                        println("** Sending STARTDT act.");
+                        log("** Sending STARTDT act.");
                         connection.startDataTransfer(new ClientEventListener());
                         break;
                     default:
@@ -228,7 +242,7 @@ public final class ConsoleClient {
 
         @Override
         public void quit() {
-            println("** Closing connection.");
+            log("** Closing connection.");
             connection.close();
         }
     }

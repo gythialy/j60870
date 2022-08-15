@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-20 Fraunhofer ISE
+ * Copyright 2014-2022 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -20,12 +20,12 @@
  */
 package org.openmuc.j60870;
 
+import javax.net.ServerSocketFactory;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import javax.net.ServerSocketFactory;
 
 /**
  * The server is used to start listening for IEC 60870-5-104 client connections.
@@ -37,6 +37,7 @@ public class Server {
     private final int backlog;
     private final ServerSocketFactory serverSocketFactory;
     private final int maxConnections;
+    private final List<String> allowedClientIps;
     private final ConnectionSettings settings;
     private ServerThread serverThread;
     private ExecutorService exec;
@@ -47,6 +48,7 @@ public class Server {
         backlog = builder.backlog;
         serverSocketFactory = builder.serverSocketFactory;
         maxConnections = builder.maxConnections;
+        allowedClientIps = builder.allowedClientIps;
         settings = new ConnectionSettings(builder.settings);
     }
 
@@ -59,7 +61,7 @@ public class Server {
      *
      * @param listener the ServerConnectionListener that will be notified when remote clients are connecting or the server
      *                 stopped listening.
-     * @throws IOException if any kind of error occures while creating the server socket.
+     * @throws IOException if any kind of error occurs while creating the server socket.
      */
     public void start(ServerEventListener listener) throws IOException {
         ConnectionSettings.incremntConnectionsCounter();
@@ -69,7 +71,7 @@ public class Server {
             this.exec = Executors.newCachedThreadPool();
         }
         serverThread = new ServerThread(serverSocketFactory.createServerSocket(port, backlog, bindAddr), settings,
-                maxConnections, listener, exec);
+                maxConnections, listener, exec, allowedClientIps);
         this.exec.execute(this.serverThread);
     }
 
@@ -103,6 +105,7 @@ public class Server {
         private InetAddress bindAddr = null;
         private int backlog = 0;
         private ServerSocketFactory serverSocketFactory = ServerSocketFactory.getDefault();
+        private List<String> allowedClientIps = null;
 
         private int maxConnections = 100;
 
@@ -165,6 +168,18 @@ public class Server {
                 throw new IllegalArgumentException("maxConnections is out of bound");
             }
             this.maxConnections = maxConnections;
+            return this;
+        }
+
+        /**
+         * Set the IPs from which clients may connect. Pass {@code null} to allow all clients. By default all clients
+         * are allowed to connect.
+         *
+         * @param allowedClientIps the allowed client IPs
+         * @return this builder
+         */
+        public Builder setAllowedClients(List<String> allowedClientIps) {
+            this.allowedClientIps = allowedClientIps;
             return this;
         }
 

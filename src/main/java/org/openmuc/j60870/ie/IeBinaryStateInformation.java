@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-20 Fraunhofer ISE
+ * Copyright 2014-2022 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -20,10 +20,10 @@
  */
 package org.openmuc.j60870.ie;
 
+import org.openmuc.j60870.internal.HexUtils;
+
 import java.io.DataInputStream;
 import java.io.IOException;
-
-import javax.xml.bind.DatatypeConverter;
 
 /**
  * Represents a binary state information (BSI) information element.
@@ -106,7 +106,7 @@ public class IeBinaryStateInformation extends InformationElement {
 
     @Override
     public String toString() {
-        return "BinaryStateInformation (32 bits as hex): " + DatatypeConverter.printHexBinary(
+        return "BinaryStateInformation (32 bits as hex): " + HexUtils.bytesToHex(
                 new byte[]{(byte) (value >> 24), (byte) (value >> 16), (byte) (value >> 8), (byte) (value)});
     }
 
