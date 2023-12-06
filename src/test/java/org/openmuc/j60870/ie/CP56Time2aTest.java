@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 Fraunhofer ISE
+ * Copyright 2014-2023 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -55,60 +55,60 @@ public class CP56Time2aTest {
     @Test
     public void testTimestampToCalendarInvalid() {
         // Time56: 29-10-13 16:30:54:596, invalid
-        testIeTime56(1383060654596l, true, "CET", false, hexToBytes("44D59E105D0A0D"));
+        testIeTime56(1383060654596L, true, "CET", false, hexToBytes("44D59E105D0A0D"));
     }
 
     @Test
     public void testDSTTimestampToCalendarInvalid() {
         // Time56: 06-07-18 15:17:23:000 DST, invalid
-        testIeTime56(1530883043000l, true, "CET", true, hexToBytes("D859918FA60712"));
+        testIeTime56(1530883043000L, true, "CET", true, hexToBytes("D859918FA60712"));
     }
 
     @Test
     public void testDstTimestampToCalendar() {
         // Time56: 28-10-18 02:59:59:999 DST
-        testIeTime56(1540688399999l, false, "CET", true, hexToBytes("5FEA3B82FC0A12"));
+        testIeTime56(1540688399999L, false, "CET", true, hexToBytes("5FEA3B82FC0A12"));
     }
 
     @Test
     public void testTimestampToCalendar() {
         // Time56: 28-10-18 02:00:00:000
-        testIeTime56(1540688400000l, false, "CET", false, hexToBytes("00000002FC0A12"));
+        testIeTime56(1540688400000L, false, "CET", false, hexToBytes("00000002FC0A12"));
     }
 
     @Test
     public void summertime_20181028_0100() {
         // 28.10.2018 01:00:30 CET DST (UTC+2)
         IeTime56 ts = new IeTime56(new byte[]{0x30, 0x75, 0x00, (byte) 0x81, (byte) 0xFC, 0x0a, 0x12});
-        assertEquals(1540681230000l, ts.getTimestamp());
+        assertEquals(1540681230000L, ts.getTimestamp());
     }
 
     @Test
     public void summertime_20181028_0200() {
         // 28.10.2018 02:00:30 CET DST (UTC+2)
         IeTime56 ts = new IeTime56(new byte[]{(byte) 0x30, 0x75, 0x00, (byte) 0x82, (byte) 0xfc, 0x0a, 0x12});
-        assertEquals(1540684830000l, ts.getTimestamp());
+        assertEquals(1540684830000L, ts.getTimestamp());
     }
 
     @Test
     public void standardtime_20181028_0200() {
         // 28.10.2018 02:00:30 CET (UTC+1)
         IeTime56 ts = new IeTime56(new byte[]{0x30, 0x75, 0x00, (byte) 0x02, (byte) 0xfc, 0x0a, 0x12});
-        assertEquals(1540688430000l, ts.getTimestamp());
+        assertEquals(1540688430000L, ts.getTimestamp());
     }
 
     @Test
     public void standardtime_20190331_0100() {
         // 31.03.2019 01:00:30 CET (UTC+1)
         IeTime56 ts = new IeTime56(new byte[]{0x30, 0x75, 0x00, (byte) 0x01, (byte) 0xff, 0x03, 0x13});
-        assertEquals(1553990430000l, ts.getTimestamp());
+        assertEquals(1553990430000L, ts.getTimestamp());
     }
 
     @Test
     public void summtertime_20190331_0300() {
         // 31.03.2019 03:00:30 CET DST (UTC+2)
         IeTime56 ts = new IeTime56(new byte[]{0x30, 0x75, 0x00, (byte) 0x83, (byte) 0xff, 0x03, 0x13});
-        assertEquals(1553994030000l, ts.getTimestamp());
+        assertEquals(1553994030000L, ts.getTimestamp());
     }
 
     private void testIeTime56(long timestamp, boolean invalid, String timezone, boolean expectedDST,

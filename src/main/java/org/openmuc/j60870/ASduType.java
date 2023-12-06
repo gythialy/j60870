@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 Fraunhofer ISE
+ * Copyright 2014-2023 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -40,7 +40,6 @@ import java.util.Map;
  * </ul>
  */
 public enum ASduType {
-
     /**
      * 1 - Single-point information without time tag
      */
@@ -309,7 +308,66 @@ public enum ASduType {
      * 127 - QueryLog, request archive file
      */
     F_SC_NB_1(127, "QueryLog, request archive file"),
-
+    RESERVED_22(22, ASduType.reserved),
+    RESERVED_23(23, ASduType.reserved),
+    RESERVED_24(24, ASduType.reserved),
+    RESERVED_25(25, ASduType.reserved),
+    RESERVED_26(26, ASduType.reserved),
+    RESERVED_27(27, ASduType.reserved),
+    RESERVED_28(28, ASduType.reserved),
+    RESERVED_29(29, ASduType.reserved),
+    RESERVED_41(41, ASduType.reserved),
+    RESERVED_42(42, ASduType.reserved),
+    RESERVED_43(43, ASduType.reserved),
+    RESERVED_44(44, ASduType.reserved),
+    RESERVED_52(52, ASduType.reserved),
+    RESERVED_53(53, ASduType.reserved),
+    RESERVED_54(54, ASduType.reserved),
+    RESERVED_55(55, ASduType.reserved),
+    RESERVED_56(56, ASduType.reserved),
+    RESERVED_57(57, ASduType.reserved),
+    RESERVED_65(65, ASduType.reserved),
+    RESERVED_66(66, ASduType.reserved),
+    RESERVED_67(67, ASduType.reserved),
+    RESERVED_68(68, ASduType.reserved),
+    RESERVED_69(69, ASduType.reserved),
+    RESERVED_71(71, ASduType.reserved),
+    RESERVED_72(72, ASduType.reserved),
+    RESERVED_73(73, ASduType.reserved),
+    RESERVED_74(74, ASduType.reserved),
+    RESERVED_75(75, ASduType.reserved),
+    RESERVED_76(76, ASduType.reserved),
+    RESERVED_77(77, ASduType.reserved),
+    RESERVED_78(78, ASduType.reserved),
+    RESERVED_79(79, ASduType.reserved),
+    RESERVED_80(80, ASduType.reserved),
+    RESERVED_81(81, ASduType.reserved),
+    RESERVED_82(82, ASduType.reserved),
+    RESERVED_83(83, ASduType.reserved),
+    RESERVED_84(84, ASduType.reserved),
+    RESERVED_85(85, ASduType.reserved),
+    RESERVED_86(86, ASduType.reserved),
+    RESERVED_87(87, ASduType.reserved),
+    RESERVED_88(88, ASduType.reserved),
+    RESERVED_89(89, ASduType.reserved),
+    RESERVED_90(90, ASduType.reserved),
+    RESERVED_91(91, ASduType.reserved),
+    RESERVED_92(92, ASduType.reserved),
+    RESERVED_93(93, ASduType.reserved),
+    RESERVED_94(94, ASduType.reserved),
+    RESERVED_95(95, ASduType.reserved),
+    RESERVED_96(96, ASduType.reserved),
+    RESERVED_97(97, ASduType.reserved),
+    RESERVED_98(98, ASduType.reserved),
+    RESERVED_99(99, ASduType.reserved),
+    RESERVED_108(108, ASduType.reserved),
+    RESERVED_109(109, ASduType.reserved),
+    RESERVED_114(114, ASduType.reserved),
+    RESERVED_115(115, ASduType.reserved),
+    RESERVED_116(116, ASduType.reserved),
+    RESERVED_117(117, ASduType.reserved),
+    RESERVED_118(118, ASduType.reserved),
+    RESERVED_119(119, ASduType.reserved),
     PRIVATE_128(128),
     PRIVATE_129(129),
     PRIVATE_130(130),
@@ -439,6 +497,7 @@ public enum ASduType {
     PRIVATE_254(254),
     PRIVATE_255(255);
 
+    private static final String reserved = "Reserved ASduType for further compatible definitions";
     private static final Map<Integer, ASduType> idMap = new HashMap<>();
 
     static {
@@ -452,11 +511,11 @@ public enum ASduType {
     private final int id;
     private final String description;
 
-    private ASduType(int id) {
+    ASduType(int id) {
         this(id, "private range");
     }
 
-    private ASduType(int id, String description) {
+    ASduType(int id, String description) {
         this.id = id;
         this.description = description;
     }

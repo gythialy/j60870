@@ -102,8 +102,8 @@ memberSearchIndex = [{
 }, {
     "p": "org.openmuc.j60870",
     "c": "ConnectionEventListener",
-    "l": "connectionClosed(IOException)",
-    "url": "connectionClosed(java.io.IOException)"
+    "l": "connectionClosed(Connection, IOException)",
+    "url": "connectionClosed(org.openmuc.j60870.Connection,java.io.IOException)"
 }, {
     "p": "org.openmuc.j60870",
     "c": "ServerEventListener",
@@ -131,7 +131,8 @@ memberSearchIndex = [{
 }, {
     "p": "org.openmuc.j60870",
     "c": "ConnectionEventListener",
-    "l": "dataTransferStateChanged(boolean)"
+    "l": "dataTransferStateChanged(Connection, boolean)",
+    "url": "dataTransferStateChanged(org.openmuc.j60870.Connection,boolean)"
 }, {"p": "org.openmuc.j60870", "c": "CauseOfTransmission", "l": "DEACTIVATION"}, {
     "p": "org.openmuc.j60870",
     "c": "CauseOfTransmission",
@@ -187,14 +188,14 @@ memberSearchIndex = [{
     "c": "IeBinaryStateInformation",
     "l": "getBinaryState(int)"
 }, {"p": "org.openmuc.j60870", "c": "ASdu", "l": "getCauseOfTransmission()"}, {
-    "p": "org.openmuc.j60870.ie",
-    "c": "IeDoubleCommand",
-    "l": "getCommandState()"
-}, {"p": "org.openmuc.j60870.ie", "c": "IeRegulatingStepCommand", "l": "getCommandState()"}, {
     "p": "org.openmuc.j60870",
-    "c": "ASdu",
-    "l": "getCommonAddress()"
-}, {
+    "c": "Connection",
+    "l": "getClosedIOException()"
+}, {"p": "org.openmuc.j60870.ie", "c": "IeDoubleCommand", "l": "getCommandState()"}, {
+    "p": "org.openmuc.j60870.ie",
+    "c": "IeRegulatingStepCommand",
+    "l": "getCommandState()"
+}, {"p": "org.openmuc.j60870", "c": "ASdu", "l": "getCommonAddress()"}, {
     "p": "org.openmuc.j60870.ie",
     "c": "IeBinaryCounterReading",
     "l": "getCounterReading()"
@@ -781,6 +782,10 @@ memberSearchIndex = [{
     "c": "IeProtectionStartEvent",
     "l": "isStartReverseOperation()"
 }, {"p": "org.openmuc.j60870", "c": "Connection", "l": "isStopped()"}, {
+    "p": "org.openmuc.j60870",
+    "c": "Server",
+    "l": "isStopped()"
+}, {
     "p": "org.openmuc.j60870.ie",
     "c": "IeSingleProtectionEvent",
     "l": "isSubstituted()"
@@ -868,8 +873,8 @@ memberSearchIndex = [{
 }, {
     "p": "org.openmuc.j60870",
     "c": "ConnectionEventListener",
-    "l": "newASdu(ASdu)",
-    "url": "newASdu(org.openmuc.j60870.ASdu)"
+    "l": "newASdu(Connection, ASdu)",
+    "url": "newASdu(org.openmuc.j60870.Connection,org.openmuc.j60870.ASdu)"
 }, {
     "p": "org.openmuc.j60870.ie",
     "c": "IeRegulatingStepCommand.StepCommandState",
@@ -1230,6 +1235,126 @@ memberSearchIndex = [{
     "p": "org.openmuc.j60870",
     "c": "CauseOfTransmission",
     "l": "REQUESTED_BY_GROUP_4_COUNTER"
+}, {"p": "org.openmuc.j60870", "c": "ASduType", "l": "RESERVED_108"}, {
+    "p": "org.openmuc.j60870",
+    "c": "ASduType",
+    "l": "RESERVED_109"
+}, {"p": "org.openmuc.j60870", "c": "ASduType", "l": "RESERVED_114"}, {
+    "p": "org.openmuc.j60870",
+    "c": "ASduType",
+    "l": "RESERVED_115"
+}, {"p": "org.openmuc.j60870", "c": "ASduType", "l": "RESERVED_116"}, {
+    "p": "org.openmuc.j60870",
+    "c": "ASduType",
+    "l": "RESERVED_117"
+}, {"p": "org.openmuc.j60870", "c": "ASduType", "l": "RESERVED_118"}, {
+    "p": "org.openmuc.j60870",
+    "c": "ASduType",
+    "l": "RESERVED_119"
+}, {"p": "org.openmuc.j60870", "c": "ASduType", "l": "RESERVED_22"}, {
+    "p": "org.openmuc.j60870",
+    "c": "ASduType",
+    "l": "RESERVED_23"
+}, {"p": "org.openmuc.j60870", "c": "ASduType", "l": "RESERVED_24"}, {
+    "p": "org.openmuc.j60870",
+    "c": "ASduType",
+    "l": "RESERVED_25"
+}, {"p": "org.openmuc.j60870", "c": "ASduType", "l": "RESERVED_26"}, {
+    "p": "org.openmuc.j60870",
+    "c": "ASduType",
+    "l": "RESERVED_27"
+}, {"p": "org.openmuc.j60870", "c": "ASduType", "l": "RESERVED_28"}, {
+    "p": "org.openmuc.j60870",
+    "c": "ASduType",
+    "l": "RESERVED_29"
+}, {"p": "org.openmuc.j60870", "c": "ASduType", "l": "RESERVED_41"}, {
+    "p": "org.openmuc.j60870",
+    "c": "ASduType",
+    "l": "RESERVED_42"
+}, {"p": "org.openmuc.j60870", "c": "ASduType", "l": "RESERVED_43"}, {
+    "p": "org.openmuc.j60870",
+    "c": "ASduType",
+    "l": "RESERVED_44"
+}, {"p": "org.openmuc.j60870", "c": "ASduType", "l": "RESERVED_52"}, {
+    "p": "org.openmuc.j60870",
+    "c": "ASduType",
+    "l": "RESERVED_53"
+}, {"p": "org.openmuc.j60870", "c": "ASduType", "l": "RESERVED_54"}, {
+    "p": "org.openmuc.j60870",
+    "c": "ASduType",
+    "l": "RESERVED_55"
+}, {"p": "org.openmuc.j60870", "c": "ASduType", "l": "RESERVED_56"}, {
+    "p": "org.openmuc.j60870",
+    "c": "ASduType",
+    "l": "RESERVED_57"
+}, {"p": "org.openmuc.j60870", "c": "ASduType", "l": "RESERVED_65"}, {
+    "p": "org.openmuc.j60870",
+    "c": "ASduType",
+    "l": "RESERVED_66"
+}, {"p": "org.openmuc.j60870", "c": "ASduType", "l": "RESERVED_67"}, {
+    "p": "org.openmuc.j60870",
+    "c": "ASduType",
+    "l": "RESERVED_68"
+}, {"p": "org.openmuc.j60870", "c": "ASduType", "l": "RESERVED_69"}, {
+    "p": "org.openmuc.j60870",
+    "c": "ASduType",
+    "l": "RESERVED_71"
+}, {"p": "org.openmuc.j60870", "c": "ASduType", "l": "RESERVED_72"}, {
+    "p": "org.openmuc.j60870",
+    "c": "ASduType",
+    "l": "RESERVED_73"
+}, {"p": "org.openmuc.j60870", "c": "ASduType", "l": "RESERVED_74"}, {
+    "p": "org.openmuc.j60870",
+    "c": "ASduType",
+    "l": "RESERVED_75"
+}, {"p": "org.openmuc.j60870", "c": "ASduType", "l": "RESERVED_76"}, {
+    "p": "org.openmuc.j60870",
+    "c": "ASduType",
+    "l": "RESERVED_77"
+}, {"p": "org.openmuc.j60870", "c": "ASduType", "l": "RESERVED_78"}, {
+    "p": "org.openmuc.j60870",
+    "c": "ASduType",
+    "l": "RESERVED_79"
+}, {"p": "org.openmuc.j60870", "c": "ASduType", "l": "RESERVED_80"}, {
+    "p": "org.openmuc.j60870",
+    "c": "ASduType",
+    "l": "RESERVED_81"
+}, {"p": "org.openmuc.j60870", "c": "ASduType", "l": "RESERVED_82"}, {
+    "p": "org.openmuc.j60870",
+    "c": "ASduType",
+    "l": "RESERVED_83"
+}, {"p": "org.openmuc.j60870", "c": "ASduType", "l": "RESERVED_84"}, {
+    "p": "org.openmuc.j60870",
+    "c": "ASduType",
+    "l": "RESERVED_85"
+}, {"p": "org.openmuc.j60870", "c": "ASduType", "l": "RESERVED_86"}, {
+    "p": "org.openmuc.j60870",
+    "c": "ASduType",
+    "l": "RESERVED_87"
+}, {"p": "org.openmuc.j60870", "c": "ASduType", "l": "RESERVED_88"}, {
+    "p": "org.openmuc.j60870",
+    "c": "ASduType",
+    "l": "RESERVED_89"
+}, {"p": "org.openmuc.j60870", "c": "ASduType", "l": "RESERVED_90"}, {
+    "p": "org.openmuc.j60870",
+    "c": "ASduType",
+    "l": "RESERVED_91"
+}, {"p": "org.openmuc.j60870", "c": "ASduType", "l": "RESERVED_92"}, {
+    "p": "org.openmuc.j60870",
+    "c": "ASduType",
+    "l": "RESERVED_93"
+}, {"p": "org.openmuc.j60870", "c": "ASduType", "l": "RESERVED_94"}, {
+    "p": "org.openmuc.j60870",
+    "c": "ASduType",
+    "l": "RESERVED_95"
+}, {"p": "org.openmuc.j60870", "c": "ASduType", "l": "RESERVED_96"}, {
+    "p": "org.openmuc.j60870",
+    "c": "ASduType",
+    "l": "RESERVED_97"
+}, {"p": "org.openmuc.j60870", "c": "ASduType", "l": "RESERVED_98"}, {
+    "p": "org.openmuc.j60870",
+    "c": "ASduType",
+    "l": "RESERVED_99"
 }, {
     "p": "org.openmuc.j60870",
     "c": "Connection",
@@ -1311,6 +1436,10 @@ memberSearchIndex = [{
     "url": "setBindAddr(java.net.InetAddress)"
 }, {
     "p": "org.openmuc.j60870",
+    "c": "ServerEventListener",
+    "l": "setConnectionEventListenerBeforeStart()"
+}, {
+    "p": "org.openmuc.j60870",
     "c": "Connection",
     "l": "setConnectionListener(ConnectionEventListener)",
     "url": "setConnectionListener(org.openmuc.j60870.ConnectionEventListener)"
@@ -1379,14 +1508,13 @@ memberSearchIndex = [{
     "url": "singleCommandWithTimeTag(int,org.openmuc.j60870.CauseOfTransmission,int,org.openmuc.j60870.ie.IeSingleCommand,org.openmuc.j60870.ie.IeTime56)"
 }, {"p": "org.openmuc.j60870", "c": "CauseOfTransmission", "l": "SPONTANEOUS"}, {
     "p": "org.openmuc.j60870",
+    "c": "Connection",
+    "l": "start()"
+}, {
+    "p": "org.openmuc.j60870",
     "c": "Server",
     "l": "start(ServerEventListener)",
     "url": "start(org.openmuc.j60870.ServerEventListener)"
-}, {
-    "p": "org.openmuc.j60870",
-    "c": "Connection",
-    "l": "startDataTransfer(ConnectionEventListener, int)",
-    "url": "startDataTransfer(org.openmuc.j60870.ConnectionEventListener,int)"
 }, {
     "p": "org.openmuc.j60870",
     "c": "Connection",
@@ -1578,9 +1706,4 @@ memberSearchIndex = [{
     "p": "org.openmuc.j60870.ie",
     "c": "IeSingleProtectionEvent.EventState",
     "l": "values()"
-}, {"p": "org.openmuc.j60870.ie", "c": "IeStatusOfFile.Flag", "l": "values()"}, {
-    "p": "org.openmuc.j60870",
-    "c": "Connection",
-    "l": "waitForStartDT(ConnectionEventListener, int)",
-    "url": "waitForStartDT(org.openmuc.j60870.ConnectionEventListener,int)"
-}]
+}, {"p": "org.openmuc.j60870.ie", "c": "IeStatusOfFile.Flag", "l": "values()"}]

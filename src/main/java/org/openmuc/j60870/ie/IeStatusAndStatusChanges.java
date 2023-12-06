@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 Fraunhofer ISE
+ * Copyright 2014-2023 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -101,8 +101,8 @@ public class IeStatusAndStatusChanges extends InformationElement {
             sb2.insert(0, '0'); // pad with leading zero if needed
         }
 
-        return "Status and status changes (first bit = LSB), states: " + sb1.toString() + ", state changes: "
-                + sb2.toString();
+        return "Status and status changes (first bit = LSB), states: " + sb1 + ", state changes: "
+                + sb2;
     }
 
 }

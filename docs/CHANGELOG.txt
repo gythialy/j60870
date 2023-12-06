@@ -1,11 +1,40 @@
-v1.5.0 02-Aug-2022
------------------
-- set minimum Java version to 1.8
+v1.6.3-SNAPSHOT 15-Nov-2023
+---------------------------------
+- added Connection object to ConnectionEventListener methods
+- throws IllegalArgumentException when trying to send ASdu in stopped state
+
+v1.6.2 24-Oct-2023
+------------------
+- fixed dataTransferStateChanged not triggered when data transfer goes into the stopped state
+- newAsdu method is triggered even if isStopped=true on first connection
+- added method setConnectionEventListenerBeforeStart() to ServerEventListener to make sure a listener is set before
+  connection
+
+v1.6.1 20-July-2023
+-------------------
+- fixed not waiting for missing S-Frame from master when sending StoDTCon
+- fixed no TESTFR after initial connection
+- fixed connection closed when receiving reserved ASDU
+- fixed sending S-Format for already confirmed messages
+
+v1.6.0 23-June-2023
+-------------------
 - removed deprecated methods:
   * org.openmuc.j60870.Connection#waitForStartDT
   * org.openmuc.j60870.Connection#startDataTransfer(ConnectionEventListener listener, int timeout),
     replaced by org.openmuc.j60870.Connection#startDataTransfer(ConnectionEventListener listener)
-- added org.openmuc.j60870.ConnectionEventListener#dataTransferStateChanged(boolean) it 
+- fixed missing S-frame confirmation while StopDT
+- fixes missing org.openmuc.j60870.ConnectionEventListener#connectionClosed(Connection connection, IOException) event while StopDT state
+- added check for t2 < t1 and t3 > t1
+- updated junit to 4.13.2, because of CVE-2020-15250
+- CLI app:
+ * fixed windows start scripts
+ * fixed COUNTER_INTERROGATION_ACTION_KEY exception 
+
+v1.5.0 02-Aug-2022
+------------------
+- set minimum Java version to 1.8
+- added org.openmuc.j60870.ConnectionEventListener#dataTransferStateChanged(Connection, boolean) it
   notifies if STARTDT ACT or STOPDT ACT was handled
 - added sendConfirmation with Cause of transmission parameter
 - added server connection setting for a IP whitelist  
@@ -16,7 +45,8 @@ v1.5.0 02-Aug-2022
   thanks to Konstantinos Ntermitzoglou from inaccess
 - CLI app: 
  * added Counter Interrogation Command in console client
- * added time to logmessages
+ * added time to log messages
+ * replaced deprecated methods
 
 v1.4.0 19-Jun-2020
 ------------------

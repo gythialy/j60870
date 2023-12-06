@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 Fraunhofer ISE
+ * Copyright 2014-2023 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -118,16 +118,18 @@ public class ClientConnectionBuilder extends CommonBuilder<ClientConnectionBuild
     }
 
     /**
-     * Sets connection time out t0, in milliseconds.
+     * Sets connection time out t0, in milliseconds.<br>
+     * t0 (connectionTimeout) must be between 1000ms and 255000ms.
      *
-     * @param time the timeout in milliseconds. Default is 20 s, if set to 0
+     * @param time_t0 the timeout in milliseconds. Default is 20 s
      * @return this builder
      */
-    public ClientConnectionBuilder setConnectionTimeout(int time) {
-        if (time < 100) {
-            throw new IllegalArgumentException("invalid timeout: " + time + ", time must be bigger then 100ms");
+    public ClientConnectionBuilder setConnectionTimeout(int time_t0) {
+        if (time_t0 < 1000 || time_t0 > 255000) {
+            throw new IllegalArgumentException(
+                    "invalid timeout: " + time_t0 + ", t0 (connectionTimeout) must be between 1000ms and 255000ms");
         }
-        settings.setConnectionTimeout(time);
+        settings.setConnectionTimeout(time_t0);
         return this;
     }
 
@@ -147,7 +149,9 @@ public class ClientConnectionBuilder extends CommonBuilder<ClientConnectionBuild
             socket.bind(new InetSocketAddress(localAddr, localPort));
         }
         socket.connect(new InetSocketAddress(address, port), settings.getConnectionTimeout());
-        return new Connection(socket, null, new ConnectionSettings(settings));
+        Connection connection = new Connection(socket, null, new ConnectionSettings(settings));
+        connection.start();
+        return connection;
     }
 
 }

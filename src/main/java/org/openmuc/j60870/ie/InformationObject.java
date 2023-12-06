@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 Fraunhofer ISE
+ * Copyright 2014-2023 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -469,9 +469,9 @@ public class InformationObject {
         if (informationElements.length > 1) {
             int i = 1;
             for (InformationElement[] informationElementSet : informationElements) {
-                builder.append("\nInformation Element Set " + i + ":");
+                builder.append("\nInformation Element Set ").append(i).append(':');
                 for (InformationElement informationElement : informationElementSet) {
-                    builder.append("\n");
+                    builder.append('\n');
                     builder.append(informationElement.toString());
                 }
                 i++;

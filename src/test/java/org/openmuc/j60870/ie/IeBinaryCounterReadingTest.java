@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 Fraunhofer ISE
+ * Copyright 2014-2023 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -38,7 +38,7 @@ public class IeBinaryCounterReadingTest {
 
     private static IeBinaryCounterReading decode(byte[] buffer) throws IOException {
         IeBinaryCounterReading binaryCounterReadingD;
-        try (ExtendedDataInputStream is = new ExtendedDataInputStream(new ByteArrayInputStream(buffer));) {
+        try (ExtendedDataInputStream is = new ExtendedDataInputStream(new ByteArrayInputStream(buffer))) {
             binaryCounterReadingD = IeBinaryCounterReading.decode(is);
         }
         return binaryCounterReadingD;

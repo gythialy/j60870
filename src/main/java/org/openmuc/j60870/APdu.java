@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 Fraunhofer ISE
+ * Copyright 2014-2023 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -46,6 +46,7 @@ class APdu {
     private final int receiveSeqNum;
     private final ApciType apciType;
     private final ASdu aSdu;
+
     public APdu(int sendSeqNum, int receiveSeqNum, ApciType apciType, ASdu aSdu) {
         this.sendSeqNum = sendSeqNum;
         this.receiveSeqNum = receiveSeqNum;

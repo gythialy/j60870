@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 Fraunhofer ISE
+ * Copyright 2014-2023 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -114,13 +114,11 @@ public class IeTime56 extends InformationElement {
     }
 
     /**
-     * Returns the timestamp in ms equivalent to this Time56 instance.
-     * <p>
-     * Note that Time56 does not store the century of the date. Therefore you have to pass the earliest possible year of
-     * the Time56 instance. Say the year stored by Time56 is 10. From this information alone it is not possible to tell
-     * whether the real year is 1910 or 2010 or 2110. If you pass 1970 as the start of century, then this function will
-     * know that the year of the given date lies between 1970 and 2069 and can therefore calculate that the correct date
-     * is 2010.
+     * Returns the timestamp in ms equivalent to this Time56 instance. Note that Time56 does not store the century of
+     * the date. Therefore you have to pass the earliest possible year of the Time56 instance. Say the year stored by
+     * Time56 is 10. From this information alone it is not possible to tell whether the real year is 1910 or 2010 or
+     * 2110. If you pass 1970 as the start of century, then this function will know that the year of the given date lies
+     * between 1970 and 2069 and can therefore calculate that the correct date is 2010.
      *
      * @param startOfCentury The timestamp will
      * @param timeZone       the timezone that shall be used to calculate the timestamp.
@@ -143,13 +141,11 @@ public class IeTime56 extends InformationElement {
 
     /**
      * Returns the timestamp in ms equivalent to this Time56 instance. The default time zone is used if no time zone is
-     * configured.
-     * <p>
-     * Note that Time56 does not store the century of the date. Therefore you have to pass the earliest possible year of
-     * the Time56 instance. Say the year stored by Time56 is 10. From this information alone it is not possible to tell
-     * whether the real year is 1910 or 2010 or 2110. If you pass 1970 as the start of century, then this function will
-     * know that the year of the given date lies between 1970 and 2069 and can therefore calculate that the correct date
-     * is 2010.
+     * configured. Note that Time56 does not store the century of the date. Therefore you have to pass the earliest
+     * possible year of the Time56 instance. Say the year stored by Time56 is 10. From this information alone it is not
+     * possible to tell whether the real year is 1910 or 2010 or 2110. If you pass 1970 as the start of century, then
+     * this function will know that the year of the given date lies between 1970 and 2069 and can therefore calculate
+     * that the correct date is 2010.
      *
      * @param startOfCentury The timestamp will
      * @return the timestamp in ms equivalent to this Time56 instance

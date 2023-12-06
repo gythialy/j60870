@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 Fraunhofer ISE
+ * Copyright 2014-2023 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -21,14 +21,14 @@
 package org.openmuc.j60870;
 
 abstract class TimeoutTask implements Comparable<TimeoutTask> {
-    private final int timeout;
+    private final long timeout;
 
     private long dueTime;
 
     private boolean canceled;
     private boolean done;
 
-    public TimeoutTask(int timeout) {
+    public TimeoutTask(long timeout) {
 
         this.timeout = timeout;
         this.done = false;
@@ -36,7 +36,7 @@ abstract class TimeoutTask implements Comparable<TimeoutTask> {
         this.dueTime = 0;
     }
 
-    void manExec() {
+    void executeManually() {
 
         if (canceled) {
             return;
@@ -99,7 +99,8 @@ abstract class TimeoutTask implements Comparable<TimeoutTask> {
     @Override
     public int hashCode() {
 
-        return this.timeout ^ ((Boolean.valueOf(canceled).hashCode()) << 2) ^ Boolean.valueOf(done).hashCode();
+        return Long.hashCode(this.timeout) ^ ((Boolean.valueOf(canceled).hashCode()) << 2)
+                ^ Boolean.valueOf(done).hashCode();
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 Fraunhofer ISE
+ * Copyright 2014-2023 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -54,6 +54,10 @@ public class Server {
 
     public static Builder builder() {
         return new Builder();
+    }
+
+    public boolean isStopped() {
+        return serverThread == null;
     }
 
     /**

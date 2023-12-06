@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 Fraunhofer ISE
+ * Copyright 2014-2023 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -26,9 +26,8 @@ import java.util.EventListener;
 /**
  * The listener interface for receiving incoming ASDUs and connection closed events. The class that is interested in
  * incoming ASDUs implements this interface. The object of that class is registered as a listener through the
- * {@link Connection#startDataTransfer(ConnectionEventListener, int)} or
- * {@link Connection#waitForStartDT(ConnectionEventListener, int)} method. Incoming ASDUs are queued so that
- * {@link #newASdu(ASdu)} is never called simultaneously for the same connection.
+ * {@link Connection#startDataTransfer(ConnectionEventListener)} method. Incoming ASDUs are queued so that
+ * {@link #newASdu(Connection connection, ASdu)} is never called simultaneously for the same connection.
  */
 public interface ConnectionEventListener extends EventListener {
 
@@ -37,7 +36,7 @@ public interface ConnectionEventListener extends EventListener {
      *
      * @param aSdu the ASDU that arrived.
      */
-    void newASdu(ASdu aSdu);
+    void newASdu(Connection connection, ASdu aSdu);
 
     /**
      * Invoked when an IOException occurred while listening for incoming ASDUs. An IOException implies that the
@@ -46,13 +45,13 @@ public interface ConnectionEventListener extends EventListener {
      *
      * @param cause the exception that occurred.
      */
-    void connectionClosed(IOException cause);
+    void connectionClosed(Connection connection, IOException cause);
 
     /**
      * Informs when the state of data transfer changed.
      *
      * @param stopped true if data transfer stopped, false if data transfer started
      */
-    void dataTransferStateChanged(boolean stopped);
+    void dataTransferStateChanged(Connection connection, boolean stopped);
 
 }

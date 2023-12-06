@@ -20,7 +20,7 @@ public class ExtendedDataInputStream extends DataInputStream {
     }
 
     public long readLittleEndianUnsignedInt() throws IOException {
-        return readLittleEndianInt() & 0xffffffffl;
+        return readLittleEndianInt() & 0xffffffffL;
     }
 
     public short readLittleEndianShort() throws IOException {
@@ -33,8 +33,8 @@ public class ExtendedDataInputStream extends DataInputStream {
 
     private long readNLittleEndianBytes(int n) throws IOException {
         long res = 0;
-        for (int i = 0; i < n; ++i) {
-            res |= readUnsignedByte() << 8 * i;
+        for (long i = 0; i < n; ++i) {
+            res |= (long) readUnsignedByte() << 8L * i;
         }
         return res;
     }

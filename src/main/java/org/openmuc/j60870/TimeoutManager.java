@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 Fraunhofer ISE
+ * Copyright 2014-2023 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -24,29 +24,32 @@ import java.util.concurrent.PriorityBlockingQueue;
 
 class TimeoutManager implements Runnable {
 
+    private static final int INITIAL_QUE_CAPACITY = 4;
     private final PriorityBlockingQueue<TimeoutTask> queue;
-
-    private final Object guadedLock;
-
+    private final Object guardedLock;
     boolean canceled;
 
     public TimeoutManager() {
-        this.queue = new PriorityBlockingQueue<>(4);
-        this.guadedLock = new Object();
+        this.queue = new PriorityBlockingQueue<>(INITIAL_QUE_CAPACITY);
+        this.guardedLock = new Object();
     }
 
     public void addTimerTask(TimeoutTask task) {
         task.updateDueTime();
         removeDuplicates(task);
         this.queue.add(task);
-        synchronized (this.guadedLock) {
-            this.guadedLock.notifyAll();
+        notifyLock();
+    }
+
+    private void notifyLock() {
+        synchronized (this.guardedLock) {
+            this.guardedLock.notifyAll();
         }
     }
 
     private void removeDuplicates(TimeoutTask task) {
         while (queue.remove(task)) {
-
+            // continue removing until there are no duplicates
         }
     }
 
@@ -57,22 +60,22 @@ class TimeoutManager implements Runnable {
     @Override
     public void run() {
         Thread.currentThread().setName("TimeoutManager");
-        TimeoutTask currTask;
+        TimeoutTask currentTask;
         while (!canceled) {
             try {
                 long sleepMillis;
-                currTask = queue.take();
+                currentTask = queue.take();
 
-                while ((sleepMillis = currTask.sleepTimeFromDueTime()) > 0) {
-                    queue.put(currTask);
+                while ((sleepMillis = currentTask.sleepTimeFromDueTime()) > 0) {
+                    queue.put(currentTask);
 
-                    synchronized (this.guadedLock) {
-                        this.guadedLock.wait(sleepMillis);
+                    synchronized (this.guardedLock) {
+                        this.guardedLock.wait(sleepMillis);
                     }
-                    currTask = queue.take();
+                    currentTask = queue.take();
                 }
 
-                currTask.manExec();
+                currentTask.executeManually();
             } catch (InterruptedException e) {
                 // Restore interrupted state...
                 Thread.currentThread().interrupt();

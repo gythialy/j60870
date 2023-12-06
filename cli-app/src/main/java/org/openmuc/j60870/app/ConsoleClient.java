@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 Fraunhofer ISE
+ * Copyright 2014-2023 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -167,12 +167,12 @@ public final class ConsoleClient {
     private static class ClientEventListener implements ConnectionEventListener {
 
         @Override
-        public void newASdu(ASdu aSdu) {
+        public void newASdu(Connection connection, ASdu aSdu) {
             log("\nReceived ASDU:\n", aSdu.toString());
         }
 
         @Override
-        public void connectionClosed(IOException e) {
+        public void connectionClosed(Connection connection, IOException e) {
             log("Received connection closed signal. Reason: ");
             if (!e.getMessage().isEmpty()) {
                 log(e.getMessage());
@@ -183,7 +183,7 @@ public final class ConsoleClient {
         }
 
         @Override
-        public void dataTransferStateChanged(boolean stopped) {
+        public void dataTransferStateChanged(Connection connection, boolean stopped) {
             String dtState = "started";
             if (stopped) {
                 dtState = "stopped";
@@ -204,11 +204,17 @@ public final class ConsoleClient {
                                 new IeQualifierOfInterrogation(20));
                         break;
                     case COUNTER_INTERROGATION_ACTION_KEY:
-                        log("Enter the freeze action: 0=read, 1=counter freeze wo reset, 2=counter freeze with reset, 3=counter reset");
-                        String reference = actionProcessor.getReader().readLine();
+                        log("Enter the freeze action: 0=read, 1=counter freeze without reset, 2=counter freeze with reset, 3=counter reset");
+                        int reference;
+                        try {
+                            reference = getReference();
+                        } catch (NumberFormatException e) {
+                            log("Input was not a integer between 0-3.");
+                            break;
+                        }
                         log("** Sending counter interrogation command.");
                         connection.counterInterrogation(commonAddrParam.getValue(), CauseOfTransmission.ACTIVATION,
-                                new IeQualifierOfCounterInterrogation(5, Integer.parseInt(reference)));
+                                new IeQualifierOfCounterInterrogation(5, reference));
                         break;
                     case CLOCK_SYNC_ACTION_KEY:
                         log("** Sending synchronize clocks command.");
@@ -238,6 +244,16 @@ public final class ConsoleClient {
             } catch (Exception e) {
                 throw new ActionException(e);
             }
+        }
+
+        private int getReference() throws IOException, NumberFormatException {
+            int reference;
+            String referenceString = actionProcessor.getReader().readLine();
+            reference = Integer.parseInt(referenceString);
+            if (reference < 0 || reference > 3) {
+                throw new NumberFormatException();
+            }
+            return reference;
         }
 
         @Override

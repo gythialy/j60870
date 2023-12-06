@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 Fraunhofer ISE
+ * Copyright 2014-2023 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -108,9 +108,9 @@ public class IeBinaryCounterReading extends InformationElement {
         COUNTER_ADJUSTED(0x40),
         INVALID(0x80);
 
-        private int mask;
+        private final int mask;
 
-        private Flag(int mask) {
+        Flag(int mask) {
             this.mask = mask;
         }
 

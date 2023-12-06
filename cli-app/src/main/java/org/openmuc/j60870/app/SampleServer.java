@@ -1,9 +1,21 @@
 /*
+ * Copyright 2014-2023 Fraunhofer ISE
+ *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
  *
- * You are free to use code of this sample file in any
- * way you like and without any restrictions.
+ * j60870 is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * j60870 is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with j60870.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
 package org.openmuc.j60870.app;
@@ -77,7 +89,7 @@ public class SampleServer {
                 .setPort(portParam.getValue())
                 .setIoaFieldLength(iaoLengthParam.getValue())
                 .setCommonAddressFieldLength(caLengthParam.getValue())
-                .setCotFieldLength(cotLengthParam.getValue());// .setMaxNumOfOutstandingIPdus(10);
+                .setCotFieldLength(cotLengthParam.getValue());
         Server server = builder.build();
 
         try {
@@ -105,7 +117,6 @@ public class SampleServer {
 
         @Override
         public void connectionIndication(Connection connection) {
-
             int myConnectionId = connectionIdCounter++;
             log("A client (Originator Address " + connection.getOriginatorAddress()
                     + ") has connected using TCP/IP. Will listen for a StartDT request. Connection ID: "
@@ -137,7 +148,7 @@ public class SampleServer {
             }
 
             @Override
-            public void newASdu(ASdu aSdu) {
+            public void newASdu(Connection connection, ASdu aSdu) {
                 log("Got new ASdu:");
                 println(aSdu.toString(), "\n");
                 InformationObject informationObject = null;
@@ -203,12 +214,12 @@ public class SampleServer {
             }
 
             @Override
-            public void connectionClosed(IOException e) {
+            public void connectionClosed(Connection connection, IOException e) {
                 log("Connection (" + connectionId, ") was closed. ", e.getMessage());
             }
 
             @Override
-            public void dataTransferStateChanged(boolean stopped) {
+            public void dataTransferStateChanged(Connection connection, boolean stopped) {
                 String dtState = "started";
                 if (stopped) {
                     dtState = "stopped";

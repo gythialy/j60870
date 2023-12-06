@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 Fraunhofer ISE
+ * Copyright 2014-2023 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -132,6 +132,9 @@ class ServerThread implements Runnable {
             Connection serverConnection;
             try {
                 serverConnection = new Connection(socket, serverThread, settings);
+                // first set listener before any communication can happen
+                serverConnection.setConnectionListener(serverSapListener.setConnectionEventListenerBeforeStart());
+                serverConnection.start();
             } catch (IOException e) {
                 synchronized (ServerThread.this) {
                     numConnections--;

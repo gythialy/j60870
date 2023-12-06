@@ -1,0 +1,34 @@
+apply plugin: "maven-publish"
+apply plugin: "java"
+
+def tokenName = 'Private-Token'
+def tokenValue = ''
+
+if (project.hasProperty("gitLabPrivateToken")) {
+    tokenValue = gitLabPrivateToken
+}
+if (System.getenv("CI")) {
+    tokenName = 'Job-Token'
+    tokenValue = System.getenv("CI_JOB_TOKEN")
+}
+
+publishing {
+    publications {
+        library(MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        maven { //
+            url "https://gitlab.cc-asp.fraunhofer.de/api/v4/projects/36/packages/maven"
+            name "GitLab"
+            credentials(HttpHeaderCredentials) {
+                name = tokenName
+                value = tokenValue
+            }
+            authentication {
+                header(HttpHeaderAuthentication)
+            }
+        }
+    }
+}

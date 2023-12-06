@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 Fraunhofer ISE
+ * Copyright 2014-2023 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -40,15 +40,15 @@ public class TimeoutManagerTest {
 
     @Test
     public void test1() throws Exception {
-        final int timout = 200;
+        final long timeout = 200;
 
         TimeoutManager tm = PowerMockito.spy(new TimeoutManager());
         final TimeoutTask task = mock(TimeoutTask.class);
-        setInternalState(task, int.class, timout);
+        setInternalState(task, "timeout", timeout);
 
         doCallRealMethod().when(task).updateDueTime();
         doCallRealMethod().when(task).sleepTimeFromDueTime();
-        doCallRealMethod().when(task).manExec();
+        doCallRealMethod().when(task).executeManually();
         doCallRealMethod().when(task).isDone();
 
         ExecutorService exec = Executors.newSingleThreadExecutor();
@@ -62,7 +62,7 @@ public class TimeoutManagerTest {
             public Void answer(InvocationOnMock invocation) throws Throwable {
                 long sleepTime = System.currentTimeMillis() - t0;
 
-                assertEquals(timout, sleepTime, 40D);
+                assertEquals(timeout, sleepTime, 40D);
                 return null;
             }
         }).when(task).execute();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 Fraunhofer ISE
+ * Copyright 2014-2023 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -24,6 +24,16 @@ import java.io.IOException;
 import java.util.EventListener;
 
 public interface ServerEventListener extends EventListener {
+
+    /**
+     * Use this function to set the connection event listener before the connection is started. This eliminates the
+     * possibility of transactions without a listener set.
+     *
+     * @return the ConnectionEventListener that will be set for a connection before the connection starts.
+     */
+    default ConnectionEventListener setConnectionEventListenerBeforeStart() {
+        return null;
+    }
 
     void connectionIndication(Connection connection);
 
