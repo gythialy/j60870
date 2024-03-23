@@ -9,14 +9,3 @@ as well as servers. j60870 is licensed under the GPLv3. In addition we sell j608
 Please contact us if you need another license. Proprietary licenses are negotiated individually.
 
 Read the [user guide](https://gythialy.github.io/j60870/) on how to get started with the library.
-
-## [LICENSE](LICENSE.txt)
-
-```
-GNU GENERAL PUBLIC LICENSE
-                       Version 3, 29 June 2007
-
- Copyright (C) 2007 Free Software Foundation, Inc. <http://fsf.org/>
- Everyone is permitted to copy and distribute verbatim copies
- of this license document, but changing it is not allowed.
-```
