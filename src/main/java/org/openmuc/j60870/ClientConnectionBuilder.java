@@ -83,6 +83,16 @@ public class ClientConnectionBuilder extends CommonBuilder<ClientConnectionBuild
     }
 
     /**
+     * Sets an implementation of the ReservedASduTypeDecoder to define supported reserved ASdus
+     *
+     * @param reservedASduTypeDecoder implementation of the ReservedASduTypeDecoder
+     */
+    public ClientConnectionBuilder setReservedASduTypeDecoder(ReservedASduTypeDecoder reservedASduTypeDecoder) {
+        this.settings.setReservedASduTypeDecoder(reservedASduTypeDecoder);
+        return this;
+    }
+
+    /**
      * Sets the port to connect to. The default port is 2404.
      *
      * @param port the port to connect to.

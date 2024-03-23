@@ -1,5 +1,10 @@
-v1.6.3-SNAPSHOT 15-Nov-2023
----------------------------------
+v1.6.4 17-Jan-2024
+------------------
+- added internal pending state for correct connection state behavior
+- added ReservedASduTypeDecoder to settings for possible future definitions of reserved range <= 127
+
+v1.6.3 15-Nov-2023
+------------------
 - added Connection object to ConnectionEventListener methods
 - throws IllegalArgumentException when trying to send ASdu in stopped state
 

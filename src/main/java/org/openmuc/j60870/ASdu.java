@@ -103,7 +103,7 @@ public class ASdu {
      * @param isSequenceOfElements if false then the ASDU contains a sequence of information objects consisting of a fixed number of
      *                             information elements. If true the ASDU contains a single information object with a sequence of
      *                             elements.
-     * @param sequenceLength       the number of information objects or the number elements depending depending on which is transmitted
+     * @param sequenceLength       the number of information objects or the number elements depending on which is transmitted
      *                             as a sequence
      * @param causeOfTransmission  the cause of transmission
      * @param test                 true if the ASDU is sent for test purposes
@@ -184,9 +184,10 @@ public class ASdu {
 
             int ioaFieldLength = settings.getIoaFieldLength();
             for (int i = 0; i < numberOfInformationObjects; i++) {
-                informationObjects[i] = InformationObject.decode(is, typeId, numberOfSequenceElements, ioaFieldLength);
+                informationObjects[i] =
+                        InformationObject.decode(is, typeId, numberOfSequenceElements, ioaFieldLength,
+                                settings.getReservedASduTypeDecoder());
             }
-
             return new ASdu(typeId, isSequenceOfElements, causeOfTransmission, test, negativeConfirm, originatorAddress,
                     commonAddress, informationObjects);
         } else {

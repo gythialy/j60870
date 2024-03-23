@@ -1,1677 +1,1222 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <!--[if IE]>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <meta content="Asciidoctor 1.5.5" name="generator">
-    <title>j60870 User Guide</title>
-    <style>
-        /*
-         * AsciiDoc 'volnitsky' theme for xhtml11 and html5 backends.
-         * Based on css from http://volnitsky.com, which was in turn based on default
-         * theme from AsciiDoc
-         *
-         * FIXME: The styling is still a bit rough in places.
-         *
-         */
-
-        /* Default font. */
-        body {
-            font-family: Helvetica, sans-serif;
-            max-width: 62.5em;
-            margin: auto;
-        }
-
-        /* Title font. */
-
-        h1, h2, h3, h4, h5, h6 {
-            clear: both;
-            font-family: Helvetica, serif;
-            line-height: 1.3;
-        }
-
-        a {
-            border-bottom: 1px dotted #999999;
-            color: #378f03 !important;
-            text-decoration: none !important;
-        }
-
-        a:hover {
-            border-bottom: 1px solid #378f03;
-            color: #378f03 !important;
-            text-decoration: none !important;
-        }
-
-        em {
-            font-style: italic;
-            color: #4E4E4E;
-        }
-
-        strong {
-            font-weight: bold;
-            color: #000000;
-        }
-
-
-        div.sectionbody {
-            /*  margin-left: 0;*/
-        }
-
-        hr {
-            border: 1px solid #575757;
-        }
-
-
-        pre {
-            padding: 0;
-            margin: 0;
-        }
-
-        #author {
-            color: #575757;
-            font-weight: bold;
-            font-size: 1.1em;
-        }
-
-        #footer {
-            font-size: small;
-            padding-top: 0.5em;
-            margin-top: 4.0em;
-        }
-
-        #footer-text {
-            float: left;
-            padding-bottom: 0.5em;
-        }
-
-        #footer-badges {
-            float: right;
-            padding-bottom: 0.5em;
-        }
-
-        #preamble {
-            margin-top: 1.5em;
-            margin-bottom: 1.5em;
-        }
-
-        div.tableblock, div.imageblock, div.exampleblock, div.verseblock,
-        div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
-        div.admonitionblock {
-            margin-top: 1.5em;
-            margin-bottom: 1.5em;
-        }
-
-        div.admonitionblock {
-            margin-top: 2.5em;
-            margin-bottom: 2.5em;
-        }
-
-        div.content { /* Block element content. */
-            padding: 0;
-        }
-
-        /* Block element titles. */
-        div.title, caption.title {
-            color: #575757;
-            font-weight: bold;
-            text-align: left;
-            margin-top: 1.0em;
-            margin-bottom: 0.5em;
-        }
-
-        div.title + * {
-            margin-top: 0;
-        }
-
-        td div.title:first-child {
-            margin-top: 0.0em;
-        }
-
-        div.content div.title:first-child {
-            margin-top: 0.0em;
-        }
-
-        div.content + div.title {
-            margin-top: 0.0em;
-        }
-
-        div.sidebarblock > div.content {
-            background: #ffffee;
-            border: 1px solid silver;
-            padding: 0.5em;
-        }
-
-        div.listingblock > div.content {
-            border: 1px solid silver;
-            background: #f4f4f4;
-            padding: 0.5em;
-        }
-
-        div.quoteblock {
-            padding-left: 2.0em;
-            margin-right: 10%;
-        }
-
-        div.quoteblock > div.attribution {
-            padding-top: 0.5em;
-            text-align: right;
-        }
-
-        div.verseblock {
-            padding-left: 2.0em;
-            margin-right: 10%;
-        }
-
-        div.verseblock > pre.content {
-            font-family: inherit;
-        }
-
-        div.verseblock > div.attribution {
-            padding-top: 0.75em;
-            text-align: left;
-        }
-
-        /* DEPRECATED: Pre version 8.2.7 verse style literal block. */
-        div.verseblock + div.attribution {
-            text-align: left;
-        }
-
-        div.admonitionblock .icon {
-            vertical-align: top;
-            font-size: 1.1em;
-            font-weight: bold;
-            text-decoration: underline;
-            color: #575757;
-            padding-right: 0.5em;
-        }
-
-        div.admonitionblock td.content {
-            padding-left: 0.5em;
-            border-left: 2px solid silver;
-        }
-
-        div.exampleblock > div.content {
-            border-left: 2px solid silver;
-            padding: 0.5em;
-        }
-
-        div.imageblock div.content {
-            padding-left: 0;
-        }
-
-        span.image img {
-            border-style: none;
-        }
-
-        a.image:visited {
-            color: white;
-        }
-
-        dl {
-            margin-top: 0.8em;
-            margin-bottom: 0.8em;
-        }
-
-        dt {
-            margin-top: 0.5em;
-            margin-bottom: 0;
-            font-style: normal;
-            color: #575757;
-        }
-
-        dd > *:first-child {
-            margin-top: 0.1em;
-        }
-
-        ul, ol {
-            list-style-position: outside;
-        }
-
-        ol.arabic {
-            list-style-type: decimal;
-        }
-
-        ol.loweralpha {
-            list-style-type: lower-alpha;
-        }
-
-        ol.upperalpha {
-            list-style-type: upper-alpha;
-        }
-
-        ol.lowerroman {
-            list-style-type: lower-roman;
-        }
-
-        ol.upperroman {
-            list-style-type: upper-roman;
-        }
-
-        div.compact ul, div.compact ol,
-        div.compact p, div.compact p,
-        div.compact div, div.compact div {
-            margin-top: 0.1em;
-            margin-bottom: 0.1em;
-        }
-
-        div.tableblock > table {
-            border: 3px solid #575757;
-        }
-
-        thead {
-            font-weight: bold;
-            color: #575757;
-        }
-
-        tfoot {
-            font-weight: bold;
-        }
-
-        td > div.verse {
-            white-space: pre;
-        }
-
-        p.table {
-            margin-top: 0;
-        }
-
-        /* Because the table frame attribute is overriden by CSS in most browsers. */
-        div.tableblock > table[frame="void"] {
-            border-style: none;
-        }
-
-        div.tableblock > table[frame="hsides"] {
-            border-left-style: none;
-            border-right-style: none;
-        }
-
-        div.tableblock > table[frame="vsides"] {
-            border-top-style: none;
-            border-bottom-style: none;
-        }
-
-
-        div.hdlist {
-            margin-top: 0.8em;
-            margin-bottom: 0.8em;
-        }
-
-        div.hdlist tr {
-            padding-bottom: 15px;
-        }
-
-        dt.hdlist1.strong, td.hdlist1.strong {
-            font-weight: bold;
-        }
-
-        td.hdlist1 {
-            vertical-align: top;
-            font-style: normal;
-            padding-right: 0.8em;
-            color: #575757;
-        }
-
-        td.hdlist2 {
-            vertical-align: top;
-        }
-
-        div.hdlist.compact tr {
-            margin: 0;
-            padding-bottom: 0;
-        }
-
-        .comment {
-            background: yellow;
-        }
-
-        @media print {
-            #footer-badges {
-                display: none;
-            }
-        }
-
-        #toctitle {
-            color: #575757;
-            font-size: 1.2em;
-            font-weight: bold;
-            margin-top: 1.0em;
-            margin-bottom: 0.1em;
-        }
-
-        div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
-            margin-top: 0;
-            margin-bottom: 0;
-        }
-
-        div.toclevel1 {
-            margin-top: 0.3em;
-            margin-left: 0;
-            font-size: 1.0em;
-        }
-
-        div.toclevel2 {
-            margin-top: 0.25em;
-            margin-left: 2em;
-            font-size: 0.9em;
-        }
-
-        div.toclevel3 {
-            margin-left: 4em;
-            font-size: 0.8em;
-        }
-
-        div.toclevel4 {
-            margin-left: 6em;
-            font-size: 0.8em;
-        }
-
-
-        .monospaced, tt, div.listingblock > div.content {
-            font-family: Consolas, "Andale Mono", "Courier New", monospace;
-            color: #004400;
-            background: #f4f4f4;
-            max-width: 80em;
-            line-height: 1.2em;
-        }
-
-        .paragraph p {
-            line-height: 1.5em;
-            margin-top: 1em;
-        }
-
-        /*.paragraph p, li, dd, .content { max-width: 85em; }
-        .admonitionblock               { max-width: 35em; }*/
-
-        div.sectionbody div.ulist > ul > li {
-            list-style-type: square;
-            color: #aaa;
-        }
-
-        div.sectionbody div.ulist > ul > li > * {
-            color: black;
-            /*font-size: 50%;*/
-        }
-
-
-        div.sectionbody div.ulist > ul > li div.ulist > ul > li {
-            color: #ccd;
-        }
-
-        div.sectionbody div.ulist > ul > li div.ulist > ul > li > * {
-            color: black;
-        }
-
-        /*
-         * html5 specific
-         *
-         * */
-
-        table.tableblock {
-            margin-top: 1.0em;
-            margin-bottom: 1.5em;
-        }
-
-        thead, p.tableblock.header {
-            font-weight: bold;
-            color: #575757;
-        }
-
-        p.tableblock {
-            margin-top: 0;
-        }
-
-        table.tableblock {
-            border-width: 3px;
-            border-spacing: 0px;
-            border-style: solid;
-            border-color: #575757;
-            border-collapse: collapse;
-        }
-
-        th.tableblock, td.tableblock {
-            border-width: 1px;
-            padding: 4px;
-            border-style: solid;
-            border-color: #575757;
-        }
-
-        table.tableblock.frame-topbot {
-            border-left-style: hidden;
-            border-right-style: hidden;
-        }
-
-        table.tableblock.frame-sides {
-            border-top-style: hidden;
-            border-bottom-style: hidden;
-        }
-
-        table.tableblock.frame-none {
-            border-style: hidden;
-        }
-
-        th.tableblock.halign-left, td.tableblock.halign-left {
-            text-align: left;
-        }
-
-        th.tableblock.halign-center, td.tableblock.halign-center {
-            text-align: center;
-        }
-
-        th.tableblock.halign-right, td.tableblock.halign-right {
-            text-align: right;
-        }
-
-        th.tableblock.valign-top, td.tableblock.valign-top {
-            vertical-align: top;
-        }
-
-        th.tableblock.valign-middle, td.tableblock.valign-middle {
-            vertical-align: middle;
-        }
-
-        th.tableblock.valign-bottom, td.tableblock.valign-bottom {
-            vertical-align: bottom;
-        }
-
-
-    </style>
-    <style>
-        /* Stylesheet for CodeRay to match GitHub theme | MIT License | http://foundation.zurb.com */
-        /*pre.CodeRay {background-color:#f7f7f8;}*/
-        .CodeRay .line-numbers {
-            border-right: 1px solid #d8d8d8;
-            padding: 0 0.5em 0 .25em
-        }
-
-        .CodeRay span.line-numbers {
-            display: inline-block;
-            margin-right: .5em;
-            color: rgba(0, 0, 0, .3)
-        }
-
-        .CodeRay .line-numbers strong {
-            color: rgba(0, 0, 0, .4)
-        }
-
-        table.CodeRay {
-            border-collapse: separate;
-            border-spacing: 0;
-            margin-bottom: 0;
-            border: 0;
-            background: none
-        }
-
-        table.CodeRay td {
-            vertical-align: top;
-            line-height: 1.45
-        }
-
-        table.CodeRay td.line-numbers {
-            text-align: right
-        }
-
-        table.CodeRay td.line-numbers > pre {
-            padding: 0;
-            color: rgba(0, 0, 0, .3)
-        }
-
-        table.CodeRay td.code {
-            padding: 0 0 0 .5em
-        }
-
-        table.CodeRay td.code > pre {
-            padding: 0
-        }
-
-        .CodeRay .debug {
-            color: #fff !important;
-            background: #000080 !important
-        }
-
-        .CodeRay .annotation {
-            color: #007
-        }
-
-        .CodeRay .attribute-name {
-            color: #000080
-        }
-
-        .CodeRay .attribute-value {
-            color: #700
-        }
-
-        .CodeRay .binary {
-            color: #509
-        }
-
-        .CodeRay .comment {
-            color: #998;
-            font-style: italic
-        }
-
-        .CodeRay .char {
-            color: #04d
-        }
-
-        .CodeRay .char .content {
-            color: #04d
-        }
-
-        .CodeRay .char .delimiter {
-            color: #039
-        }
-
-        .CodeRay .class {
-            color: #458;
-            font-weight: bold
-        }
-
-        .CodeRay .complex {
-            color: #a08
-        }
-
-        .CodeRay .constant, .CodeRay .predefined-constant {
-            color: #008080
-        }
-
-        .CodeRay .color {
-            color: #099
-        }
-
-        .CodeRay .class-variable {
-            color: #369
-        }
-
-        .CodeRay .decorator {
-            color: #b0b
-        }
-
-        .CodeRay .definition {
-            color: #099
-        }
-
-        .CodeRay .delimiter {
-            color: #000
-        }
-
-        .CodeRay .doc {
-            color: #970
-        }
-
-        .CodeRay .doctype {
-            color: #34b
-        }
-
-        .CodeRay .doc-string {
-            color: #d42
-        }
-
-        .CodeRay .escape {
-            color: #666
-        }
-
-        .CodeRay .entity {
-            color: #800
-        }
-
-        .CodeRay .error {
-            color: #808
-        }
-
-        .CodeRay .exception {
-            color: inherit
-        }
-
-        .CodeRay .filename {
-            color: #099
-        }
-
-        .CodeRay .function {
-            color: #900;
-            font-weight: bold
-        }
-
-        .CodeRay .global-variable {
-            color: #008080
-        }
-
-        .CodeRay .hex {
-            color: #058
-        }
-
-        .CodeRay .integer, .CodeRay .float {
-            color: #099
-        }
-
-        .CodeRay .include {
-            color: #555
-        }
-
-        .CodeRay .inline {
-            color: #000
-        }
-
-        .CodeRay .inline .inline {
-            background: #ccc
-        }
-
-        .CodeRay .inline .inline .inline {
-            background: #bbb
-        }
-
-        .CodeRay .inline .inline-delimiter {
-            color: #d14
-        }
-
-        .CodeRay .inline-delimiter {
-            color: #d14
-        }
-
-        .CodeRay .important {
-            color: #555;
-            font-weight: bold
-        }
-
-        .CodeRay .interpreted {
-            color: #b2b
-        }
-
-        .CodeRay .instance-variable {
-            color: #008080
-        }
-
-        .CodeRay .label {
-            color: #970
-        }
-
-        .CodeRay .local-variable {
-            color: #963
-        }
-
-        .CodeRay .octal {
-            color: #40e
-        }
-
-        .CodeRay .predefined {
-            color: #369
-        }
-
-        .CodeRay .preprocessor {
-            color: #579
-        }
-
-        .CodeRay .pseudo-class {
-            color: #555
-        }
-
-        .CodeRay .directive {
-            font-weight: bold
-        }
-
-        .CodeRay .type {
-            font-weight: bold
-        }
-
-        .CodeRay .predefined-type {
-            color: inherit
-        }
-
-        .CodeRay .reserved, .CodeRay .keyword {
-            color: #000;
-            font-weight: bold
-        }
-
-        .CodeRay .key {
-            color: #808
-        }
-
-        .CodeRay .key .delimiter {
-            color: #606
-        }
-
-        .CodeRay .key .char {
-            color: #80f
-        }
-
-        .CodeRay .value {
-            color: #088
-        }
-
-        .CodeRay .regexp .delimiter {
-            color: #808
-        }
-
-        .CodeRay .regexp .content {
-            color: #808
-        }
-
-        .CodeRay .regexp .modifier {
-            color: #808
-        }
-
-        .CodeRay .regexp .char {
-            color: #d14
-        }
-
-        .CodeRay .regexp .function {
-            color: #404;
-            font-weight: bold
-        }
-
-        .CodeRay .string {
-            color: #d20
-        }
-
-        .CodeRay .string .string .string {
-            background: #ffd0d0
-        }
-
-        .CodeRay .string .content {
-            color: #d14
-        }
-
-        .CodeRay .string .char {
-            color: #d14
-        }
-
-        .CodeRay .string .delimiter {
-            color: #d14
-        }
-
-        .CodeRay .shell {
-            color: #d14
-        }
-
-        .CodeRay .shell .delimiter {
-            color: #d14
-        }
-
-        .CodeRay .symbol {
-            color: #990073
-        }
-
-        .CodeRay .symbol .content {
-            color: #a60
-        }
-
-        .CodeRay .symbol .delimiter {
-            color: #630
-        }
-
-        .CodeRay .tag {
-            color: #008080
-        }
-
-        .CodeRay .tag-special {
-            color: #d70
-        }
-
-        .CodeRay .variable {
-            color: #036
-        }
-
-        .CodeRay .insert {
-            background: #afa
-        }
-
-        .CodeRay .delete {
-            background: #faa
-        }
-
-        .CodeRay .change {
-            color: #aaf;
-            background: #007
-        }
-
-        .CodeRay .head {
-            color: #f8f;
-            background: #505
-        }
-
-        .CodeRay .insert .insert {
-            color: #080
-        }
-
-        .CodeRay .delete .delete {
-            color: #800
-        }
-
-        .CodeRay .change .change {
-            color: #66f
-        }
-
-        .CodeRay .head .head {
-            color: #f4f
-        }
-    </style>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.5">
+<title>j60870 User Guide</title>
+<style>
+/*
+ * AsciiDoc 'volnitsky' theme for xhtml11 and html5 backends.
+ * Based on css from http://volnitsky.com, which was in turn based on default
+ * theme from AsciiDoc
+ *
+ * FIXME: The styling is still a bit rough in places.
+ *
+ */
+
+/* Default font. */
+body {
+  font-family: Helvetica, sans-serif;
+  max-width:62.5em;
+  margin: auto;
+}
+
+/* Title font. */
+
+h1, h2, h3, h4, h5, h6 {
+    clear: both;
+    font-family: Helvetica, serif;
+    line-height: 1.3;
+}
+
+a {
+    border-bottom: 1px dotted #999999;
+    color: #378f03 !important;
+    text-decoration: none !important;
+}
+a:hover {
+    border-bottom: 1px solid #378f03;
+    color: #378f03 !important;
+    text-decoration: none !important;
+}
+
+em {
+  font-style: italic;
+  color: #4E4E4E;
+}
+
+strong {
+  font-weight: bold;
+  color: #000000;
+}
+
+
+div.sectionbody {
+/*  margin-left: 0;*/
+}
+
+hr {
+  border: 1px solid #575757;
+}
+
+
+pre {
+  padding: 0;
+  margin: 0;
+}
+
+#author {
+  color: #575757;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+
+#footer {
+  font-size: small;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+
+div.tableblock, div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+
+div.admonitionblock {
+  margin-top: 2.5em;
+  margin-bottom: 2.5em;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #575757;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid silver;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid silver;
+  background: #f4f4f4;
+  padding: 0.5em;
+}
+
+div.quoteblock {
+  padding-left: 2.0em;
+  margin-right: 10%;
+}
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock {
+  padding-left: 2.0em;
+  margin-right: 10%;
+}
+div.verseblock > pre.content {
+  font-family: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #575757;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 2px solid silver;
+}
+
+div.exampleblock > div.content {
+  border-left: 2px solid silver;
+  padding: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: #575757;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+div.tableblock > table {
+  border: 3px solid #575757;
+}
+thead {
+  font-weight: bold;
+  color: #575757;
+}
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: #575757;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toctitle {
+  color: #575757;
+  font-size: 1.2em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 { margin-top: 0; margin-bottom: 0; }
+div.toclevel1 { margin-top: 0.3em; margin-left: 0; font-size: 1.0em; }
+div.toclevel2 { margin-top: 0.25em; margin-left: 2em; font-size: 0.9em; }
+div.toclevel3 { margin-left: 4em; font-size: 0.8em; }
+div.toclevel4 { margin-left: 6em; font-size: 0.8em; }
+
+
+
+.monospaced, tt, div.listingblock > div.content {
+  font-family:  Consolas, "Andale Mono", "Courier New", monospace;
+  color: #004400;
+  background: #f4f4f4;
+  max-width: 80em;
+  line-height: 1.2em;
+}
+
+.paragraph p  {
+  line-height: 1.5em;
+  margin-top: 1em;
+}
+
+/*.paragraph p, li, dd, .content { max-width: 85em; }
+.admonitionblock               { max-width: 35em; }*/
+
+div.sectionbody div.ulist > ul > li {
+  list-style-type: square;
+  color: #aaa;
+}
+  div.sectionbody div.ulist >  ul > li > * {
+    color: black;
+    /*font-size: 50%;*/
+  }
+
+
+div.sectionbody div.ulist > ul > li div.ulist > ul > li {
+  color: #ccd ;
+}
+  div.sectionbody div.ulist > ul > li div.ulist > ul > li > * {
+    color: black ;
+  }
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #575757;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #575757;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #575757;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+
+</style>
+<style>
+/* Stylesheet for CodeRay to match GitHub theme | MIT License | http://foundation.zurb.com */
+/*pre.CodeRay {background-color:#f7f7f8;}*/
+.CodeRay .line-numbers{border-right:1px solid #d8d8d8;padding:0 0.5em 0 .25em}
+.CodeRay span.line-numbers{display:inline-block;margin-right:.5em;color:rgba(0,0,0,.3)}
+.CodeRay .line-numbers strong{color:rgba(0,0,0,.4)}
+table.CodeRay{border-collapse:separate;border-spacing:0;margin-bottom:0;border:0;background:none}
+table.CodeRay td{vertical-align: top;line-height:1.45}
+table.CodeRay td.line-numbers{text-align:right}
+table.CodeRay td.line-numbers>pre{padding:0;color:rgba(0,0,0,.3)}
+table.CodeRay td.code{padding:0 0 0 .5em}
+table.CodeRay td.code>pre{padding:0}
+.CodeRay .debug{color:#fff !important;background:#000080 !important}
+.CodeRay .annotation{color:#007}
+.CodeRay .attribute-name{color:#000080}
+.CodeRay .attribute-value{color:#700}
+.CodeRay .binary{color:#509}
+.CodeRay .comment{color:#998;font-style:italic}
+.CodeRay .char{color:#04d}
+.CodeRay .char .content{color:#04d}
+.CodeRay .char .delimiter{color:#039}
+.CodeRay .class{color:#458;font-weight:bold}
+.CodeRay .complex{color:#a08}
+.CodeRay .constant,.CodeRay .predefined-constant{color:#008080}
+.CodeRay .color{color:#099}
+.CodeRay .class-variable{color:#369}
+.CodeRay .decorator{color:#b0b}
+.CodeRay .definition{color:#099}
+.CodeRay .delimiter{color:#000}
+.CodeRay .doc{color:#970}
+.CodeRay .doctype{color:#34b}
+.CodeRay .doc-string{color:#d42}
+.CodeRay .escape{color:#666}
+.CodeRay .entity{color:#800}
+.CodeRay .error{color:#808}
+.CodeRay .exception{color:inherit}
+.CodeRay .filename{color:#099}
+.CodeRay .function{color:#900;font-weight:bold}
+.CodeRay .global-variable{color:#008080}
+.CodeRay .hex{color:#058}
+.CodeRay .integer,.CodeRay .float{color:#099}
+.CodeRay .include{color:#555}
+.CodeRay .inline{color:#000}
+.CodeRay .inline .inline{background:#ccc}
+.CodeRay .inline .inline .inline{background:#bbb}
+.CodeRay .inline .inline-delimiter{color:#d14}
+.CodeRay .inline-delimiter{color:#d14}
+.CodeRay .important{color:#555;font-weight:bold}
+.CodeRay .interpreted{color:#b2b}
+.CodeRay .instance-variable{color:#008080}
+.CodeRay .label{color:#970}
+.CodeRay .local-variable{color:#963}
+.CodeRay .octal{color:#40e}
+.CodeRay .predefined{color:#369}
+.CodeRay .preprocessor{color:#579}
+.CodeRay .pseudo-class{color:#555}
+.CodeRay .directive{font-weight:bold}
+.CodeRay .type{font-weight:bold}
+.CodeRay .predefined-type{color:inherit}
+.CodeRay .reserved,.CodeRay .keyword {color:#000;font-weight:bold}
+.CodeRay .key{color:#808}
+.CodeRay .key .delimiter{color:#606}
+.CodeRay .key .char{color:#80f}
+.CodeRay .value{color:#088}
+.CodeRay .regexp .delimiter{color:#808}
+.CodeRay .regexp .content{color:#808}
+.CodeRay .regexp .modifier{color:#808}
+.CodeRay .regexp .char{color:#d14}
+.CodeRay .regexp .function{color:#404;font-weight:bold}
+.CodeRay .string{color:#d20}
+.CodeRay .string .string .string{background:#ffd0d0}
+.CodeRay .string .content{color:#d14}
+.CodeRay .string .char{color:#d14}
+.CodeRay .string .delimiter{color:#d14}
+.CodeRay .shell{color:#d14}
+.CodeRay .shell .delimiter{color:#d14}
+.CodeRay .symbol{color:#990073}
+.CodeRay .symbol .content{color:#a60}
+.CodeRay .symbol .delimiter{color:#630}
+.CodeRay .tag{color:#008080}
+.CodeRay .tag-special{color:#d70}
+.CodeRay .variable{color:#036}
+.CodeRay .insert{background:#afa}
+.CodeRay .delete{background:#faa}
+.CodeRay .change{color:#aaf;background:#007}
+.CodeRay .head{color:#f8f;background:#505}
+.CodeRay .insert .insert{color:#080}
+.CodeRay .delete .delete{color:#800}
+.CodeRay .change .change{color:#66f}
+.CodeRay .head .head{color:#f4f}
+</style>
 </head>
 <body class="article toc2 toc-left">
 <div id="header">
-    <h1>j60870 User Guide</h1>
-    <div class="toc2" id="toc">
-        <div id="toctitle">Table of Contents</div>
-        <ul class="sectlevel1">
-            <li><a href="#_intro">1. Intro</a></li>
-            <li><a href="#_distribution">2. Distribution</a></li>
-            <li><a href="#_getting_started">3. Getting Started</a></li>
-            <li><a href="#_terminology">4. Terminology</a></li>
-            <li><a href="#_features">5. Features</a>
-                <ul class="sectlevel2">
-                    <li><a href="#_supported_information_elements">5.1. Supported information Elements</a></li>
-                    <li><a href="#_supported_asdu_types_client_and_server">5.2. Supported ASDu types (Client and
-                        Server)</a></li>
-                    <li><a href="#_in_client_connection_implemented_commands">5.3. In client connection implemented
-                        commands</a></li>
-                </ul>
-            </li>
-            <li><a href="#_develop_j60870">6. Develop j60870</a></li>
-            <li><a href="#_authors">7. Authors</a></li>
-        </ul>
-    </div>
+<h1>j60870 User Guide</h1>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_intro">1. Intro</a></li>
+<li><a href="#_distribution">2. Distribution</a></li>
+<li><a href="#_getting_started">3. Getting Started</a></li>
+<li><a href="#_terminology">4. Terminology</a></li>
+<li><a href="#_features">5. Features</a>
+<ul class="sectlevel2">
+<li><a href="#_supported_information_elements">5.1. Supported information Elements</a></li>
+<li><a href="#_supported_asdu_types_client_and_server">5.2. Supported ASDu types (Client and Server)</a></li>
+<li><a href="#_in_client_connection_implemented_commands">5.3. In client connection implemented commands</a></li>
+</ul>
+</li>
+<li><a href="#_develop_j60870">6. Develop j60870</a></li>
+<li><a href="#_authors">7. Authors</a></li>
+</ul>
+</div>
 </div>
 <div id="content">
-    <div class="sect1">
-        <h2 id="_intro">1. Intro</h2>
-        <div class="sectionbody">
-            <div class="paragraph">
-                <p>j60870 is an implementation of the IEC 60870-5-104 protocol standard
-                    for client (i.e. master or controlling station) and server (i.e. slave
-                    or controlled station) applications.</p>
-            </div>
-            <div class="paragraph">
-                <p>You can use j60870 to program your individual client or server
-                    applications. A simple console client is part of the library. You can
-                    execute it using the scripts found in the folder "run-scripts".</p>
-            </div>
-        </div>
-    </div>
-    <div class="sect1">
-        <h2 id="_distribution">2. Distribution</h2>
-        <div class="sectionbody">
-            <div class="paragraph">
-                <p>After extracting the distribution tar file the j60870 library can be
-                    found in the folder /build/libs.</p>
-            </div>
-        </div>
-    </div>
-    <div class="sect1">
-        <h2 id="_getting_started">3. Getting Started</h2>
-        <div class="sectionbody">
-            <div class="paragraph">
-                <p>The easiest way to get started is by taking a look at the code of the
-                    console client and the sample server which can be found here:
-                    cli-app/src/main/java/org/openmuc/j60870/app/ . These applications in
-                    combination with the javadoc should satisfy most of your documentation
-                    needs.</p>
-            </div>
-            <div class="paragraph">
-                <p>Here is a short summary of the steps to get a client running:</p>
-            </div>
-            <div class="ulist">
-                <ul>
-                    <li>
-                        <p>Create and configure an instance of ClientConnectionBuilder.</p>
-                    </li>
-                    <li>
-                        <p>Connect to the server using ClientConnectionBuilder.build() which
-                            returns the connection. The client is now connected to the server
-                            via TCP/IP.</p>
-                    </li>
-                    <li>
-                        <p>Initialize the data transfer by calling
-                            Connection.startDataTransfer.</p>
-                    </li>
-                    <li>
-                        <p>Now all incoming ASDUs (except for confirmation messages) will be
-                            forwarded to the ASduListener you registered. Every ASDU contains a
-                            number of Information Objects. The information objects contain
-                            information elements that make up the actual data. You will have to
-                            cast the InformationElements of the ASDU to a concrete
-                            implementation in order to access the data inside them. Every
-                            standardized Information Element is implemented by a class starting
-                            with the letters "Ie". The Type Identifier allows you to figure what
-                            to cast a particular Information Element to.</p>
-                    </li>
-                    <li>
-                        <p>You can use the Connection instance to send commands.</p>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </div>
-    <div class="sect1">
-        <h2 id="_terminology">4. Terminology</h2>
-        <div class="sectionbody">
-            <div class="ulist">
-                <ul>
-                    <li>
-                        <p><strong>OA</strong> - Originator Address</p>
-                    </li>
-                    <li>
-                        <p><strong>Monitor direction</strong> - direction from server to client</p>
-                    </li>
-                    <li>
-                        <p><strong>Control direction</strong> - direction from client to server</p>
-                    </li>
-                    <li>
-                        <p><strong>CON</strong> - confirmation message</p>
-                    </li>
-                    <li>
-                        <p><strong>COT</strong> - Cause of transmission</p>
-                    </li>
-                    <li>
-                        <p><strong>STARTDT ACT</strong> - Start data tranfer message. Needs to be sent by the
-                            client before information messages may be exchanged between client
-                            and server.</p>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </div>
-    <div class="sect1">
-        <h2 id="_features">5. Features</h2>
-        <div class="sectionbody">
-            <div class="ulist">
-                <ul>
-                    <li>
-                        <p>Server implementation</p>
-                    </li>
-                    <li>
-                        <p>Client implementation</p>
-                    </li>
-                </ul>
-            </div>
-            <div class="paragraph">
-                <p>The usage and description can be seen in the j60870 javadoc.</p>
-            </div>
-            <div class="sect2">
-                <h3 id="_supported_information_elements">5.1. Supported information Elements</h3>
-                <table class="tableblock frame-none grid-none spread">
-                    <colgroup>
-                        <col style="width: 50%;">
-                        <col style="width: 50%;">
-                    </colgroup>
-                    <tbody>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Abstract Qualifier of
-                            Command</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Qualifier of
-                            Interrogation</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Abstract Quality</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Qualifier of Parameter
-                            Activation</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Ack File or Section
-                            Qualifier</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Qualifier of Parameter of
-                            Measured Values</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Binary Counter Reading</p>
-                        </td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Qualifier of Reset Process
-                            Command</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Binary State Information</p>
-                        </td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Qualifier of Set Point
-                            Command</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Cause of Initialization</p>
-                        </td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Quality</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Checksum</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Regulating Step Command</p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Double Command</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Scaled Value</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Double Point with
-                            Quality</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Section Ready Qualifier</p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">File Ready Qualifier</p>
-                        </td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Select and Call
-                            Qualifier</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">File Segment</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Short Float</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Fixed Test Bit Pattern</p>
-                        </td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Single Command</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Last Section or Segment
-                            Qualifier</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Single Point with
-                            Quality</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Length of File or
-                            Section</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Single Protection Event</p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Name of File</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Status and Status
-                            Changes</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Name of Section</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Status of File</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Normalized Value</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Test Sequence Counter</p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Protection Output Circuit
-                            Information</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Time16</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Protection Quality</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Time24</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Protection Start Event</p>
-                        </td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Time56</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Qualifier of Counter
-                            Interrogation</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Value with Transient
-                            State</p></td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div class="sect2">
-                <h3 id="_supported_asdu_types_client_and_server">5.2. Supported ASDu types (Client and Server)</h3>
-                <table class="tableblock frame-all grid-all spread">
-                    <colgroup>
-                        <col style="width: 14.2857%;">
-                        <col style="width: 9.5238%;">
-                        <col style="width: 76.1905%;">
-                    </colgroup>
-                    <thead>
-                    <tr>
-                        <th class="tableblock halign-left valign-top">ASDu</th>
-                        <th class="tableblock halign-left valign-top">Number</th>
-                        <th class="tableblock halign-left valign-top">Description</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">C_BO_NA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">51</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Bitstring of 32 bits</p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">C_BO_TA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">64</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Bitstring of 32 bit with
-                            time tag CP56Time2a</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">C_CD_NA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">106</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Delay acquisition
-                            command</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">C_CI_NA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">101</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Counter interrogation
-                            command</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">C_CS_NA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">103</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Clock synchronization
-                            command</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">C_DC_NA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">46</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Double command</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">C_DC_TA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">59</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Double command with time tag
-                            CP56Time2a</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">C_IC_NA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">100</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Interrogation command</p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">C_RC_NA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">47</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Regulating step command</p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">C_RC_TA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">60</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Regulating step command with
-                            time tag CP56Time2a</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">C_RD_NA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">102</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Read command</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">C_RP_NA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">105</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Reset process command</p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">C_SC_NA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">45</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Single command</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">C_SC_TA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">58</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Single command with time tag
-                            CP56Time2a</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">C_SE_NA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">48</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Set point command,
-                            normalized value</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">C_SE_NB_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">49</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Set point command, scaled
-                            value</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">C_SE_NC_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">50</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Set point command, short
-                            floating point number</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">C_SE_TA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">61</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Set-point command with time
-                            tag CP56Time2a, normalized value</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">C_SE_TB_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">62</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Set-point command with time
-                            tag CP56Time2a, scaled value</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">C_SE_TC_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">63</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">C_SE_TC_1 Set-point command
-                            with time tag CP56Time2a, short floating point number</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">C_TS_NA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">104</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Test command</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">C_TS_TA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">107</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Test command with time tag
-                            CP56Time2a</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">F_AF_NA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">124</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Ack file, ack section</p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">F_DR_TA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">126</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Directory</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">F_FR_NA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">120</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">File ready</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">F_LS_NA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">123</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Last section, last
-                            segment</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">F_SC_NA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">122</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Call directory, select file,
-                            call file, call section</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">F_SC_NB_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">127</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">QueryLog, request archive
-                            file</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">F_SG_NA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">125</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Segment</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">F_SR_NA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">121</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Section ready</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">M_BO_NA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">7</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Bitstring of 32 bit</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">M_BO_TA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">8</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Bitstring of 32 bit with
-                            time tag</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">M_BO_TB_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">33</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Bitstring of 32 bits with
-                            time tag CP56Time2a</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">M_DP_NA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">3</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Double-point information
-                            without time tag</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">M_DP_TA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">4</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Double-point information
-                            with time tag</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">M_DP_TB_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">31</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Double-point information
-                            with time tag CP56Time2a</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">M_EI_NA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">70</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">End of initialization</p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">M_EP_TA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">17</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Event of protection
-                            equipment with time tag</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">M_EP_TB_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">18</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Packed start events of
-                            protection equipment with time tag</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">M_EP_TC_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">19</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Packed output circuit
-                            information of protection equipment with time tag</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">M_EP_TD_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">38</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Event of protection
-                            equipment with time tag CP56Time2a</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">M_EP_TE_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">39</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Packed start events of
-                            protection equipment with time tag CP56Time2a</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">M_EP_TF_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">40</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Packed output circuit
-                            information of protection equipment with time tag CP56Time2</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">M_IT_NA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">15</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Integrated totals</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">M_IT_TA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">16</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Integrated totals with time
-                            tag</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">M_IT_TB_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">37</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Integrated totals with time
-                            tag CP56Time2a</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">M_ME_NA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">9</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Measured value, normalized
-                            value</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">M_ME_NB_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">11</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Measured value, scaled
-                            value</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">M_ME_NC_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">13</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Measured value, short
-                            floating point number</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">M_ME_ND_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">21</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Measured value, normalized
-                            value without quality descriptor</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">M_ME_TA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">10</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Measured value, normalized
-                            value with time tag</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">M_ME_TB_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">12</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Measured value, scaled value
-                            with time tag</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">M_ME_TC_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">14</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Measured value, short
-                            floating point number with time tag</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">M_ME_TD_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">34</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Measured value, normalized
-                            value with time tag CP56Time2a</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">M_ME_TE_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">35</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Measured value, scaled value
-                            with time tag CP56Time2a</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">M_ME_TF_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">36</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Measured value, short
-                            floating point number with time tag CP56Time2a</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">M_PS_NA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">20</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Packed single-point
-                            information with status change detection</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">M_SP_NA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Single-point information
-                            without time tag</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">M_SP_TA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">2</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Single-point information
-                            with time tag</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">M_SP_TB_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">30</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Single-point information
-                            with time tag CP56Time2a</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">M_ST_NA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">5</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Step position
-                            information</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">M_ST_TA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">6</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Step position information
-                            with time tag</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">M_ST_TB_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">32</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Step position information
-                            with time tag CP56Time2a</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">P_AC_NA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">113</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Parameter activation</p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">P_ME_NA_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">110</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Parameter of measured value,
-                            normalized value</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">P_ME_NB_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">111</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Parameter of measured value,
-                            scaled value</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">P_ME_NC_1</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">112</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Parameter of measured value,
-                            short floating point number</p></td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div class="sect2">
-                <h3 id="_in_client_connection_implemented_commands">5.3. In client connection implemented commands</h3>
-                <table class="tableblock frame-none grid-none spread">
-                    <colgroup>
-                        <col style="width: 50%;">
-                        <col style="width: 50%;">
-                    </colgroup>
-                    <tbody>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Confirmation</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">clock synchronization
-                            command</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">single Command</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">test command</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">single Command with Time
-                            Tag</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">process command</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">double Command</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">delay acquisition
-                            command</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">double Command with Time
-                            Tag</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">test command with time tag
-                            CP56Time2a</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">regulating Step Command</p>
-                        </td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">parameter of measured
-                            values, normalized value</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">regulating Step Command with
-                            Time Tag</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">parameter of measured
-                            values, scaled value</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Normalized Value Command</p>
-                        </td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">parameter of measured
-                            values, short floating point number</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">set Normalized Value Command
-                            with Time Tag</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">parameter activation</p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">set Scaled Value Command</p>
-                        </td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">file Ready</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">set Scaled Value Command
-                            with Time Tag</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">section Ready</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">set Short Float Command</p>
-                        </td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">call or Select Files</p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">set Short Float Command with
-                            Time Tag</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">last Section or Segment</p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">bit String Command</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">ack File or Section</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">bit String Command with Time
-                            Tag</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Segment</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">interrogation command</p>
-                        </td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">Directory</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">counter interrogation
-                            command</p></td>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">query Log</p></td>
-                    </tr>
-                    <tr>
-                        <td class="tableblock halign-left valign-top"><p class="tableblock">read command</p></td>
-                        <td class="tableblock halign-left valign-top"></td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    <div class="sect1">
-        <h2 id="_develop_j60870">6. Develop j60870</h2>
-        <div class="sectionbody">
-            <div class="paragraph">
-                <p>We use the Gradle build automation tool. The distribution contains a
-                    fully functional gradle build file ("build.gradle"). Thus if you
-                    changed code and want to rebuild a library you can do it easily with
-                    Gradle. Also if you want to import our software into Eclipse you can
-                    easily create Eclipse project files using Gradle. Just follow the
-                    instructions on our FAQ site:
-                    <a class="bare" href="https://www.openmuc.org/faq/">https://www.openmuc.org/faq/</a></p>
-            </div>
-        </div>
-    </div>
-    <div class="sect1">
-        <h2 id="_authors">7. Authors</h2>
-        <div class="sectionbody">
-            <div class="paragraph">
-                <p>Developers:</p>
-            </div>
-            <div class="ulist">
-                <ul>
-                    <li>
-                        <p>Dirk Zimmermann</p>
-                    </li>
-                </ul>
-            </div>
-            <div class="paragraph">
-                <p>Former Developers:</p>
-            </div>
-            <div class="ulist">
-                <ul>
-                    <li>
-                        <p>Stefan Feuerhahn</p>
-                    </li>
-                    <li>
-                        <p>Albrecht Schall</p>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </div>
+<div class="sect1">
+<h2 id="_intro">1. Intro</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>j60870 is an implementation of the IEC 60870-5-104 protocol standard
+for client (i.e. master or controlling station) and server (i.e. slave
+or controlled station) applications.</p>
+</div>
+<div class="paragraph">
+<p>You can use j60870 to program your individual client or server
+applications. A simple console client is part of the library. You can
+execute it using the scripts found in the folder "run-scripts".</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_distribution">2. Distribution</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>After extracting the distribution tar file the j60870 library can be
+found in the folder /build/libs.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_getting_started">3. Getting Started</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The easiest way to get started is by taking a look at the code of the
+console client and the sample server which can be found here:
+cli-app/src/main/java/org/openmuc/j60870/app/ . These applications in
+combination with the javadoc should satisfy most of your documentation
+needs.</p>
+</div>
+<div class="paragraph">
+<p>Here is a short summary of the steps to get a client running:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Create and configure an instance of ClientConnectionBuilder.</p>
+</li>
+<li>
+<p>Connect to the server using ClientConnectionBuilder.build() which
+returns the connection. The client is now connected to the server
+via TCP/IP.</p>
+</li>
+<li>
+<p>Initialize the data transfer by calling
+Connection.startDataTransfer.</p>
+</li>
+<li>
+<p>Now all incoming ASDUs (except for confirmation messages) will be
+forwarded to the ASduListener you registered. Every ASDU contains a
+number of Information Objects. The information objects contain
+information elements that make up the actual data. You will have to
+cast the InformationElements of the ASDU to a concrete
+implementation in order to access the data inside them. Every
+standardized Information Element is implemented by a class starting
+with the letters "Ie". The Type Identifier allows you to figure what
+to cast a particular Information Element to.</p>
+</li>
+<li>
+<p>You can use the Connection instance to send commands.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_terminology">4. Terminology</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><strong>OA</strong> - Originator Address</p>
+</li>
+<li>
+<p><strong>Monitor direction</strong> - direction from server to client</p>
+</li>
+<li>
+<p><strong>Control direction</strong> - direction from client to server</p>
+</li>
+<li>
+<p><strong>CON</strong> - confirmation message</p>
+</li>
+<li>
+<p><strong>COT</strong> - Cause of transmission</p>
+</li>
+<li>
+<p><strong>STARTDT ACT</strong> - Start data tranfer message. Needs to be sent by the
+client before information messages may be exchanged between client
+and server.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_features">5. Features</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>Server implementation</p>
+</li>
+<li>
+<p>Client implementation</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The usage and description can be seen in the j60870 javadoc.</p>
+</div>
+<div class="sect2">
+<h3 id="_supported_information_elements">5.1. Supported information Elements</h3>
+<table class="tableblock frame-none grid-none spread">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Abstract Qualifier of Command</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Qualifier of Interrogation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Abstract Quality</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Qualifier of Parameter Activation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ack File or Section Qualifier</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Qualifier of Parameter of Measured Values</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Binary Counter Reading</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Qualifier of Reset Process Command</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Binary State Information</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Qualifier of Set Point Command</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Cause of Initialization</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Quality</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Checksum</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Regulating Step Command</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Double Command</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Scaled Value</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Double Point with Quality</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Section Ready Qualifier</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">File Ready Qualifier</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Select and Call Qualifier</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">File Segment</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Short Float</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fixed Test Bit Pattern</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Single Command</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Last Section or Segment Qualifier</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Single Point with Quality</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Length of File or Section</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Single Protection Event</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Name of File</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Status and Status Changes</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Name of Section</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Status of File</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Normalized Value</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Test Sequence Counter</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Protection Output Circuit Information</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Time16</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Protection Quality</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Time24</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Protection Start Event</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Time56</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Qualifier of Counter Interrogation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Value with Transient State</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_supported_asdu_types_client_and_server">5.2. Supported ASDu types (Client and Server)</h3>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 14.2857%;">
+<col style="width: 9.5238%;">
+<col style="width: 76.1905%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">ASDu</th>
+<th class="tableblock halign-left valign-top">Number</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">C_BO_NA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">51</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Bitstring of 32 bits</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">C_BO_TA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">64</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Bitstring of 32 bit with time tag CP56Time2a</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">C_CD_NA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">106</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Delay acquisition command</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">C_CI_NA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">101</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Counter interrogation command</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">C_CS_NA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">103</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Clock synchronization command</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">C_DC_NA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">46</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Double command</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">C_DC_TA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">59</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Double command with time tag CP56Time2a</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">C_IC_NA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">100</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Interrogation command</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">C_RC_NA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">47</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Regulating step command</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">C_RC_TA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">60</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Regulating step command with time tag CP56Time2a</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">C_RD_NA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">102</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Read command</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">C_RP_NA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">105</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Reset process command</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">C_SC_NA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">45</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Single command</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">C_SC_TA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">58</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Single command with time tag CP56Time2a</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">C_SE_NA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">48</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set point command, normalized value</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">C_SE_NB_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">49</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set point command, scaled value</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">C_SE_NC_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">50</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set point command, short floating point number</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">C_SE_TA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">61</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set-point command with time tag CP56Time2a, normalized value</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">C_SE_TB_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">62</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set-point command with time tag CP56Time2a, scaled value</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">C_SE_TC_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">63</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">C_SE_TC_1 Set-point command with time tag CP56Time2a, short floating point number</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">C_TS_NA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">104</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Test command</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">C_TS_TA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">107</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Test command with time tag CP56Time2a</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">F_AF_NA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">124</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ack file, ack section</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">F_DR_TA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">126</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Directory</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">F_FR_NA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">120</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">File ready</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">F_LS_NA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">123</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Last section, last segment</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">F_SC_NA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">122</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Call directory, select file, call file, call section</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">F_SC_NB_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">127</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">QueryLog, request archive file</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">F_SG_NA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">125</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Segment</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">F_SR_NA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">121</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Section ready</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">M_BO_NA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">7</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Bitstring of 32 bit</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">M_BO_TA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Bitstring of 32 bit with time tag</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">M_BO_TB_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">33</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Bitstring of 32 bits with time tag CP56Time2a</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">M_DP_NA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Double-point information without time tag</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">M_DP_TA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Double-point information with time tag</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">M_DP_TB_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">31</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Double-point information with time tag CP56Time2a</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">M_EI_NA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">70</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">End of initialization</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">M_EP_TA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">17</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Event of protection equipment with time tag</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">M_EP_TB_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">18</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Packed start events of protection equipment with time tag</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">M_EP_TC_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">19</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Packed output circuit information of protection equipment with time tag</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">M_EP_TD_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">38</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Event of protection equipment with time tag CP56Time2a</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">M_EP_TE_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">39</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Packed start events of protection equipment with time tag CP56Time2a</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">M_EP_TF_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">40</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Packed output circuit information of protection equipment with time tag CP56Time2</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">M_IT_NA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">15</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Integrated totals</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">M_IT_TA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">16</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Integrated totals with time tag</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">M_IT_TB_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">37</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Integrated totals with time tag CP56Time2a</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">M_ME_NA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">9</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Measured value, normalized value</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">M_ME_NB_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">11</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Measured value, scaled value</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">M_ME_NC_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">13</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Measured value, short floating point number</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">M_ME_ND_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">21</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Measured value, normalized value without quality descriptor</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">M_ME_TA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">10</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Measured value, normalized value with time tag</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">M_ME_TB_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">12</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Measured value, scaled value with time tag</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">M_ME_TC_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">14</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Measured value, short floating point number with time tag</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">M_ME_TD_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">34</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Measured value, normalized value with time tag CP56Time2a</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">M_ME_TE_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">35</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Measured value, scaled value with time tag CP56Time2a</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">M_ME_TF_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">36</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Measured value, short floating point number with time tag CP56Time2a</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">M_PS_NA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">20</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Packed single-point information with status change detection</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">M_SP_NA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Single-point information without time tag</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">M_SP_TA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Single-point information with time tag</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">M_SP_TB_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">30</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Single-point information with time tag CP56Time2a</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">M_ST_NA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Step position information</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">M_ST_TA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">6</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Step position information with time tag</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">M_ST_TB_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">32</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Step position information with time tag CP56Time2a</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">P_AC_NA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">113</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Parameter activation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">P_ME_NA_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">110</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Parameter of measured value, normalized value</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">P_ME_NB_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">111</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Parameter of measured value, scaled value</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">P_ME_NC_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">112</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Parameter of measured value, short floating point number</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_in_client_connection_implemented_commands">5.3. In client connection implemented commands</h3>
+<table class="tableblock frame-none grid-none spread">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Confirmation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">clock synchronization command</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">single Command</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">test command</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">single Command with Time Tag</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">process command</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">double Command</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">delay acquisition command</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">double Command with Time Tag</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">test command with time tag CP56Time2a</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">regulating Step Command</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">parameter of measured values, normalized value</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">regulating Step Command with Time Tag</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">parameter of measured values, scaled value</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Normalized Value Command</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">parameter of measured values, short floating point number</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">set Normalized Value Command with Time Tag</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">parameter activation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">set Scaled Value Command</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">file Ready</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">set Scaled Value Command with Time Tag</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">section Ready</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">set Short Float Command</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">call or Select Files</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">set Short Float Command with Time Tag</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">last Section or Segment</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">bit String Command</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ack File or Section</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">bit String Command with Time Tag</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Segment</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">interrogation command</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Directory</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">counter interrogation command</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">query Log</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">read command</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_develop_j60870">6. Develop j60870</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>We use the Gradle build automation tool. The distribution contains a
+fully functional gradle build file ("build.gradle"). Thus if you
+changed code and want to rebuild a library you can do it easily with
+Gradle. Also if you want to import our software into Eclipse you can
+easily create Eclipse project files using Gradle. Just follow the
+instructions on our FAQ site:
+<a href="https://www.openmuc.org/faq/" class="bare">https://www.openmuc.org/faq/</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_authors">7. Authors</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Developers:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Dirk Zimmermann</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Former Developers:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Stefan Feuerhahn</p>
+</li>
+<li>
+<p>Albrecht Schall</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
 </div>
 <div id="footer">
-    <div id="footer-text">
-        Last updated 2023-11-15 15:30:45 CET
-    </div>
+<div id="footer-text">
+Last updated 2023-11-15 15:30:45 CET
+</div>
 </div>
 </body>
 </html>

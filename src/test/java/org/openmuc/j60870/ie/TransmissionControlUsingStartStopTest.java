@@ -24,10 +24,13 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmuc.j60870.*;
+import org.openmuc.j60870.internal.ExtendedDataInputStream;
 
 import java.io.EOFException;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import static org.junit.Assert.*;
@@ -35,7 +38,6 @@ import static org.openmuc.j60870.ClientServerITest.getAvailablePort;
 
 public class TransmissionControlUsingStartStopTest {
 
-    public CountDownLatch connectionWaitLatch;
     Server serverSap;
     Connection clientConnection;
     Connection serverConnection;
@@ -44,6 +46,7 @@ public class TransmissionControlUsingStartStopTest {
     IOException clientStoppedCause;
     IOException serverStoppedCause;
     boolean newASduCalled;
+    CountDownLatch connectionWaitLatch;
 
     @Before
     public void initConnection() throws IOException, InterruptedException {
@@ -55,7 +58,10 @@ public class TransmissionControlUsingStartStopTest {
         connectionWaitLatch = new CountDownLatch(1);
         serverSap = Server.builder().setPort(port).build();
         serverSap.start(serverListener);
-        clientConnection = new ClientConnectionBuilder("127.0.0.1").setPort(port).build();
+        clientConnection = new ClientConnectionBuilder("127.0.0.1")
+                .setPort(port)
+                .setReservedASduTypeDecoder(new ReservedASduTypeDecoderImpl())
+                .build();
         clientConnection.setConnectionListener(clientConnectionListener);
         connectionWaitLatch.await();
     }
@@ -75,8 +81,7 @@ public class TransmissionControlUsingStartStopTest {
         Field field = Connection.class.getDeclaredField("stopped");
         field.setAccessible(true);
         field.set(clientConnection, false);
-        clientConnection.interrogation(1, CauseOfTransmission.ACTIVATION,
-                new IeQualifierOfInterrogation(20));
+        clientConnection.interrogation(1, CauseOfTransmission.ACTIVATION, new IeQualifierOfInterrogation(20));
         Thread.sleep(1000);
         assertTrue(serverConnection.isClosed());
         assertTrue(clientConnection.isClosed());
@@ -98,8 +103,7 @@ public class TransmissionControlUsingStartStopTest {
         Field field = Connection.class.getDeclaredField("stopped");
         field.setAccessible(true);
         field.set(clientConnection, false); // overwrite to send illegal message anyway
-        clientConnection.interrogation(1, CauseOfTransmission.ACTIVATION,
-                new IeQualifierOfInterrogation(20));
+        clientConnection.interrogation(1, CauseOfTransmission.ACTIVATION, new IeQualifierOfInterrogation(20));
         Thread.sleep(1000);
         assertTrue(serverConnection.isClosed());
         assertTrue(clientConnection.isClosed());
@@ -110,16 +114,57 @@ public class TransmissionControlUsingStartStopTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void throwExceptionOnSendInStoppedConnectionStateBeforeStart() throws IOException {
-        clientConnection.interrogation(1,
-                CauseOfTransmission.ACTIVATION, new IeQualifierOfInterrogation(20));
+        clientConnection.interrogation(1, CauseOfTransmission.ACTIVATION, new IeQualifierOfInterrogation(20));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void throwExceptionOnSendInStoppedConnectionStateAfterStop() throws IOException {
         clientConnection.startDataTransfer(clientConnectionListener);
         clientConnection.stopDataTransfer();
-        clientConnection.interrogation(1,
-                CauseOfTransmission.ACTIVATION, new IeQualifierOfInterrogation(20));
+        clientConnection.interrogation(1, CauseOfTransmission.ACTIVATION, new IeQualifierOfInterrogation(20));
+    }
+
+    @Test
+    public void sendNoneStandardASdu() throws IOException, InterruptedException {
+        clientConnection.startDataTransfer(clientConnectionListener);
+        serverConnection.send(new ASdu(ASduType.PRIVATE_136,
+                        false,
+                        1,
+                        CauseOfTransmission.SPONTANEOUS,
+                        false,
+                        false,
+                        0,
+                        10,
+                        new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9}
+                )
+        );
+        Thread.sleep(1000);
+        assertTrue(newASduCalled);
+    }
+
+    private static class ReservedASduTypeDecoderImpl implements ReservedASduTypeDecoder {
+
+        @Override
+        public List<ASduType> getSupportedTypes() {
+            List<ASduType> supported = new ArrayList<>();
+            supported.add(ASduType.RESERVED_44);
+            return supported;
+        }
+
+        @Override
+        public InformationObject decode(ExtendedDataInputStream is, ASduType aSduType) {
+            return new InformationObject(0, new InformationElement() {
+                @Override
+                int encode(byte[] buffer, int i) {
+                    return 0;
+                }
+
+                @Override
+                public String toString() {
+                    return "someString";
+                }
+            });
+        }
     }
 
     private class ClientConnectionListenerImpl implements ConnectionEventListener {

@@ -21,6 +21,7 @@
 package org.openmuc.j60870.ie;
 
 import org.openmuc.j60870.ASduType;
+import org.openmuc.j60870.ReservedASduTypeDecoder;
 import org.openmuc.j60870.internal.ExtendedDataInputStream;
 
 import java.io.DataInputStream;
@@ -52,7 +53,8 @@ public class InformationObject {
     }
 
     public static InformationObject decode(ExtendedDataInputStream is, ASduType aSduType, int numberOfSequenceElements,
-                                           int ioaFieldLength) throws IOException {
+                                           int ioaFieldLength, ReservedASduTypeDecoder reservedASduTypeDecoder)
+            throws IOException {
         InformationElement[][] informationElements;
 
         int informationObjectAddress = readInformationObjectAddress(is, ioaFieldLength);
@@ -404,8 +406,14 @@ public class InformationObject {
                 return new InformationObject(informationObjectAddress, IeNameOfFile.decode(is), IeTime56.decode(is),
                         IeTime56.decode(is));
             default:
-                throw new IOException(
-                        "Unable to parse Information Object because of unknown Type Identification: " + aSduType);
+                // if supported reserved ASdu types were defined decode by given decoder
+                if (aSduType.getId() <= 127 && reservedASduTypeDecoder != null
+                        && reservedASduTypeDecoder.getSupportedTypes().contains(aSduType)) {
+                    return reservedASduTypeDecoder.decode(is, aSduType);
+                } else {
+                    throw new IOException(
+                            "Unable to parse Information Object because of unknown Type Identification: " + aSduType);
+                }
         }
 
         return new InformationObject(informationObjectAddress, informationElements);

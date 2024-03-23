@@ -139,6 +139,15 @@ public class Server {
         }
 
         /**
+         * Sets an implementation of the ReservedASduTypeDecoder to define supported reserved ASdus
+         *
+         * @param reservedASduTypeDecoder implementation of the ReservedASduTypeDecoder
+         */
+        public void setReservedASduTypeDecoder(ReservedASduTypeDecoder reservedASduTypeDecoder) {
+            this.settings.setReservedASduTypeDecoder(reservedASduTypeDecoder);
+        }
+
+        /**
          * Sets the IP address to bind to. It is passed to java.net.ServerSocket
          *
          * @param bindAddr the IP address to bind to

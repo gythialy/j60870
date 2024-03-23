@@ -64,6 +64,7 @@ public class Connection implements AutoCloseable {
     private final byte[] buffer = new byte[255];
     private volatile boolean closed;
     private volatile boolean stopped = true;
+    private volatile boolean pending = false;
     private ConnectionEventListener aSduListener;
     private ConnectionEventListener aSduListenerBack;
     private int sendSequenceNumber;
@@ -116,7 +117,7 @@ public class Connection implements AutoCloseable {
     }
 
     private void closeIfStopped(ApciType apciType) throws IOException {
-        if (serverThread != null && stopped) {
+        if (serverThread != null && stopped && !pending) {
             throw new IOException("Got " + apciType + " message while STOPDT state.");
         }
     }
@@ -130,6 +131,14 @@ public class Connection implements AutoCloseable {
     }
 
     private void handleStopDtAct() throws IOException {
+
+        setStopped(true);
+        pending = true;
+        if (aSduListener != null) {
+            aSduListenerBack = aSduListener;
+            aSduListener = null;
+        }
+
         if (maxTimeNoAckSentTimer.isPlanned()) {
             maxTimeNoAckSentTimer.cancel();
         }
@@ -150,11 +159,7 @@ public class Connection implements AutoCloseable {
         synchronized (this) {
             os.write(STOPDT_CON_BUFFER);
             os.flush();
-            setStopped(true);
-            if (aSduListener != null) {
-                aSduListenerBack = aSduListener;
-                aSduListener = null;
-            }
+            pending = false;
         }
     }
 
@@ -283,6 +288,13 @@ public class Connection implements AutoCloseable {
      */
     public void stopDataTransfer() throws IOException {
 
+        synchronized (this) {
+            pending = true;
+            aSduListenerBack = aSduListener;
+            setStopped(true);
+            aSduListener = null;
+        }
+
         sendSFormatIfUnconfirmedAPdu();
 
         if (maxTimeNoAckSentTimer.isPlanned()) {
@@ -307,11 +319,7 @@ public class Connection implements AutoCloseable {
             throw new InterruptedIOException("Request timed out.");
         }
 
-        synchronized (this) {
-            aSduListenerBack = aSduListener;
-            setStopped(true);
-            aSduListener = null;
-        }
+        pending = false;
     }
 
     private void sendSFormatIfUnconfirmedAPdu() throws IOException {
@@ -1339,12 +1347,12 @@ public class Connection implements AutoCloseable {
                 synchronized (Connection.this) {
                     if (!closed) {
                         close();
-                        if (aSduListener != null) {
-                            aSduListener.connectionClosed(Connection.this, closedIOException);
-                        }
-                        if (stopped && aSduListenerBack != null) {
-                            aSduListenerBack.connectionClosed(Connection.this, closedIOException);
-                        }
+                    }
+                    if (aSduListener != null) {
+                        aSduListener.connectionClosed(Connection.this, closedIOException);
+                    }
+                    if (stopped && aSduListenerBack != null) {
+                        aSduListenerBack.connectionClosed(Connection.this, closedIOException);
                     }
                     closeThreadPool();
                 }

@@ -47,6 +47,7 @@ class ConnectionSettings {
     private int maxNumOfOutstandingIPdus;
 
     private boolean useSharedThreadPool;
+    private ReservedASduTypeDecoder reservedASduTypeDecoder;
 
     public ConnectionSettings() {
         this.messageFragmentTimeout = 5_000;
@@ -80,6 +81,7 @@ class ConnectionSettings {
 
         maxUnconfirmedIPdusReceived = connectionSettings.maxUnconfirmedIPdusReceived;
         maxNumOfOutstandingIPdus = connectionSettings.maxNumOfOutstandingIPdus;
+        reservedASduTypeDecoder = connectionSettings.reservedASduTypeDecoder;
 
         this.useSharedThreadPool = connectionSettings.useSharedThreadPool;
     }
@@ -96,6 +98,14 @@ class ConnectionSettings {
         if (--numOpenConnections == 0) {
             threadPool.shutdown();
         }
+    }
+
+    public ReservedASduTypeDecoder getReservedASduTypeDecoder() {
+        return reservedASduTypeDecoder;
+    }
+
+    public void setReservedASduTypeDecoder(ReservedASduTypeDecoder reservedASduTypeDecoder) {
+        this.reservedASduTypeDecoder = reservedASduTypeDecoder;
     }
 
     public boolean useSharedThreadPool() {
