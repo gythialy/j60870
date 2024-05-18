@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 Fraunhofer ISE
+ * Copyright 2014-2024 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -21,6 +21,7 @@
 package org.openmuc.j60870;
 
 import org.openmuc.j60870.internal.ExtendedDataInputStream;
+import org.openmuc.j60870.internal.StartBytesSimpleReader;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -45,30 +46,32 @@ class APdu {
     private final int sendSeqNum;
     private final int receiveSeqNum;
     private final ApciType apciType;
-    private final ASdu aSdu;
+    private final byte[] asduBuffer;
+    public APdu(int sendSeqNum, int receiveSeqNum, ApciType apciType) {
+        this(sendSeqNum, receiveSeqNum, apciType, null);
+    }
 
-    public APdu(int sendSeqNum, int receiveSeqNum, ApciType apciType, ASdu aSdu) {
+    public APdu(int sendSeqNum, int receiveSeqNum, ApciType apciType, byte[] asduBuffer) {
         this.sendSeqNum = sendSeqNum;
         this.receiveSeqNum = receiveSeqNum;
         this.apciType = apciType;
-        this.aSdu = aSdu;
+        this.asduBuffer = asduBuffer;
     }
 
     @SuppressWarnings("resource")
-    public static APdu decode(Socket socket, ConnectionSettings settings) throws IOException {
+    public static APdu decode(Socket socket, ConnectionSettings settings, ExtendedDataInputStream socketInputStream)
+            throws IOException {
         socket.setSoTimeout(0);
 
-        ExtendedDataInputStream is = new ExtendedDataInputStream(socket.getInputStream());
-
-        if (is.readByte() != START_FLAG) {
-            throw new IOException("Message does not start with START flag (0x68). Broken connection.");
-        }
+        StartBytesSimpleReader startBytesSimpleReader = new StartBytesSimpleReader(new byte[]{START_FLAG},
+                socketInputStream);
+        startBytesSimpleReader.readStartBytes();
 
         socket.setSoTimeout(settings.getMessageFragmentTimeout());
 
-        int length = readApduLength(is);
+        int length = readApduLength(socketInputStream);
 
-        byte[] aPduControlFields = readControlFields(is);
+        byte[] aPduControlFields = readControlFields(socketInputStream);
 
         ApciType apciType = ApciType.apciTypeFor(aPduControlFields[0]);
         switch (apciType) {
@@ -78,12 +81,15 @@ class APdu {
 
                 int aSduLength = length - CONTROL_FIELDS_LENGTH;
 
-                return new APdu(sendSeqNum, receiveSeqNum, apciType, ASdu.decode(is, settings, aSduLength));
+                byte[] asduBuffer = new byte[aSduLength];
+                socketInputStream.readFully(asduBuffer);
+
+                return new APdu(sendSeqNum, receiveSeqNum, apciType, asduBuffer);
             case S_FORMAT:
-                return new APdu(0, seqNumFrom(aPduControlFields[2], aPduControlFields[3]), apciType, null);
+                return new APdu(0, seqNumFrom(aPduControlFields[2], aPduControlFields[3]), apciType);
 
             default:
-                return new APdu(0, 0, apciType, null);
+                return new APdu(0, 0, apciType);
         }
 
     }
@@ -126,7 +132,8 @@ class APdu {
             buffer[3] = (byte) (sendSeqNum >> 7);
             writeReceiveSeqNumTo(buffer);
 
-            length += aSdu.encode(buffer, 6, settings);
+            System.arraycopy(asduBuffer, 0, buffer, 6, asduBuffer.length);
+            length += asduBuffer.length;
         } else if (apciType == ApciType.STARTDT_ACT) {
             buffer[2] = 0x07;
             setV3To5zero(buffer);
@@ -168,8 +175,8 @@ class APdu {
         return receiveSeqNum;
     }
 
-    public ASdu getASdu() {
-        return aSdu;
+    public byte[] getASduBuffer() {
+        return asduBuffer;
     }
 
     public enum ApciType {

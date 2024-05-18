@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 Fraunhofer ISE
+ * Copyright 2014-2024 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -53,8 +53,7 @@ public class InformationObject {
     }
 
     public static InformationObject decode(ExtendedDataInputStream is, ASduType aSduType, int numberOfSequenceElements,
-                                           int ioaFieldLength, ReservedASduTypeDecoder reservedASduTypeDecoder)
-            throws IOException {
+                                           int ioaFieldLength, ReservedASduTypeDecoder reservedASduTypeDecoder) throws IOException {
         InformationElement[][] informationElements;
 
         int informationObjectAddress = readInformationObjectAddress(is, ioaFieldLength);

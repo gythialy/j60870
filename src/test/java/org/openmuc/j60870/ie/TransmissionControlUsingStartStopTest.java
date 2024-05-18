@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 Fraunhofer ISE
+ * Copyright 2014-2024 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import static org.junit.Assert.*;
-import static org.openmuc.j60870.ClientServerITest.getAvailablePort;
 
 public class TransmissionControlUsingStartStopTest {
 
@@ -50,7 +49,7 @@ public class TransmissionControlUsingStartStopTest {
 
     @Before
     public void initConnection() throws IOException, InterruptedException {
-        int port = getAvailablePort();
+        int port = TestUtils.getAvailablePort();
         newASduCalled = false;
         clientConnectionListener = new ClientConnectionListenerImpl();
         serverConnectionListener = new ServerConnectionListenerImpl();
@@ -58,11 +57,10 @@ public class TransmissionControlUsingStartStopTest {
         connectionWaitLatch = new CountDownLatch(1);
         serverSap = Server.builder().setPort(port).build();
         serverSap.start(serverListener);
-        clientConnection = new ClientConnectionBuilder("127.0.0.1")
-                .setPort(port)
+        clientConnection = new ClientConnectionBuilder("127.0.0.1").setPort(port)
                 .setReservedASduTypeDecoder(new ReservedASduTypeDecoderImpl())
+                .setConnectionEventListener(clientConnectionListener)
                 .build();
-        clientConnection.setConnectionListener(clientConnectionListener);
         connectionWaitLatch.await();
     }
 
@@ -98,7 +96,7 @@ public class TransmissionControlUsingStartStopTest {
     @Test
     public void receiveIorSFramesInStoppedConnectionStateAfterStartAndStop()
             throws InterruptedException, IOException, NoSuchFieldException, IllegalAccessException {
-        clientConnection.startDataTransfer(clientConnectionListener);
+        clientConnection.startDataTransfer();
         clientConnection.stopDataTransfer();
         Field field = Connection.class.getDeclaredField("stopped");
         field.setAccessible(true);
@@ -119,25 +117,16 @@ public class TransmissionControlUsingStartStopTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void throwExceptionOnSendInStoppedConnectionStateAfterStop() throws IOException {
-        clientConnection.startDataTransfer(clientConnectionListener);
+        clientConnection.startDataTransfer();
         clientConnection.stopDataTransfer();
         clientConnection.interrogation(1, CauseOfTransmission.ACTIVATION, new IeQualifierOfInterrogation(20));
     }
 
     @Test
     public void sendNoneStandardASdu() throws IOException, InterruptedException {
-        clientConnection.startDataTransfer(clientConnectionListener);
-        serverConnection.send(new ASdu(ASduType.PRIVATE_136,
-                        false,
-                        1,
-                        CauseOfTransmission.SPONTANEOUS,
-                        false,
-                        false,
-                        0,
-                        10,
-                        new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9}
-                )
-        );
+        clientConnection.startDataTransfer();
+        serverConnection.send(new ASdu(ASduType.PRIVATE_136, false, 1, CauseOfTransmission.SPONTANEOUS, false, false, 0,
+                10, new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9}));
         Thread.sleep(1000);
         assertTrue(newASduCalled);
     }
@@ -206,14 +195,10 @@ public class TransmissionControlUsingStartStopTest {
     private class ServerListenerImpl implements ServerEventListener {
 
         @Override
-        public ConnectionEventListener setConnectionEventListenerBeforeStart() {
-            return serverConnectionListener;
-        }
-
-        @Override
-        public void connectionIndication(Connection connection) {
+        public ConnectionEventListener connectionIndication(Connection connection) {
             serverConnection = connection;
             connectionWaitLatch.countDown();
+            return serverConnectionListener;
         }
 
         @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 Fraunhofer ISE
+ * Copyright 2014-2024 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -114,7 +114,7 @@ public class IeSingleProtectionEvent extends InformationElement {
     public enum EventState {
         INDETERMINATE,
         OFF,
-        ON
+        ON;
     }
 
 }

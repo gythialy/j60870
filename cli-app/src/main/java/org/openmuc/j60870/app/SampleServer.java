@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 Fraunhofer ISE
+ * Copyright 2014-2024 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -116,14 +116,14 @@ public class SampleServer {
     public class ServerListener implements ServerEventListener {
 
         @Override
-        public void connectionIndication(Connection connection) {
+        public ConnectionEventListener connectionIndication(Connection connection) {
             int myConnectionId = connectionIdCounter++;
             log("A client (Originator Address " + connection.getOriginatorAddress()
                     + ") has connected using TCP/IP. Will listen for a StartDT request. Connection ID: "
                     + myConnectionId);
             log("Started data transfer on connection (" + myConnectionId, ") Will listen for incoming commands.");
 
-            connection.setConnectionListener(new ConnectionListener(connection, myConnectionId));
+            return new ConnectionListener(connection, myConnectionId);
         }
 
         @Override

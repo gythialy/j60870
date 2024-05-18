@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 Fraunhofer ISE
+ * Copyright 2014-2024 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -97,7 +97,8 @@ public final class ConsoleClient {
         ClientConnectionBuilder clientConnectionBuilder = new ClientConnectionBuilder(address)
                 .setMessageFragmentTimeout(messageFragmentTimeout.getValue())
                 .setConnectionTimeout(connectionTimeout.getValue())
-                .setPort(portParam.getValue());
+                .setPort(portParam.getValue())
+                .setConnectionEventListener(new ClientEventListener());
 
         try {
             connection = clientConnectionBuilder.build();
@@ -120,7 +121,7 @@ public final class ConsoleClient {
         while (!connected && i <= retries) {
             try {
                 log("Send start DT. Try no. " + i);
-                connection.startDataTransfer(new ClientEventListener());
+                connection.startDataTransfer();
             } catch (InterruptedIOException e2) {
                 if (i == retries) {
                     log("Starting data transfer timed out. Closing connection. Because of no more retries.");
@@ -236,7 +237,7 @@ public final class ConsoleClient {
                         break;
                     case SEND_STARTDT:
                         log("** Sending STARTDT act.");
-                        connection.startDataTransfer(new ClientEventListener());
+                        connection.startDataTransfer();
                         break;
                     default:
                         break;

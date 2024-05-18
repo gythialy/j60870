@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 Fraunhofer ISE
+ * Copyright 2014-2024 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -26,7 +26,8 @@ import java.util.EventListener;
 /**
  * The listener interface for receiving incoming ASDUs and connection closed events. The class that is interested in
  * incoming ASDUs implements this interface. The object of that class is registered as a listener through the
- * {@link Connection#startDataTransfer(ConnectionEventListener)} method. Incoming ASDUs are queued so that
+ * {@link ClientConnectionBuilder#setConnectionEventListener(ConnectionEventListener)} or returned by
+ * {@link ServerEventListener#connectionIndication(Connection)}. Incoming ASDUs are queued so that
  * {@link #newASdu(Connection connection, ASdu)} is never called simultaneously for the same connection.
  */
 public interface ConnectionEventListener extends EventListener {

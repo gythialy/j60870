@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 Fraunhofer ISE
+ * Copyright 2014-2024 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -26,7 +26,7 @@ import org.openmuc.j60870.internal.ExtendedDataInputStream;
 import java.util.List;
 
 public interface ReservedASduTypeDecoder {
-    List<ASduType> getSupportedTypes();
+    public List<ASduType> getSupportedTypes();
 
-    InformationObject decode(ExtendedDataInputStream is, ASduType aSduType);
+    public InformationObject decode(ExtendedDataInputStream is, ASduType aSduType);
 }

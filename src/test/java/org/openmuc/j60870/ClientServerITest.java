@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 Fraunhofer ISE
+ * Copyright 2014-2024 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -29,9 +29,6 @@ import org.openmuc.j60870.ie.IeDoublePointWithQuality.DoublePointInformation;
 import org.openmuc.j60870.ie.IeSingleProtectionEvent.EventState;
 
 import java.io.IOException;
-import java.net.DatagramSocket;
-import java.net.ServerSocket;
-import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -40,10 +37,7 @@ import static org.junit.Assert.*;
 @FixMethodOrder(MethodSorters.JVM)
 public class ClientServerITest {
 
-    private static final int MIN_PORT_NUMBER = 2024;
-    private static final int MAX_PORT_NUMBER = 65535;
-    private static final Random RANDOM = new Random();
-    private static final int PORT = getAvailablePort();
+    private static final int PORT = TestUtils.getAvailablePort();
 
     Server serverSap;
     int counter;
@@ -58,29 +52,6 @@ public class ClientServerITest {
     volatile long clientTimestamp;
     volatile long serverTimestamp;
     volatile AtomicBoolean isClosed;
-
-    public static int getAvailablePort() {
-        int port = MIN_PORT_NUMBER;
-        boolean isAvailable = false;
-
-        while (!isAvailable) {
-            port = RANDOM.nextInt((MAX_PORT_NUMBER - MIN_PORT_NUMBER) + 1) + MIN_PORT_NUMBER;
-            DatagramSocket ds = null;
-            try (ServerSocket ss = new ServerSocket(port)) {
-                ss.setReuseAddress(true);
-                ds = new DatagramSocket(port);
-                ds.setReuseAddress(true);
-                isAvailable = true;
-            } catch (IOException e) {
-                // port is not available
-            } finally {
-                if (ds != null) {
-                    ds.close();
-                }
-            }
-        }
-        return port;
-    }
 
     @Before
     public void setup() {
@@ -108,35 +79,37 @@ public class ClientServerITest {
     @Test
     public void testClientServerMultiThread() throws Exception {
         serverSap = Server.builder().setPort(PORT).setMaxNumOfOutstandingIPdus(32_767).build();
-        serverSap.start(new ServerListenerMultiThreadImpl());
+        serverSap.start(new MultiThreadServerEventListener());
 
-        try {
-            Connection clientConnection = new ClientConnectionBuilder("127.0.0.1").setPort(PORT).build();
-            isClosed.set(false);
-            clientConnection.startDataTransfer(new ConnectionListenerMultiThreadImpl());
-            int commonAddress = 1;
-            clientConnection.interrogation(commonAddress, CauseOfTransmission.ACTIVATION,
-                    new IeQualifierOfInterrogation(20));
-            while (!isClosed.get()) {
-                Thread.sleep(1);
-                System.out.println(isClosed);
-            }
-            clientConnection.close();
-        } catch (Exception e) {
-            e.printStackTrace();
+        Connection clientConnection = new ClientConnectionBuilder("127.0.0.1")
+                .setConnectionEventListener(new MultiThreadClientConnectionEventListener())
+                .setPort(PORT)
+                .build();
+        isClosed.set(false);
+        clientConnection.startDataTransfer();
+        int commonAddress = 1;
+        clientConnection.interrogation(commonAddress, CauseOfTransmission.ACTIVATION,
+                new IeQualifierOfInterrogation(20));
+        while (!isClosed.get()) {
+            Thread.sleep(1);
+            System.out.println(isClosed);
         }
-//        assertNull("No exception expected,", exception);
+        clientConnection.close();
+        assertNull("No exception expected,", exception);
     }
 
     @Test
     public void testClientServerCom() throws Exception {
-        int port = getAvailablePort();
+        int port = TestUtils.getAvailablePort();
         serverSap = Server.builder().setPort(port).build();
         serverSap.start(new ServerListenerImpl());
 
-        try (Connection clientConnection = new ClientConnectionBuilder("127.0.0.1").setPort(port).build()) {
+        try (Connection clientConnection = new ClientConnectionBuilder("127.0.0.1")
+                .setConnectionEventListener(new ConnectionListenerImpl())
+                .setPort(port)
+                .build()) {
 
-            clientConnection.startDataTransfer(new ConnectionListenerImpl());
+            clientConnection.startDataTransfer();
 
             clientTimestamp = System.currentTimeMillis();
 
@@ -158,11 +131,12 @@ public class ClientServerITest {
 
             clientConnection.send(
                     new ASdu(ASduType.M_SP_NA_1, false, CauseOfTransmission.SPONTANEOUS, false, false, 0, commonAddress,
-                            new InformationObject(1,
-                                    new InformationElement[][]{
-                                            {new IeSinglePointWithQuality(true, true, true, true, true)}}),
-                            new InformationObject(2, new InformationElement[][]{
-                                    {new IeSinglePointWithQuality(false, false, false, false, false)}})));
+                            new InformationObject[]{
+                                    new InformationObject(1,
+                                            new InformationElement[][]{
+                                                    {new IeSinglePointWithQuality(true, true, true, true, true)}}),
+                                    new InformationObject(2, new InformationElement[][]{
+                                            {new IeSinglePointWithQuality(false, false, false, false, false)}})}));
 
             Thread.sleep(500);
             clientConnection.close();
@@ -179,12 +153,14 @@ public class ClientServerITest {
 
     @Test
     public void testDataTransferStateChanged() throws Exception {
-        int port = getAvailablePort();
+        int port = TestUtils.getAvailablePort();
         serverSap = Server.builder().setPort(port).build();
         serverSap.start(new ServerListenerImpl());
-        try (Connection clientConnection = new ClientConnectionBuilder("127.0.0.1").setPort(port).build()) {
-            ConnectionListenerImpl listener = new ConnectionListenerImpl();
-            clientConnection.startDataTransfer(listener);
+        try (Connection clientConnection = new ClientConnectionBuilder("127.0.0.1")
+                .setConnectionEventListener(new ConnectionListenerImpl())
+                .setPort(port)
+                .build()) {
+            clientConnection.startDataTransfer();
             clientConnection.stopDataTransfer();
         } finally {
             serverSap.stop();
@@ -220,7 +196,8 @@ public class ClientServerITest {
                     assertEquals(3, singleCommand.getQualifier());
 
                     connection.send(new ASdu(ASduType.C_SC_NA_1, false, CauseOfTransmission.ACTIVATION_CON, false,
-                            false, 0, aSdu.getCommonAddress(), new InformationObject(0, new InformationElement[][]{{singleCommand}})));
+                            false, 0, aSdu.getCommonAddress(), new InformationObject[]{
+                            new InformationObject(0, new InformationElement[][]{{singleCommand}})}));
 
                     System.out.println("Server: answer Single Command - END");
 
@@ -236,8 +213,8 @@ public class ClientServerITest {
                     serverTimestamp = System.currentTimeMillis();
 
                     aSdu = new ASdu(ASduType.C_CS_NA_1, false, CauseOfTransmission.ACTIVATION_CON, false, false, 0,
-                            aSdu.getCommonAddress(), new InformationObject(0,
-                            new InformationElement[][]{{new IeTime56(serverTimestamp)}}));
+                            aSdu.getCommonAddress(), new InformationObject[]{new InformationObject(0,
+                            new InformationElement[][]{{new IeTime56(serverTimestamp)}})});
 
                     connection.send(aSdu);
 
@@ -276,8 +253,8 @@ public class ClientServerITest {
                     assertEquals(ASduType.C_IC_NA_1, aSdu.getTypeIdentification());
 
                     connection.send(new ASdu(ASduType.C_IC_NA_1, false, CauseOfTransmission.ACTIVATION_CON, false,
-                            false, 0, aSdu.getCommonAddress(), new InformationObject(0,
-                            new InformationElement[][]{{new IeQualifierOfInterrogation(20)}})));
+                            false, 0, aSdu.getCommonAddress(), new InformationObject[]{new InformationObject(0,
+                            new InformationElement[][]{{new IeQualifierOfInterrogation(20)}})}));
 
                     System.out.println("Server: answer Interrogation command - End");
 
@@ -289,46 +266,48 @@ public class ClientServerITest {
 
                     System.out.println("Server: 1");
 
-                    connection.send(new ASdu(ASduType.M_SP_NA_1, false, CauseOfTransmission.SPONTANEOUS, false,
-                            false, 0, aSdu.getCommonAddress(),
-                            new InformationObject(1,
-                                    new InformationElement[][]{
-                                            {new IeSinglePointWithQuality(true, true, true, true, true)}}),
-                            new InformationObject(2, new InformationElement[][]{
-                                    {new IeSinglePointWithQuality(false, false, false, false, false)}})));
+                    connection.send(new ASdu(ASduType.M_SP_NA_1, false, CauseOfTransmission.SPONTANEOUS, false, false,
+                            0, aSdu.getCommonAddress(),
+                            new InformationObject[]{
+                                    new InformationObject(1,
+                                            new InformationElement[][]{
+                                                    {new IeSinglePointWithQuality(true, true, true, true, true)}}),
+                                    new InformationObject(2, new InformationElement[][]{
+                                            {new IeSinglePointWithQuality(false, false, false, false, false)}})}));
 
                     System.out.println("Server: 2");
                     connection
                             .send(new ASdu(ASduType.M_SP_NA_1, true, CauseOfTransmission.SPONTANEOUS, false, false, 0,
                                     aSdu.getCommonAddress(),
-                                    new InformationObject(1, new InformationElement[][]{
+                                    new InformationObject[]{new InformationObject(1, new InformationElement[][]{
                                             {new IeSinglePointWithQuality(true, true, true, true, true)},
-                                            {new IeSinglePointWithQuality(false, false, false, false, false)}})));
+                                            {new IeSinglePointWithQuality(false, false, false, false, false)}})}));
 
                     System.out.println("Server: 3");
-                    connection.send(new ASdu(ASduType.M_SP_TA_1, false, CauseOfTransmission.SPONTANEOUS, false,
-                            false, 0, aSdu.getCommonAddress(),
-                            new InformationObject(1,
-                                    new InformationElement[][]{
-                                            {new IeSinglePointWithQuality(true, true, true, true, true),
-                                                    new IeTime24(50000)}}),
-                            new InformationObject(2,
-                                    new InformationElement[][]{
-                                            {new IeSinglePointWithQuality(false, false, false, false, false),
-                                                    new IeTime24(60000)}})));
+                    connection.send(new ASdu(ASduType.M_SP_TA_1, false, CauseOfTransmission.SPONTANEOUS, false, false,
+                            0, aSdu.getCommonAddress(),
+                            new InformationObject[]{
+                                    new InformationObject(1,
+                                            new InformationElement[][]{
+                                                    {new IeSinglePointWithQuality(true, true, true, true, true),
+                                                            new IeTime24(50000)}}),
+                                    new InformationObject(2,
+                                            new InformationElement[][]{
+                                                    {new IeSinglePointWithQuality(false, false, false, false, false),
+                                                            new IeTime24(60000)}})}));
 
                     System.out.println("Server: 4");
-                    connection.send(new ASdu(ASduType.M_DP_NA_1, false, CauseOfTransmission.SPONTANEOUS, false,
-                            false, 0, aSdu.getCommonAddress(),
-                            new InformationObject(1,
+                    connection.send(new ASdu(ASduType.M_DP_NA_1, false, CauseOfTransmission.SPONTANEOUS, false, false,
+                            0, aSdu.getCommonAddress(),
+                            new InformationObject[]{new InformationObject(1,
                                     new InformationElement[][]{
                                             {new IeDoublePointWithQuality(DoublePointInformation.OFF, true, true, true,
-                                                    true)}})));
+                                                    true)}})}));
 
                     System.out.println("Server: 5");
-                    connection.send(new ASdu(ASduType.M_ST_NA_1, true, CauseOfTransmission.SPONTANEOUS, false,
-                            false, 0, aSdu.getCommonAddress(),
-                            new InformationObject(1,
+                    connection.send(new ASdu(ASduType.M_ST_NA_1, true, CauseOfTransmission.SPONTANEOUS, false, false, 0,
+                            aSdu.getCommonAddress(),
+                            new InformationObject[]{new InformationObject(1,
                                     new InformationElement[][]{
                                             {new IeValueWithTransientState(-5, true),
                                                     new IeQuality(true, true, true, true, true)},
@@ -337,106 +316,108 @@ public class ClientServerITest {
                                             {new IeValueWithTransientState(-64, true),
                                                     new IeQuality(true, true, true, true, true)},
                                             {new IeValueWithTransientState(10, false),
-                                                    new IeQuality(true, true, true, true, true)}})));
+                                                    new IeQuality(true, true, true, true, true)}})}));
 
                     System.out.println("Server: 6");
-                    connection.send(new ASdu(ASduType.M_BO_NA_1, true, CauseOfTransmission.SPONTANEOUS, false,
-                            false, 0, aSdu.getCommonAddress(),
-                            new InformationObject(1,
+                    connection.send(new ASdu(ASduType.M_BO_NA_1, true, CauseOfTransmission.SPONTANEOUS, false, false, 0,
+                            aSdu.getCommonAddress(),
+                            new InformationObject[]{new InformationObject(1,
                                     new InformationElement[][]{
                                             {new IeBinaryStateInformation(0xff),
                                                     new IeQuality(true, true, true, true, true)},
                                             {new IeBinaryStateInformation(0xffffffff),
-                                                    new IeQuality(true, true, true, true, true)}})));
+                                                    new IeQuality(true, true, true, true, true)}})}));
 
                     System.out.println("Server: 7");
-                    connection.send(new ASdu(ASduType.M_ME_NA_1, true, CauseOfTransmission.SPONTANEOUS, false,
-                            false, 0, aSdu.getCommonAddress(),
-                            new InformationObject(1, new InformationElement[][]{
+                    connection.send(new ASdu(ASduType.M_ME_NA_1, true, CauseOfTransmission.SPONTANEOUS, false, false, 0,
+                            aSdu.getCommonAddress(),
+                            new InformationObject[]{new InformationObject(1, new InformationElement[][]{
                                     {new IeNormalizedValue(-32768), new IeQuality(true, true, true, true, true)},
-                                    {new IeNormalizedValue(0), new IeQuality(true, true, true, true, true)}})));
+                                    {new IeNormalizedValue(0), new IeQuality(true, true, true, true, true)}})}));
 
                     System.out.println("Server: 8");
-                    connection.send(new ASdu(ASduType.M_ME_NB_1, true, CauseOfTransmission.SPONTANEOUS, false,
-                            false, 0, aSdu.getCommonAddress(),
-                            new InformationObject(1, new InformationElement[][]{
+                    connection.send(new ASdu(ASduType.M_ME_NB_1, true, CauseOfTransmission.SPONTANEOUS, false, false, 0,
+                            aSdu.getCommonAddress(),
+                            new InformationObject[]{new InformationObject(1, new InformationElement[][]{
                                     {new IeScaledValue(-32768), new IeQuality(true, true, true, true, true)},
                                     {new IeScaledValue(10), new IeQuality(true, true, true, true, true)},
-                                    {new IeScaledValue(-5), new IeQuality(true, true, true, true, true)}})));
+                                    {new IeScaledValue(-5), new IeQuality(true, true, true, true, true)}})}));
 
                     System.out.println("Server: 9");
-                    connection.send(new ASdu(ASduType.M_ME_NC_1, true, CauseOfTransmission.SPONTANEOUS, false,
-                            false, 0, aSdu.getCommonAddress(),
-                            new InformationObject(1, new InformationElement[][]{
+                    connection.send(new ASdu(ASduType.M_ME_NC_1, true, CauseOfTransmission.SPONTANEOUS, false, false, 0,
+                            aSdu.getCommonAddress(),
+                            new InformationObject[]{new InformationObject(1, new InformationElement[][]{
                                     {new IeShortFloat(-32768.2f), new IeQuality(true, true, true, true, true)},
-                                    {new IeShortFloat(10.5f), new IeQuality(true, true, true, true, true)}})));
+                                    {new IeShortFloat(10.5f), new IeQuality(true, true, true, true, true)}})}));
 
                     System.out.println("Server: 10");
-                    connection.send(new ASdu(ASduType.M_IT_NA_1, true, CauseOfTransmission.SPONTANEOUS, false,
-                            false, 0, aSdu.getCommonAddress(),
-                            new InformationObject(1,
+                    connection.send(new ASdu(ASduType.M_IT_NA_1, true, CauseOfTransmission.SPONTANEOUS, false, false, 0,
+                            aSdu.getCommonAddress(),
+                            new InformationObject[]{new InformationObject(1,
                                     new InformationElement[][]{{new IeBinaryCounterReading(-300, 5, Flag.CARRY,
                                             Flag.COUNTER_ADJUSTED, Flag.INVALID)},
-                                            {new IeBinaryCounterReading(-300, 4)}})));
+                                            {new IeBinaryCounterReading(-300, 4)}})}));
 
                     System.out.println("Server: 11");
-                    connection.send(new ASdu(ASduType.M_EP_TA_1, false, CauseOfTransmission.SPONTANEOUS, false,
-                            false, 0, aSdu.getCommonAddress(),
-                            new InformationObject(1,
-                                    new InformationElement[][]{{
-                                            new IeSingleProtectionEvent(EventState.OFF,
-                                                    true, true, true, true, true),
-                                            new IeTime16(300), new IeTime24(400)}}),
-                            new InformationObject(2,
-                                    new InformationElement[][]{{
-                                            new IeSingleProtectionEvent(EventState.ON,
-                                                    false, false, false, false, false),
-                                            new IeTime16(300), new IeTime24(400)}})));
+                    connection.send(new ASdu(ASduType.M_EP_TA_1, false, CauseOfTransmission.SPONTANEOUS, false, false,
+                            0, aSdu.getCommonAddress(),
+                            new InformationObject[]{
+                                    new InformationObject(1,
+                                            new InformationElement[][]{{
+                                                    new IeSingleProtectionEvent(IeSingleProtectionEvent.EventState.OFF,
+                                                            true, true, true, true, true),
+                                                    new IeTime16(300), new IeTime24(400)}}),
+                                    new InformationObject(2,
+                                            new InformationElement[][]{{
+                                                    new IeSingleProtectionEvent(IeSingleProtectionEvent.EventState.ON,
+                                                            false, false, false, false, false),
+                                                    new IeTime16(300), new IeTime24(400)}})}));
 
                     System.out.println("Server: 12");
-                    connection.send(new ASdu(ASduType.M_EP_TB_1, false, CauseOfTransmission.SPONTANEOUS, false,
-                            false, 0, aSdu.getCommonAddress(),
-                            new InformationObject(1,
+                    connection.send(new ASdu(ASduType.M_EP_TB_1, false, CauseOfTransmission.SPONTANEOUS, false, false,
+                            0, aSdu.getCommonAddress(),
+                            new InformationObject[]{new InformationObject(1,
                                     new InformationElement[][]{
                                             {new IeProtectionStartEvent(true, true, true, true, true, true),
                                                     new IeProtectionQuality(true, true, true, true, true),
-                                                    new IeTime16(300), new IeTime24(400)}})));
+                                                    new IeTime16(300), new IeTime24(400)}})}));
 
                     System.out.println("Server: 13");
-                    connection.send(new ASdu(ASduType.M_PS_NA_1, false, CauseOfTransmission.SPONTANEOUS, false,
-                            false, 0, aSdu.getCommonAddress(),
-                            new InformationObject(1,
+                    connection.send(new ASdu(ASduType.M_PS_NA_1, false, CauseOfTransmission.SPONTANEOUS, false, false,
+                            0, aSdu.getCommonAddress(),
+                            new InformationObject[]{new InformationObject(1,
                                     new InformationElement[][]{{new IeStatusAndStatusChanges(0xff0000ff),
-                                            new IeQuality(true, true, true, true, true)}})));
+                                            new IeQuality(true, true, true, true, true)}})}));
 
                     Thread.sleep(200);
 
                     System.out.println("Server: 14");
-                    connection.send(new ASdu(ASduType.M_ME_ND_1, false, CauseOfTransmission.SPONTANEOUS, false,
-                            false, 0, aSdu.getCommonAddress(), new InformationObject(1,
-                            new InformationElement[][]{{new IeNormalizedValue(3)}})));
+                    connection.send(new ASdu(ASduType.M_ME_ND_1, false, CauseOfTransmission.SPONTANEOUS, false, false,
+                            0, aSdu.getCommonAddress(), new InformationObject[]{new InformationObject(1,
+                            new InformationElement[][]{{new IeNormalizedValue(3)}})}));
 
                     System.out.println("Server: 15");
                     connection
                             .send(new ASdu(ASduType.M_SP_TB_1, false, CauseOfTransmission.SPONTANEOUS, false, false, 0,
                                     aSdu.getCommonAddress(),
-                                    new InformationObject(1,
-                                            new InformationElement[][]{{
-                                                    new IeSinglePointWithQuality(true, true, true, true, true),
-                                                    new IeTime56(serverTimestamp)}})));
+                                    new InformationObject[]{
+                                            new InformationObject(1,
+                                                    new InformationElement[][]{{
+                                                            new IeSinglePointWithQuality(true, true, true, true, true),
+                                                            new IeTime56(serverTimestamp)}})}));
 
                     System.out.println("Server: 16");
                     connection
                             .send(new ASdu(ASduType.M_IT_TB_1, false, CauseOfTransmission.SPONTANEOUS, false, false, 0,
                                     aSdu.getCommonAddress(),
-                                    new InformationObject(1,
+                                    new InformationObject[]{new InformationObject(1,
                                             new InformationElement[][]{{
                                                     new IeBinaryCounterReading(-300, 5, Flag.CARRY, Flag.INVALID,
                                                             Flag.COUNTER_ADJUSTED),
-                                                    new IeTime56(serverTimestamp)}})));
+                                                    new IeTime56(serverTimestamp)}})}));
                     System.out.println("Server: 17");
-                    connection.send(new ASdu(ASduType.PRIVATE_136, false, 1, CauseOfTransmission.SPONTANEOUS,
-                            false, false, 0, aSdu.getCommonAddress(), new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9}));
+                    connection.send(new ASdu(ASduType.PRIVATE_136, false, 1, CauseOfTransmission.SPONTANEOUS, false,
+                            false, 0, aSdu.getCommonAddress(), new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9}));
                 }
 
             } catch (Exception e) {
@@ -460,7 +441,7 @@ public class ClientServerITest {
 
     }
 
-    private class ServerReceiverMultiThread implements ConnectionEventListener {
+    private class MultiThreadServerConnectionEventListener implements ConnectionEventListener {
         private static final int AMOUNT_OF_THREADS_REPLY = 1;
         private static final int AMOUNT_OF_MESSAGES = 10;
 
@@ -477,19 +458,19 @@ public class ClientServerITest {
                             public void run() {
                                 try {
                                     for (int msg = 0; msg < AMOUNT_OF_MESSAGES; msg++) {
-                                        System.out
-                                                .println("connection.isClosed() " + connection.isClosed());
+                                        System.out.println("connection.isClosed() " + connection.isClosed());
                                         connection.send(new ASdu(ASduType.M_SP_NA_1, false,
                                                 CauseOfTransmission.SPONTANEOUS, false, false, 0,
                                                 aSdu.getCommonAddress(),
-                                                new InformationObject(1,
-                                                        new InformationElement[][]{
-                                                                {new IeSinglePointWithQuality(true, true, true,
-                                                                        true, true)}}),
-                                                new InformationObject(2,
-                                                        new InformationElement[][]{
-                                                                {new IeSinglePointWithQuality(false, false,
-                                                                        false, false, false)}})));
+                                                new InformationObject[]{
+                                                        new InformationObject(1,
+                                                                new InformationElement[][]{
+                                                                        {new IeSinglePointWithQuality(true, true, true,
+                                                                                true, true)}}),
+                                                        new InformationObject(2,
+                                                                new InformationElement[][]{
+                                                                        {new IeSinglePointWithQuality(false, false,
+                                                                                false, false, false)}})}));
                                         Thread.sleep(1);
                                     }
                                 } catch (Exception e) {
@@ -507,8 +488,7 @@ public class ClientServerITest {
 
         @Override
         public void connectionClosed(Connection connection, IOException e) {
-            e.printStackTrace();
-            exception = e;
+            System.out.println("Multi-Thread server connection closed");
         }
 
         @Override
@@ -517,15 +497,11 @@ public class ClientServerITest {
 
     }
 
-    private class ServerListenerMultiThreadImpl implements ServerEventListener {
+    private class MultiThreadServerEventListener implements ServerEventListener {
 
         @Override
-        public ConnectionEventListener setConnectionEventListenerBeforeStart() {
-            return new ServerReceiverMultiThread();
-        }
-
-        @Override
-        public void connectionIndication(Connection connection) {
+        public ConnectionEventListener connectionIndication(Connection connection) {
+            return new MultiThreadServerConnectionEventListener();
         }
 
         @Override
@@ -541,12 +517,8 @@ public class ClientServerITest {
     private class ServerListenerImpl implements ServerEventListener {
 
         @Override
-        public ConnectionEventListener setConnectionEventListenerBeforeStart() {
+        public ConnectionEventListener connectionIndication(Connection connection) {
             return new ServerReceiver();
-        }
-
-        @Override
-        public void connectionIndication(Connection connection) {
         }
 
         @Override
@@ -559,7 +531,7 @@ public class ClientServerITest {
 
     }
 
-    private class ConnectionListenerMultiThreadImpl implements ConnectionEventListener {
+    private class MultiThreadClientConnectionEventListener implements ConnectionEventListener {
 
         @Override
         public void newASdu(Connection connection, ASdu aSdu) {

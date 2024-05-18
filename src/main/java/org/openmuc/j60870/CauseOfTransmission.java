@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 Fraunhofer ISE
+ * Copyright 2014-2024 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -198,7 +198,7 @@ public enum CauseOfTransmission {
 
     private final int id;
 
-    CauseOfTransmission(int id) {
+    private CauseOfTransmission(int id) {
         this.id = id;
     }
 

@@ -1,6 +1,6 @@
 project.ext {
 
-    cfgVersion = "1.6.4"
+    cfgVersion = "1.7.2"
 
     cfgGroup = "org.openmuc"
 
@@ -55,6 +55,7 @@ tasks.withType(Tar) {
             exclude "**/.classpath"
             exclude "**/.gradle"
             exclude "**/.settings"
+            exclude "gitlabRelease.gradle"
 
         }
 

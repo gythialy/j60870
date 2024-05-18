@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 Fraunhofer ISE
+ * Copyright 2014-2024 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -22,6 +22,7 @@ package org.openmuc.j60870;
 
 import org.openmuc.j60870.APdu.ApciType;
 import org.openmuc.j60870.ie.*;
+import org.openmuc.j60870.internal.ExtendedDataInputStream;
 import org.openmuc.j60870.internal.SerialExecutor;
 
 import java.io.*;
@@ -29,6 +30,7 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -38,9 +40,10 @@ import java.util.concurrent.TimeUnit;
  * Represents an open connection to a specific 60870 server. It is created either through an instance of
  * {@link ClientConnectionBuilder} or passed to {@link ServerEventListener}. Once it has been closed it cannot be opened
  * again. A newly created connection has successfully build up a TCP/IP connection to the server. Before receiving ASDUs
- * or sending commands one has to call {@link Connection#startDataTransfer(ConnectionEventListener)}. Afterwards
- * incoming ASDUs are forwarded to the {@link ConnectionEventListener}. Incoming ASDUs are queued so that
- * {@link ConnectionEventListener#newASdu(Connection connection, ASdu)} is never called simultaneously for the same connection.
+ * or sending commands one has to call {@link Connection#startDataTransfer()}. Afterwards incoming ASDUs are forwarded
+ * to the {@link ConnectionEventListener}. Incoming ASDUs are queued so that
+ * {@link ConnectionEventListener#newASdu(Connection connection, ASdu)} is never called simultaneously for the same
+ * connection.
  *
  * <p>
  * Connection offers a method for every possible command defined by IEC 60870 (e.g. singleCommand). Every command
@@ -58,13 +61,24 @@ public class Connection implements AutoCloseable {
     private static final byte[] STOPDT_CON_BUFFER = new byte[]{0x68, 0x04, 0x23, 0x00, 0x00, 0x00};
 
     private final Socket socket;
+    private final ExtendedDataInputStream is;
     private final ServerThread serverThread;
     private final DataOutputStream os;
     private final ConnectionSettings settings;
     private final byte[] buffer = new byte[255];
+    private final byte[] asduBuffer = new byte[255];
+    private final TimeoutManager timeoutManager;
+    private final TimeoutTask maxTimeNoTestConReceived;
+    private final TimeoutTask maxTimeNoAckReceived;
+    private final TimeoutTask maxIdleTimeTimer;
+    private final TimeoutTask maxTimeNoAckSentTimer;
+    private final ExecutorService executor;
+    private final SerialExecutor serialExecutor;
+    int STREAM_BUFFER_SIZE = 16 * 1024;
     private volatile boolean closed;
     private volatile boolean stopped = true;
-    private volatile boolean pending = false;
+    private boolean pendingStopDtCon = false;
+    private boolean connectionReaderStarted = false;
     private ConnectionEventListener aSduListener;
     private ConnectionEventListener aSduListenerBack;
     private int sendSequenceNumber;
@@ -72,23 +86,10 @@ public class Connection implements AutoCloseable {
     private int acknowledgedReceiveSequenceNumber;
     private int acknowledgedSendSequenceNumber;
     private int originatorAddress;
-    private TimeoutManager timeoutManager;
-
-    private TimeoutTask maxTimeNoTestConReceived;
-    private TimeoutTask maxTimeNoAckReceived;
-    private TimeoutTask maxIdleTimeTimer;
-    private TimeoutTask maxTimeNoAckSentTimer;
-
-    private TimeoutTask stopDtOutstandingSFormatTimer;
-
     private IOException closedIOException;
-
     private CountDownLatch startDtActSignal;
     private CountDownLatch startDtConSignal;
     private CountDownLatch stopDtConSignal;
-
-    private ExecutorService executor;
-    private SerialExecutor serialExecutor;
 
     Connection(Socket socket, ServerThread serverThread, ConnectionSettings settings) throws IOException {
         try {
@@ -99,11 +100,28 @@ public class Connection implements AutoCloseable {
         }
 
         this.socket = socket;
+        is = new ExtendedDataInputStream(new BufferedInputStream(socket.getInputStream(), STREAM_BUFFER_SIZE));
         this.settings = settings;
         this.serverThread = serverThread;
         if (this.serverThread != null) {
             startDtActSignal = new CountDownLatch(1);
         }
+
+        this.maxTimeNoTestConReceived = new MaxTimeNoAckReceivedTimer();
+        this.maxTimeNoAckReceived = new MaxTimeNoAckReceivedTimer();
+        this.maxIdleTimeTimer = new MaxIdleTimeTimer();
+        this.maxTimeNoAckSentTimer = new MaxTimeNoAckSentTimer();
+
+        if (settings.useSharedThreadPool()) {
+            this.executor = ConnectionSettings.getThreadPool();
+        } else {
+            this.executor = Executors.newCachedThreadPool();
+        }
+        serialExecutor = new SerialExecutor(executor);
+        ConnectionSettings.incremntConnectionsCounter();
+
+        this.timeoutManager = new TimeoutManager();
+        this.executor.execute(this.timeoutManager);
     }
 
     private static int sequenceNumberDiff(int number, int ackNumber) {
@@ -117,7 +135,7 @@ public class Connection implements AutoCloseable {
     }
 
     private void closeIfStopped(ApciType apciType) throws IOException {
-        if (serverThread != null && stopped && !pending) {
+        if (serverThread != null && stopped && !pendingStopDtCon) {
             throw new IOException("Got " + apciType + " message while STOPDT state.");
         }
     }
@@ -132,8 +150,8 @@ public class Connection implements AutoCloseable {
 
     private void handleStopDtAct() throws IOException {
 
+        // sets data transfer state in ASduListener to stopped
         setStopped(true);
-        pending = true;
         if (aSduListener != null) {
             aSduListenerBack = aSduListener;
             aSduListener = null;
@@ -147,20 +165,15 @@ public class Connection implements AutoCloseable {
 
         if (sequenceNumberDiff(sendSequenceNumber, acknowledgedSendSequenceNumber) > 0
                 && maxTimeNoAckReceived.isPlanned()) {
-            stopDtOutstandingSFormatTimer = new StopDtOutstandingSFormatTimer(
-                    maxTimeNoAckReceived.sleepTimeFromDueTime());
-            timeoutManager.addTimerTask(stopDtOutstandingSFormatTimer);
+            pendingStopDtCon = true;
         } else {
             sendStopDtCon();
         }
     }
 
     private void sendStopDtCon() throws IOException {
-        synchronized (this) {
-            os.write(STOPDT_CON_BUFFER);
-            os.flush();
-            pending = false;
-        }
+        os.write(STOPDT_CON_BUFFER);
+        os.flush();
     }
 
     private void handleStartDtAct() throws IOException {
@@ -178,7 +191,7 @@ public class Connection implements AutoCloseable {
         resetMaxIdleTimeTimer();
     }
 
-    private void handleIFrame(final APdu aPdu) throws IOException {
+    private void handleIFrame(final APdu aPdu, ASdu aSdu) throws IOException {
 
         updateReceiveSeqNum(aPdu.getSendSeqNumber());
 
@@ -189,7 +202,7 @@ public class Connection implements AutoCloseable {
                 @Override
                 public void run() {
                     Thread.currentThread().setName("aSduListener");
-                    aSduListener.newASdu(Connection.this, aPdu.getASdu());
+                    aSduListener.newASdu(Connection.this, aSdu);
                 }
             });
         }
@@ -206,6 +219,18 @@ public class Connection implements AutoCloseable {
             timeoutManager.addTimerTask(maxTimeNoAckSentTimer);
         }
 
+    }
+
+    private void mirrorUnknownAsduType(APdu aPdu) throws IOException {
+        int sendSeqNumber = aPdu.getSendSeqNumber();
+        verifySeqNumber(sendSeqNumber);
+        receiveSequenceNumber = (sendSeqNumber + 1) % (1 << 15); // 32768
+        handleReceiveSequenceNumber(aPdu.getReceiveSeqNumber());
+        byte[] asduBytes = aPdu.getASduBuffer();
+        int test = asduBytes[2] & 0x80;
+        int negativConfirm = 0x40;
+        asduBytes[2] = (byte) (test | negativConfirm | CauseOfTransmission.UNKNOWN_TYPE_ID.getId());
+        sendBuffer(asduBytes);
     }
 
     private void updateReceiveSeqNum(int sendSeqNumber) throws IOException {
@@ -256,29 +281,19 @@ public class Connection implements AutoCloseable {
         Connection.this.notifyAll();
     }
 
-    protected void start() {
+    protected void start(ConnectionEventListener connectionEventListener) {
+        synchronized (this) {
+            if (connectionReaderStarted) {
+                return;
+            }
+            connectionReaderStarted = true;
 
-        ConnectionReader connectionReader = new ConnectionReader();
-        connectionReader.start();
+            this.aSduListener = connectionEventListener;
+            new ConnectionReader().start();
 
-        this.maxTimeNoTestConReceived = new MaxTimeNoAckReceivedTimer();
-        this.maxTimeNoAckReceived = new MaxTimeNoAckReceivedTimer();
-        this.maxIdleTimeTimer = new MaxIdleTimeTimer();
-        this.maxTimeNoAckSentTimer = new MaxTimeNoAckSentTimer();
-
-        if (settings.useSharedThreadPool()) {
-            this.executor = ConnectionSettings.getThreadPool();
-        } else {
-            this.executor = Executors.newCachedThreadPool();
+            // set maxIdleTimeTimer after connection is started
+            this.timeoutManager.addTimerTask(maxIdleTimeTimer);
         }
-        serialExecutor = new SerialExecutor(executor);
-        ConnectionSettings.incremntConnectionsCounter();
-
-        this.timeoutManager = new TimeoutManager();
-        this.executor.execute(this.timeoutManager);
-
-        // set maxIdleTimeTimer after connection is started
-        this.timeoutManager.addTimerTask(maxIdleTimeTimer);
     }
 
     /**
@@ -289,7 +304,6 @@ public class Connection implements AutoCloseable {
     public void stopDataTransfer() throws IOException {
 
         synchronized (this) {
-            pending = true;
             aSduListenerBack = aSduListener;
             setStopped(true);
             aSduListener = null;
@@ -318,8 +332,6 @@ public class Connection implements AutoCloseable {
         if (!success) {
             throw new InterruptedIOException("Request timed out.");
         }
-
-        pending = false;
     }
 
     private void sendSFormatIfUnconfirmedAPdu() throws IOException {
@@ -339,10 +351,9 @@ public class Connection implements AutoCloseable {
      * Starts a connection. Sends a STARTDT act and waits for a STARTDT con. If successful a new thread will be started
      * that listens for incoming ASDUs and notifies the given ASduListener.
      *
-     * @param listener the listener that is notified of incoming ASDUs
      * @throws IOException if any kind of IOException occurs.
      */
-    public void startDataTransfer(ConnectionEventListener listener) throws IOException {
+    public void startDataTransfer() throws IOException {
 
         synchronized (this) {
             startDtConSignal = new CountDownLatch(1);
@@ -363,25 +374,13 @@ public class Connection implements AutoCloseable {
         }
 
         synchronized (this) {
-            this.aSduListener = listener;
             setStopped(false);
-        }
-    }
-
-    /**
-     * Sets connection listener to be notified of incoming ASDUs and disconnect events.
-     *
-     * @param listener the listener that is to be notified of incoming ASDUs and disconnect events
-     */
-    public void setConnectionListener(ConnectionEventListener listener) {
-        synchronized (this) {
-            this.aSduListener = listener;
         }
     }
 
     private void sendSFormatPdu() throws IOException {
 
-        int length = new APdu(0, receiveSequenceNumber, ApciType.S_FORMAT, null).encode(buffer, settings);
+        int length = new APdu(0, receiveSequenceNumber, ApciType.S_FORMAT).encode(buffer, settings);
 
         os.write(buffer, 0, length);
         os.flush();
@@ -472,7 +471,7 @@ public class Connection implements AutoCloseable {
         }
     }
 
-    public synchronized void send(ASdu aSdu) throws IOException, IllegalArgumentException {
+    synchronized void sendBuffer(byte[] aSdu) throws IOException, IllegalArgumentException {
 
         while (getNumUnconfirmedAPdusSent() >= settings.getMaxNumOfOutstandingIPdus()) {
             try {
@@ -512,6 +511,12 @@ public class Connection implements AutoCloseable {
         os.write(buffer, 0, length);
         os.flush();
         resetMaxIdleTimeTimer();
+    }
+
+    public synchronized void send(ASdu aSdu) throws IOException, IllegalArgumentException {
+        int asduLength = aSdu.encode(asduBuffer, 0, settings);
+        byte[] asduBufferCut = Arrays.copyOf(asduBuffer, asduLength);
+        sendBuffer(asduBufferCut);
     }
 
     private void resetMaxIdleTimeTimer() {
@@ -1167,7 +1172,6 @@ public class Connection implements AutoCloseable {
 
     /**
      * @return the remote port number to which this socket is connected, or 0 if the socket is not connected yet.
-     * @see int java.net.Socket.getPort()
      */
     public int getPort() {
         return socket.getPort();
@@ -1203,9 +1207,10 @@ public class Connection implements AutoCloseable {
                 }
                 close();
                 if (aSduListener != null) {
-                    aSduListener.connectionClosed(Connection.this, new IOException(
-                            "The maximum time that no confirmation was received (t1) has been exceeded. t1 = "
-                                    + settings.getMaxTimeNoAckReceived() + "ms"));
+                    aSduListener.connectionClosed(Connection.this,
+                            new IOException(
+                                    "The maximum time that no confirmation was received (t1) has been exceeded. t1 = "
+                                            + settings.getMaxTimeNoAckReceived() + "ms"));
                 }
             }
         }
@@ -1261,27 +1266,6 @@ public class Connection implements AutoCloseable {
 
     }
 
-    private class StopDtOutstandingSFormatTimer extends TimeoutTask {
-
-        public StopDtOutstandingSFormatTimer(long timeout) {
-            super(timeout);
-        }
-
-        @Override
-        public void execute() {
-            if (Thread.interrupted() || isStopped()) {
-                return;
-            }
-            synchronized (Connection.this) {
-                try {
-                    sendStopDtCon();
-                } catch (IOException ignored) {
-                }
-            }
-
-        }
-    }
-
     private class ConnectionReader extends Thread {
 
         @Override
@@ -1290,19 +1274,31 @@ public class Connection implements AutoCloseable {
 
             try {
                 while (true) {
-                    final APdu aPdu = APdu.decode(socket, settings);
+                    APdu aPdu = APdu.decode(socket, settings, is);
+
                     synchronized (Connection.this) {
 
                         switch (aPdu.getApciType()) {
                             case I_FORMAT:
                                 closeIfStopped(aPdu.getApciType());
-                                handleIFrame(aPdu);
+
+                                ExtendedDataInputStream is = new ExtendedDataInputStream(
+                                        new ByteArrayInputStream(aPdu.getASduBuffer()));
+                                ASdu asdu;
+                                try {
+                                    asdu = ASdu.decode(is, settings, aPdu.getASduBuffer().length);
+                                } catch (UnknownAsduTypeException e) {
+                                    mirrorUnknownAsduType(aPdu);
+                                    continue;
+                                }
+                                handleIFrame(aPdu, asdu);
                                 break;
                             case S_FORMAT:
                                 closeIfStopped(aPdu.getApciType());
                                 handleReceiveSequenceNumber(aPdu.getReceiveSeqNumber());
-                                if (stopDtOutstandingSFormatTimer != null) {
-                                    stopDtOutstandingSFormatTimer.executeManually();
+                                if (pendingStopDtCon && !maxTimeNoAckReceived.isPlanned()) {
+                                    pendingStopDtCon = false;
+                                    sendStopDtCon();
                                 }
                                 break;
                             case STARTDT_CON:

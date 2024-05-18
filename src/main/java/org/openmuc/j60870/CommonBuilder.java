@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 Fraunhofer ISE
+ * Copyright 2014-2024 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -21,6 +21,7 @@
 package org.openmuc.j60870;
 
 import java.io.IOException;
+import java.util.List;
 
 abstract class CommonBuilder<T extends CommonBuilder<T, C>, C> {
 
@@ -203,6 +204,11 @@ abstract class CommonBuilder<T extends CommonBuilder<T, C>, C> {
 
     public T useSharedThreadPool() {
         settings.setUseSharedThreadPool(true);
+        return self();
+    }
+
+    public T setAllowedASduTypes(List<ASduType> allowedTypes) {
+        settings.setAllowedTypes(allowedTypes);
         return self();
     }
 

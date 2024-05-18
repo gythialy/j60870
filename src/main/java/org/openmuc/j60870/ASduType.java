@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 Fraunhofer ISE
+ * Copyright 2014-2024 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -511,11 +511,11 @@ public enum ASduType {
     private final int id;
     private final String description;
 
-    ASduType(int id) {
+    private ASduType(int id) {
         this(id, "private range");
     }
 
-    ASduType(int id, String description) {
+    private ASduType(int id, String description) {
         this.id = id;
         this.description = description;
     }

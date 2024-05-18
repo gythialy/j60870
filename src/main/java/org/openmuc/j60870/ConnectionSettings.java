@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 Fraunhofer ISE
+ * Copyright 2014-2024 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -20,6 +20,9 @@
  */
 package org.openmuc.j60870;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -47,7 +50,9 @@ class ConnectionSettings {
     private int maxNumOfOutstandingIPdus;
 
     private boolean useSharedThreadPool;
+    private Set<ASduType> allowedTypes;
     private ReservedASduTypeDecoder reservedASduTypeDecoder;
+    private ConnectionEventListener connectionEventListener;
 
     public ConnectionSettings() {
         this.messageFragmentTimeout = 5_000;
@@ -64,6 +69,8 @@ class ConnectionSettings {
         this.maxNumOfOutstandingIPdus = 12;
 
         this.useSharedThreadPool = false;
+        this.connectionEventListener = null;
+        this.allowedTypes = null;
     }
 
     public ConnectionSettings(ConnectionSettings connectionSettings) {
@@ -84,6 +91,8 @@ class ConnectionSettings {
         reservedASduTypeDecoder = connectionSettings.reservedASduTypeDecoder;
 
         this.useSharedThreadPool = connectionSettings.useSharedThreadPool;
+        this.connectionEventListener = connectionSettings.connectionEventListener;
+        this.allowedTypes = connectionSettings.allowedTypes;
     }
 
     public static ExecutorService getThreadPool() {
@@ -191,6 +200,22 @@ class ConnectionSettings {
     public void setConnectionTimeout(int time) {
         this.connectionTimeout = time;
 
+    }
+
+    public ConnectionEventListener getConnectionEventListener() {
+        return this.connectionEventListener;
+    }
+
+    public void setConnectionEventListener(ConnectionEventListener listener) {
+        this.connectionEventListener = listener;
+    }
+
+    public Set<ASduType> getAllowedTypes() {
+        return this.allowedTypes;
+    }
+
+    public void setAllowedTypes(List<ASduType> allowedTypes) {
+        this.allowedTypes = new HashSet<>(allowedTypes);
     }
 
     public void setUseSharedThreadPool(boolean useSharedThreadPool) {

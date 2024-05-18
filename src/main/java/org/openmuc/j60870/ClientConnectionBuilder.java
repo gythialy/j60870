@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 Fraunhofer ISE
+ * Copyright 2014-2024 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -143,6 +143,11 @@ public class ClientConnectionBuilder extends CommonBuilder<ClientConnectionBuild
         return this;
     }
 
+    public ClientConnectionBuilder setConnectionEventListener(ConnectionEventListener listener) {
+        settings.setConnectionEventListener(listener);
+        return this;
+    }
+
     /**
      * Connects to the server. The TCP/IP connection is build up and a {@link Connection} object is returned that can be
      * used to communicate with the server.
@@ -160,7 +165,7 @@ public class ClientConnectionBuilder extends CommonBuilder<ClientConnectionBuild
         }
         socket.connect(new InetSocketAddress(address, port), settings.getConnectionTimeout());
         Connection connection = new Connection(socket, null, new ConnectionSettings(settings));
-        connection.start();
+        connection.start(settings.getConnectionEventListener());
         return connection;
     }
 

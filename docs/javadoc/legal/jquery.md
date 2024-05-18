@@ -1,6 +1,7 @@
 ## jQuery v3.6.1
 
 ### jQuery License
+
 ```
 jQuery v 3.6.1
 Copyright OpenJS Foundation and other contributors, https://openjsf.org/

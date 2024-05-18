@@ -1,4 +1,23 @@
-v1.6.4 17-Jan-2024
+v1.7.2 02-May-2024
+------------------
+- fix sending of wrong StopDT confirmation after the connection is established again and a new S-Frame received
+
+v1.7.1 23-Apr-2024
+------------------
+- fix sending StopDT con when S-Frame is received after StopDT act frame
+
+v1.7.0 09-Apr-2024
+------------------
+- added ASDU type filter: Supported ASDU can now be configured through Server.builder().setAllowedASduTypes(). If
+  configured, the stack will automatically respond to incoming ASDUs of unsupported types.
+- server:
+    * added return callback method ConnectionEventListener in ServerEventListener.connectionIndication(Connection)
+    * removed not necessary callback function setConnectionEventListenerBeforeStart()
+    * removed calling connection.setConnectionListener() 
+- client: 
+    * changed place of configuration of connection listener from Connection.setConnectionListener() to ClientConnectionBuilder.setConnectionEventListener()
+
+v1.6.4 17-Jan-2023
 ------------------
 - added internal pending state for correct connection state behavior
 - added ReservedASduTypeDecoder to settings for possible future definitions of reserved range <= 127
@@ -15,14 +34,14 @@ v1.6.2 24-Oct-2023
 - added method setConnectionEventListenerBeforeStart() to ServerEventListener to make sure a listener is set before
   connection
 
-v1.6.1 20-July-2023
+v1.6.1 20-Jul-2023
 -------------------
 - fixed not waiting for missing S-Frame from master when sending StoDTCon
 - fixed no TESTFR after initial connection
 - fixed connection closed when receiving reserved ASDU
 - fixed sending S-Format for already confirmed messages
 
-v1.6.0 23-June-2023
+v1.6.0 23-Jun-2023
 -------------------
 - removed deprecated methods:
   * org.openmuc.j60870.Connection#waitForStartDT
