@@ -1,20 +1,13 @@
-buildscript {
-    repositories {
-        maven {
-            url "https://plugins.gradle.org/m2/"
-        }
-    }
-    dependencies {
-        // classpath group: "org.asciidoctor", name: "asciidoctorj-pdf", version: "1.5.0-alpha.16"
-        classpath "biz.aQute.bnd:biz.aQute.bnd.gradle:3.5.0"
-    }
+import org.asciidoctor.gradle.jvm.AsciidoctorTask
+
+plugins {
+    id 'biz.aQute.bnd.builder' version '7.0.0' apply false
+    id 'org.asciidoctor.jvm.pdf' version '4.0.2' apply false
+    id 'org.asciidoctor.jvm.convert' version '4.0.2' apply false
 }
 
-// plugins {
-//     id "org.asciidoctor.convert" version "1.5.6"
-// }
-
-// apply plugin: "org.asciidoctor.convert"
+apply plugin: 'org.asciidoctor.jvm.convert'
+apply plugin: 'org.asciidoctor.jvm.pdf'
 apply from: "configuration.gradle"
 try {
     apply from: "gitlabRelease.gradle"
@@ -22,21 +15,54 @@ try {
     // ignore
 }
 
-// asciidoctor {
-//     backends = ["pdf", "html5"]
-//     attributes "stylesheet": "openmuc-asciidoc.css",
-//             "toc2": "left",
-//             "sampleSrc": file("src/sample/java"),
-//             "source-highlighter": "coderay",
-//             "pdf-stylesdir": "./",
-//             "pdf-style": "pdf"
+tasks.register('generateDocs', AsciidoctorTask) {
+    sourceDir = file('src/docs/asciidoc')
+    outputDir = file("${layout.buildDirectory.get().asFile}/generated-docs")
 
-//     resources {
-//         from("$sourceDir") {
-//             include "images/**"
-//         }
-//     }
-// }
+    resources {
+        from(sourceDir) {
+            include 'images/**'
+            include 'common-settings.txt'
+            include 'openmuc-asciidoc.css'
+            include 'pdf-theme.yml'
+        }
+    }
+
+    attributes('project-root': project.rootDir,
+            'stylesdir': "${projectDir}/src/docs/asciidoc",
+            'stylesheet': 'openmuc-asciidoc.css',
+            "toc2": "left",
+            "source-highlighter": "coderay",
+            'pdf-theme': 'pdf-theme.yml')
+
+    outputOptions {
+        backends = ['html5', 'pdf']
+    }
+
+    doLast {
+        copy {
+            from "${outputDir}/html5"
+            into 'docs'
+            include 'j60870-doc.html'
+            include 'images/**'
+            rename 'j60870-doc.html', 'index.html'
+        }
+
+        copy {
+            from "${outputDir}/pdf"
+            into 'docs'
+            include 'j60870-doc.pdf'
+        }
+    }
+
+    baseDirFollowsSourceDir()
+
+
+    forkOptions {
+        jvmArgs = ['--add-opens', 'java.base/sun.nio.ch=ALL-UNNAMED',
+                   '--add-opens', 'java.base/java.io=ALL-UNNAMED']
+    }
+}
 
 configure(allprojects) {
     version = cfgVersion
@@ -46,12 +72,9 @@ configure(javaProjects) {
 
     apply plugin: "java"
     apply plugin: "eclipse"
-    apply plugin: "osgi"
-    apply plugin: "maven"
+    apply plugin: "maven-publish"
     apply plugin: "signing"
     apply plugin: "biz.aQute.bnd.builder"
-
-    uploadArchives.enabled = false
 
     group = cfgGroup
 
@@ -61,8 +84,10 @@ configure(javaProjects) {
         }
     }
 
-    sourceCompatibility = cfgJavaVersion
-    targetCompatibility = cfgJavaVersion
+    java {
+        sourceCompatibility = JavaVersion.toVersion(cfgJavaVersion)
+        targetCompatibility = JavaVersion.toVersion(cfgJavaVersion)
+    }
 
     repositories {
         mavenCentral()
@@ -82,11 +107,11 @@ configure(javaProjects) {
     }
 
     dependencies {
-        testCompile group: "junit", name: "junit", version: "4.13.2"
-        itestCompile group: "junit", name: "junit", version: "4.13.2"
+        testImplementation group: "junit", name: "junit", version: "4.13.2"
+        itestImplementation group: "junit", name: "junit", version: "4.13.2"
 
-        jacoco group: 'org.jacoco', name: 'org.jacoco.ant', version: '0.7.9', classifier: 'nodeps'
-        jacocoRuntime group: 'org.jacoco', name: 'org.jacoco.agent', version: '0.7.9', classifier: 'runtime'
+        jacoco group: 'org.jacoco', name: 'org.jacoco.ant', version: '0.8.10', classifier: 'nodeps'
+        jacocoRuntime group: 'org.jacoco', name: 'org.jacoco.agent', version: '0.8.10', classifier: 'runtime'
     }
 
     jar {
@@ -95,8 +120,8 @@ configure(javaProjects) {
         }
     }
 
-    task instrument {
-        ext.outputDir = buildDir.path + '/classes-instrumented'
+    tasks.register('instrument') {
+        ext.outputDir = layout.buildDirectory.dir('classes-instrumented').get().asFile.path
         doLast {
             ant.taskdef(name: 'instrument',
                     classname: 'org.jacoco.ant.InstrumentTask',
@@ -107,23 +132,25 @@ configure(javaProjects) {
                 // Copy directories from main source to instrumented path
                 copy {
                     from f
-                    into buildDir.path + '/instrumented_classes'
+                    into layout.buildDirectory.dir('instrumented_classes').get().asFile
                 }
             }
 
             ant.instrument(destdir: outputDir) {
-                fileset(dir: buildDir.path + '/instrumented_classes')
+                fileset(dir: layout.buildDirectory.dir('instrumented_classes').get().asFile.path)
             }
         }
     }
 
-    instrument.dependsOn classes
+    instrument.configure {
+        dependsOn classes
+    }
 
     gradle.taskGraph.whenReady { graph ->
         if (graph.hasTask(instrument)) {
             tasks.withType(Test) {
                 doFirst {
-                    systemProperty 'jacoco-agent.destfile', buildDir.path + '/jacoco/tests.exec'
+                    systemProperty 'jacoco-agent.destfile', layout.buildDirectory.file('jacoco/tests.exec').get().asFile.path
                     classpath = files(instrument.outputDir) + classpath + configurations.jacocoRuntime
                 }
             }
@@ -131,9 +158,10 @@ configure(javaProjects) {
     }
 
 
-    task report {
+    tasks.register('report') {
         doLast {
-            if (!file(buildDir.path + '/jacoco/tests.exec').exists()) {
+            def execFile = layout.buildDirectory.file('jacoco/tests.exec').get().asFile
+            if (!execFile.exists()) {
                 return;
             }
             ant.taskdef(name: 'report',
@@ -141,60 +169,62 @@ configure(javaProjects) {
                     classpath: configurations.jacoco.asPath)
             ant.report() {
                 executiondata {
-                    ant.file(file: buildDir.path + '/jacoco/tests.exec')
+                    ant.file(file: execFile.path)
                 }
                 structure(name: 'Example') {
                     classfiles {
-                        fileset(dir: buildDir.path + '/instrumented_classes')
+                        fileset(dir: layout.buildDirectory.dir('instrumented_classes').get().asFile.path)
                     }
                     sourcefiles {
                         fileset(dir: 'src/main/java')
                     }
                 }
-                html(destdir: buildDir.path + '/reports/jacoco')
+                html(destdir: layout.buildDirectory.dir('reports/jacoco').get().asFile.path)
             }
         }
     }
 
-    report.dependsOn instrument
-    report.dependsOn test
+    report.configure {
+        dependsOn instrument
+        dependsOn test
+    }
 
-    task jarAll(type: Copy) {
-        dependsOn(configurations.default.getAllArtifacts().getBuildDependencies())
+    tasks.register('jarAll', Copy) {
+        dependsOn(configurations.runtimeElements.getAllArtifacts().getBuildDependencies())
 
-        //only the jar file created:
-        from configurations.default.getAllArtifacts().getFiles()
+        from configurations.runtimeElements.getAllArtifacts().getFiles()
         if (cfgCopyDependencies) {
             if (cfgCopyToRoot) {
                 into rootDir.getPath() + "/build/libs-all"
             } else {
-                into "build/libs-all"
+                into layout.buildDirectory.dir("libs-all")
             }
             //includes all the dependencies:
-            from configurations.default
+            from configurations.runtimeClasspath
         } else {
             if (cfgCopyToRoot) {
                 into rootDir.getPath() + "/build/libs-all"
             } else {
-                into "build/libs-all"
+                into layout.buildDirectory.dir("libs-all")
             }
         }
     }
 
-    // build.dependsOn { asciidoctor }
+    build.dependsOn { generateDocs }
     build.dependsOn { jarAll }
 
     eclipse.pathVariables([GRADLE_USER_HOME: file(gradle.gradleUserHomeDir)])
     tasks.eclipse.dependsOn(cleanEclipse)
 
-
-    task sourcesJar(type: Jar, dependsOn: classes) {
-        classifier = "sources"
+    tasks.register('sourcesJar', Jar) {
+        dependsOn classes
+        archiveClassifier = "sources"
         from sourceSets.main.allSource
     }
 
-    task javadocJar(type: Jar, dependsOn: javadoc) {
-        classifier = "javadoc"
+    tasks.register('javadocJar', Jar) {
+        dependsOn javadoc
+        archiveClassifier = "javadoc"
         from javadoc.destinationDir
     }
 
@@ -212,90 +242,84 @@ configure(javaProjects) {
 
 configure(repositoryProjects) {
 
-    uploadArchives.enabled = true
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                artifact jar
+                artifact sourcesJar
+                artifact javadocJar
 
-    if (cfgSignPom) {
-        signing {
-            if (project.hasProperty("signing.keyId")) {
-                sign configurations.archives
-            }
-        }
-    }
-
-    uploadArchives {
-        repositories {
-            mavenDeployer {
-
-                if (cfgSignPom) {
-                    beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-                }
-
-                repository(url: cfgRepository) {
-                    authentication(userName: cfgRepositoryUser, password: cfgRepositoryPass)
-                    if (cfgRepository != null && System.getProperty("https.proxyHost") != null && ((System.getProperty("https.nonProxyHosts") == null) || !cfgRepository.contains(System.getProperty("https.nonProxyHosts")))) {
-                        proxy(host: System.getProperty("https.proxyHost"), port: Integer.parseInt(System.getProperty("https.proxyPort")), type: "https")
-                    }
-                }
-                snapshotRepository(url: cfgSnapshotRepository) {
-                    authentication(userName: cfgRepositoryUser, password: cfgRepositoryPass)
-                    if (cfgSnapshotRepository != null && System.getProperty("https.proxyHost") != null && ((System.getProperty("https.nonProxyHosts") == null) || !cfgSnapshotRepository.contains(System.getProperty("https.nonProxyHosts")))) {
-                        proxy(host: System.getProperty("https.proxyHost"), port: Integer.parseInt(System.getProperty("https.proxyPort")), type: "https")
-                    }
-                }
-
-                pom.project {
-
-                    //additional pom information can be found in subproject build.gradle files
-
-                    packaging "jar"
-                    url "http://www.openmuc.org/"
+                pom {
+                    packaging = "jar"
+                    url = "https://www.openmuc.org/"
 
                     scm {
-                        url "none"
-                        connection "none"
+                        url = "none"
+                        connection = "none"
                     }
 
                     developers {
                         developer {
-                            id "openmuc"
-                            name "OpenMUC Team"
+                            id = "openmuc"
+                            name = "OpenMUC Team"
                         }
                     }
                 }
             }
         }
+
+        repositories {
+            maven {
+                name = "release"
+                url = version.endsWith('SNAPSHOT') ? cfgSnapshotRepository : cfgRepository
+                credentials {
+                    username = cfgRepositoryUser
+                    password = cfgRepositoryPass
+                }
+
+                if (url != null && System.getProperty("https.proxyHost") != null && ((System.getProperty("https.nonProxyHosts") == null) || !url.toString().contains(System.getProperty("https.nonProxyHosts")))) {
+                    // Note: Proxy configuration in publishing repositories works differently in Gradle 8.x
+                    // You may need to configure this at the system level or through gradle.properties
+                }
+            }
+        }
+    }
+
+    if (cfgSignPom) {
+        signing {
+            if (project.hasProperty("signing.keyId")) {
+                sign publishing.publications.maven
+            }
+        }
     }
 }
 
-task javadocAll(type: Javadoc) {
+tasks.register('javadocAll', Javadoc) {
 
-    source docProjects.collect {
-        project -> project.sourceSets.main.allJava
+    source docProjects.collect { project -> project.sourceSets.main.allJava
     }
 
     exclude "**/internal/**"
     exclude "**/java-gen/**"
     exclude "**/app/**"
 
-    destinationDir = new File(buildDir, "docs/javadoc-all")
+    destinationDir = layout.buildDirectory.dir("docs/javadoc-all").get().asFile
 
-    classpath = files(distributionProjects.collect { project ->
-        project.sourceSets.main.compileClasspath
+    classpath = files(distributionProjects.collect { project -> project.sourceSets.main.compileClasspath
     })
 
-    classpath += files(distributionProjects.collect { project ->
-        project.sourceSets.main.output
+    classpath += files(distributionProjects.collect { project -> project.sourceSets.main.output
     })
 }
 
 
-task writeSettings {
+tasks.register('writeSettings') {
     doLast {
         Writer out = new OutputStreamWriter(new FileOutputStream("build/settings.gradle"));
         out.write("include ");
         boolean first = true;
         for (Project myproject : distributionProjects) {
-            if (myproject.getProjectDir().equals(getProjectDir())) {
+            if (myproject.getProjectDir() == getProjectDir()) {
                 continue;
             }
             if (first) {
@@ -308,7 +332,7 @@ task writeSettings {
         out.write "\n\n";
 
         for (Project myproject : distributionProjects) {
-            if (myproject.getProjectDir().equals(getProjectDir())) {
+            if (myproject.getProjectDir() == getProjectDir()) {
                 continue;
             }
             println myproject.name
@@ -319,27 +343,31 @@ task writeSettings {
     }
 }
 
-task buildDistProjects {
+tasks.register('buildDistProjects') {
     dependsOn(distributionProjects.build)
 }
 
 tasks.withType(Tar) {
-
     dependsOn(writeSettings)
     dependsOn(distributionProjects.build)
     dependsOn(javadocAll)
-    // dependsOn(asciidoctor)
+    dependsOn(generateDocs)
 
     compression = Compression.GZIP
 
-    destinationDir = file("build/distributions/")
+    destinationDirectory = layout.buildDirectory.dir("distributions")
 }
 
-task(tar, type: Tar) {
-    archiveName = project.name + "-" + project.version + ".tgz"
+tasks.register('tar', Tar) {
+    archiveFileName = project.name + "-" + project.version + ".tgz"
 }
 
-task(tarFull, type: Tar) {
+tasks.register('tarFull', Tar) {
     dependsOn(tar)
-    archiveName = project.name + "-" + project.version + "_full.tgz"
+    archiveFileName = project.name + "-" + project.version + "_full.tgz"
+}
+
+test {
+    jvmArgs '--add-opens', 'java.base/java.lang=ALL-UNNAMED'
+    jvmArgs '--add-opens', 'java.base/java.util=ALL-UNNAMED'
 }
