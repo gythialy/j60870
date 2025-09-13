@@ -8,7 +8,6 @@ plugins {
     alias(libs.plugins.spotless)
 }
 
-// Project properties
 val projectVersion: String by project
 val projectGroup: String by project
 val javaVersion: String by project
@@ -42,15 +41,6 @@ dependencies {
     testImplementation(libs.awaitility)
 }
 
-extensions.configure<JavaPluginExtension> {
-    sourceCompatibility = JavaVersion.toVersion(javaVersion)
-    targetCompatibility = JavaVersion.toVersion(javaVersion)
-}
-
-extensions.configure<JacocoPluginExtension> {
-    toolVersion = "0.8.13"
-}
-
 tasks.named<JacocoReport>("jacocoTestReport") {
     dependsOn("test")
 
@@ -61,9 +51,7 @@ tasks.named<JacocoReport>("jacocoTestReport") {
     }
 }
 
-tasks.named<Test>("test") {
-    finalizedBy("jacocoTestReport")
-}
+tasks.named<Test>("test") { finalizedBy("jacocoTestReport") }
 
 tasks.register<AsciidoctorTask>("generateDocs") {
     setSourceDir(layout.projectDirectory.dir("src/docs/asciidoc"))
@@ -98,9 +86,7 @@ tasks.register<AsciidoctorTask>("generateDocs") {
         ),
     )
 
-    outputOptions {
-        setBackends(listOf("html5", "pdf"))
-    }
+    outputOptions { setBackends(listOf("html5", "pdf")) }
 
     doLast {
         project.copy {
@@ -134,9 +120,7 @@ tasks.register<Jar>("sourcesJar") {
     from(sourceSets.main.get().allSource)
 }
 
-tasks.named("build") {
-    dependsOn("jar", "javadocAll", "sourcesJar")
-}
+tasks.named("build") { dependsOn("jar", "javadocAll", "sourcesJar") }
 
 tasks.register<Javadoc>("javadocAll") {
     source = sourceSets.main.get().allJava
@@ -171,25 +155,18 @@ tasks.register<Tar>("tar") {
         exclude("**/.gradle")
         exclude("**/.settings")
 
-        from(layout.buildDirectory) {
-            include("settings.gradle")
-        }
+        from(layout.buildDirectory) { include("settings.gradle") }
     }
 
     into("${project.name}/docs/user-guide/") {
-        from(layout.buildDirectory.dir("asciidoc/html5")) {
-            include("**")
-        }
+        from(layout.buildDirectory.dir("asciidoc/html5")) { include("**") }
         from(layout.buildDirectory.dir("asciidoc/pdf")) {
-            // 修正路径
             include("*.pdf")
         }
     }
 
     into("${project.name}/docs/") {
-        from(layout.buildDirectory.dir("docs/javadoc-all")) {
-            include("**")
-        }
+        from(layout.buildDirectory.dir("docs/javadoc")) { include("**") }
     }
 }
 
