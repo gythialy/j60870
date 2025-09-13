@@ -23,9 +23,7 @@ package org.openmuc.j60870.ie;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-/**
- * Represents the segment of a file as transferred by ASDUs of type F_SG_NA_1 (125).
- */
+/** Represents the segment of a file as transferred by ASDUs of type F_SG_NA_1 (125). */
 public class IeFileSegment extends InformationElement {
 
     private final byte[] segment;
@@ -55,7 +53,6 @@ public class IeFileSegment extends InformationElement {
         System.arraycopy(segment, offset, buffer, i, length);
 
         return length + 1;
-
     }
 
     public byte[] getSegment() {

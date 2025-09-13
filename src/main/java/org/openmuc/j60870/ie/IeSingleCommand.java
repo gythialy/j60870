@@ -23,9 +23,7 @@ package org.openmuc.j60870.ie;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-/**
- * Represents a single command (SCO) information element.
- */
+/** Represents a single command (SCO) information element. */
 public class IeSingleCommand extends IeAbstractQualifierOfCommand {
 
     public IeSingleCommand(boolean commandStateOn, int qualifier, boolean select) {
@@ -48,5 +46,4 @@ public class IeSingleCommand extends IeAbstractQualifierOfCommand {
     public String toString() {
         return "Single Command state on: " + isCommandStateOn() + ", " + super.toString();
     }
-
 }

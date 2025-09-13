@@ -92,15 +92,17 @@ abstract class TimeoutTask implements Comparable<TimeoutTask> {
         }
 
         TimeoutTask o = (TimeoutTask) obj;
-        return this.dueTime == o.dueTime && this.canceled == o.canceled && this.done == o.done
+        return this.dueTime == o.dueTime
+                && this.canceled == o.canceled
+                && this.done == o.done
                 && this.timeout == o.timeout;
     }
 
     @Override
     public int hashCode() {
 
-        return Long.hashCode(this.timeout) ^ ((Boolean.valueOf(canceled).hashCode()) << 2)
+        return Long.hashCode(this.timeout)
+                ^ ((Boolean.valueOf(canceled).hashCode()) << 2)
                 ^ Boolean.valueOf(done).hashCode();
     }
-
 }

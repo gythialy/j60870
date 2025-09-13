@@ -20,27 +20,26 @@
  */
 package org.openmuc.j60870;
 
-import javax.net.SocketFactory;
-import javax.net.ssl.SSLSocketFactory;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import javax.net.SocketFactory;
+import javax.net.ssl.SSLSocketFactory;
 
 /**
- * The client connection builder is used to connect to IEC 60870-5-104 servers. A client application that wants to
- * connect to a server should first create an instance of {@link ClientConnectionBuilder}. Next all the necessary
- * configuration parameters can be set. Finally the {@link ClientConnectionBuilder#build()} function is called to
- * connect to the server. An instance of {@link ClientConnectionBuilder} can be used to create an unlimited number of
- * connections. Changing the parameters of a {@link ClientConnectionBuilder} has no affect on connections that have
- * already been created.
+ * The client connection builder is used to connect to IEC 60870-5-104 servers. A client application
+ * that wants to connect to a server should first create an instance of {@link
+ * ClientConnectionBuilder}. Next all the necessary configuration parameters can be set. Finally the
+ * {@link ClientConnectionBuilder#build()} function is called to connect to the server. An instance
+ * of {@link ClientConnectionBuilder} can be used to create an unlimited number of connections.
+ * Changing the parameters of a {@link ClientConnectionBuilder} has no affect on connections that
+ * have already been created.
  *
- * <p>
- * Note that the configured lengths of the fields COT, CA and IOA have to be the same for all communicating nodes in a
- * network. The default values used by {@link ClientConnectionBuilder} are those most commonly used in IEC 60870-5-104
- * communication.
- * </p>
+ * <p>Note that the configured lengths of the fields COT, CA and IOA have to be the same for all
+ * communicating nodes in a network. The default values used by {@link ClientConnectionBuilder} are
+ * those most commonly used in IEC 60870-5-104 communication.
  */
 public class ClientConnectionBuilder extends CommonBuilder<ClientConnectionBuilder, Connection> {
 
@@ -71,8 +70,8 @@ public class ClientConnectionBuilder extends CommonBuilder<ClientConnectionBuild
     }
 
     /**
-     * Set the socket factory to used to create the socket for the connection. The default is
-     * {@link SocketFactory#getDefault()}. You could pass an {@link SSLSocketFactory} to enable SSL.
+     * Set the socket factory to used to create the socket for the connection. The default is {@link
+     * SocketFactory#getDefault()}. You could pass an {@link SSLSocketFactory} to enable SSL.
      *
      * @param socketFactory the socket factory
      * @return this builder
@@ -118,7 +117,7 @@ public class ClientConnectionBuilder extends CommonBuilder<ClientConnectionBuild
      * Sets the local (client) address and port the socket will connect to.
      *
      * @param address the local address the socket is bound to, or null for any local address.
-     * @param port    the local port the socket is bound to or zero for a system selected free port.
+     * @param port the local port the socket is bound to or zero for a system selected free port.
      * @return this builder
      */
     public ClientConnectionBuilder setLocalAddress(InetAddress address, int port) {
@@ -149,8 +148,8 @@ public class ClientConnectionBuilder extends CommonBuilder<ClientConnectionBuild
     }
 
     /**
-     * Connects to the server. The TCP/IP connection is build up and a {@link Connection} object is returned that can be
-     * used to communicate with the server.
+     * Connects to the server. The TCP/IP connection is build up and a {@link Connection} object is
+     * returned that can be used to communicate with the server.
      *
      * @return the {@link Connection} object that can be used to communicate with the server.
      * @throws IOException if any kind of error occurs during connection build up.
@@ -168,5 +167,4 @@ public class ClientConnectionBuilder extends CommonBuilder<ClientConnectionBuild
         connection.start(settings.getConnectionEventListener());
         return connection;
     }
-
 }

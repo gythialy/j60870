@@ -23,13 +23,10 @@ package org.openmuc.j60870.ie;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-/**
- * Represents a fixed test bit pattern (FBP) information element.
- */
+/** Represents a fixed test bit pattern (FBP) information element. */
 public class IeFixedTestBitPattern extends InformationElement {
 
-    public IeFixedTestBitPattern() {
-    }
+    public IeFixedTestBitPattern() {}
 
     IeFixedTestBitPattern(DataInputStream is) throws IOException {
         if ((is.readByte() & 0xff) != 0x55 || (is.readByte() & 0xff) != 0xaa) {

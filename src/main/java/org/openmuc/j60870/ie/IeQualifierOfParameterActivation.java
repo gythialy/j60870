@@ -23,9 +23,7 @@ package org.openmuc.j60870.ie;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-/**
- * Represents a qualifier of parameter activation (QPA) information element.
- */
+/** Represents a qualifier of parameter activation (QPA) information element. */
 public class IeQualifierOfParameterActivation extends InformationElement {
 
     private final int value;

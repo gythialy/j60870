@@ -20,21 +20,20 @@
  */
 package org.openmuc.j60870;
 
-import org.awaitility.Awaitility;
-import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-import org.powermock.api.mockito.PowerMockito;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.verify;
+import static org.powermock.api.mockito.PowerMockito.*;
+import static org.powermock.reflect.Whitebox.setInternalState;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.*;
-import static org.powermock.reflect.Whitebox.setInternalState;
+import org.awaitility.Awaitility;
+import org.junit.Test;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+import org.powermock.api.mockito.PowerMockito;
 
 public class TimeoutManagerTest {
 
@@ -58,14 +57,16 @@ public class TimeoutManagerTest {
         final long t0 = System.currentTimeMillis();
         doAnswer(new Answer<Void>() {
 
-            @Override
-            public Void answer(InvocationOnMock invocation) throws Throwable {
-                long sleepTime = System.currentTimeMillis() - t0;
+                    @Override
+                    public Void answer(InvocationOnMock invocation) throws Throwable {
+                        long sleepTime = System.currentTimeMillis() - t0;
 
-                assertEquals(timeout, sleepTime, 40D);
-                return null;
-            }
-        }).when(task).execute();
+                        assertEquals(timeout, sleepTime, 40D);
+                        return null;
+                    }
+                })
+                .when(task)
+                .execute();
 
         Awaitility.await().atMost(1, TimeUnit.SECONDS).until(new Callable<Boolean>() {
 
@@ -81,5 +82,4 @@ public class TimeoutManagerTest {
 
         exec.shutdown();
     }
-
 }

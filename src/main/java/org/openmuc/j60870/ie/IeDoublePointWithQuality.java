@@ -23,13 +23,11 @@ package org.openmuc.j60870.ie;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-/**
- * Represents a double-point information with quality descriptor (DIQ) information element.
- */
+/** Represents a double-point information with quality descriptor (DIQ) information element. */
 public class IeDoublePointWithQuality extends IeAbstractQuality {
 
-    public IeDoublePointWithQuality(DoublePointInformation dpi, boolean blocked, boolean substituted,
-                                    boolean notTopical, boolean invalid) {
+    public IeDoublePointWithQuality(
+            DoublePointInformation dpi, boolean blocked, boolean substituted, boolean notTopical, boolean invalid) {
         super(blocked, substituted, notTopical, invalid);
 
         switch (dpi) {

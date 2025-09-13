@@ -23,9 +23,7 @@ package org.openmuc.j60870.ie;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-/**
- * Represents a name of section (NOS) information element.
- */
+/** Represents a name of section (NOS) information element. */
 public class IeNameOfSection extends InformationElement {
 
     private final int value;
@@ -42,7 +40,6 @@ public class IeNameOfSection extends InformationElement {
     int encode(byte[] buffer, int i) {
         buffer[i] = (byte) value;
         return 1;
-
     }
 
     public int getValue() {

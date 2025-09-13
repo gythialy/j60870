@@ -20,17 +20,14 @@
  */
 package org.openmuc.j60870;
 
-/**
- * Class offering static utility functions.
- */
+/** Class offering static utility functions. */
 public class Util {
 
-    private Util() {
-    }
+    private Util() {}
 
     /**
-     * Returns the Information Object Address (IOA) calculated from the given bytes. The first byte is the least
-     * significant byte of the IOA.
+     * Returns the Information Object Address (IOA) calculated from the given bytes. The first byte is
+     * the least significant byte of the IOA.
      *
      * @param byte1 the first byte
      * @param byte2 the second byte
@@ -42,8 +39,8 @@ public class Util {
     }
 
     /**
-     * Returns the Common Address (CA) calculated from the given bytes. The first byte is the least significant byte of
-     * the CA.
+     * Returns the Common Address (CA) calculated from the given bytes. The first byte is the least
+     * significant byte of the CA.
      *
      * @param byte1 the first byte
      * @param byte2 the second byte
@@ -52,5 +49,4 @@ public class Util {
     public static int convertToCommonAddress(int byte1, int byte2) {
         return byte1 + (byte2 << 8);
     }
-
 }

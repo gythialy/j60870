@@ -18,7 +18,5 @@
  * along with j60870.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-/**
- * This package contains all information elements.
- */
+/** This package contains all information elements. */
 package org.openmuc.j60870.ie;

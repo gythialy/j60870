@@ -23,15 +23,18 @@ package org.openmuc.j60870.ie;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-/**
- * Represents a single event of protection equipment (SEP) information element.
- */
+/** Represents a single event of protection equipment (SEP) information element. */
 public class IeSingleProtectionEvent extends InformationElement {
 
     private int value;
 
-    public IeSingleProtectionEvent(EventState eventState, boolean elapsedTimeInvalid, boolean blocked,
-                                   boolean substituted, boolean notTopical, boolean eventInvalid) {
+    public IeSingleProtectionEvent(
+            EventState eventState,
+            boolean elapsedTimeInvalid,
+            boolean blocked,
+            boolean substituted,
+            boolean notTopical,
+            boolean eventInvalid) {
 
         value = 0;
 
@@ -106,8 +109,15 @@ public class IeSingleProtectionEvent extends InformationElement {
 
     @Override
     public String toString() {
-        return "Single protection event, elapsed time invalid: " + isElapsedTimeInvalid() + ", blocked: " + isBlocked()
-                + ", substituted: " + isSubstituted() + ", not topical: " + isNotTopical() + ", event invalid: "
+        return "Single protection event, elapsed time invalid: "
+                + isElapsedTimeInvalid()
+                + ", blocked: "
+                + isBlocked()
+                + ", substituted: "
+                + isSubstituted()
+                + ", not topical: "
+                + isNotTopical()
+                + ", event invalid: "
                 + isEventInvalid();
     }
 
@@ -116,5 +126,4 @@ public class IeSingleProtectionEvent extends InformationElement {
         OFF,
         ON;
     }
-
 }

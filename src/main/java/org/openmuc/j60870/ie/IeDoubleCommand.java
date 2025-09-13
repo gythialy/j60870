@@ -25,17 +25,15 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Represents a double command (DCO) information element.
- */
+/** Represents a double command (DCO) information element. */
 public class IeDoubleCommand extends IeAbstractQualifierOfCommand {
 
     /**
      * Create the Double Command Information Element.
      *
      * @param commandState the command state
-     * @param qualifier    the qualifier
-     * @param select       true if select, false if execute
+     * @param qualifier the qualifier
+     * @param select true if select, false if execute
      */
     public IeDoubleCommand(DoubleCommandState commandState, int qualifier, boolean select) {
         super(qualifier, select);
@@ -79,8 +77,8 @@ public class IeDoubleCommand extends IeAbstractQualifierOfCommand {
         }
 
         /**
-         * Returns the DoubleCommandState that corresponds to the given ID. Returns <code>null</code> if no
-         * DoubleCommandState with the given ID exists.
+         * Returns the DoubleCommandState that corresponds to the given ID. Returns <code>null</code> if
+         * no DoubleCommandState with the given ID exists.
          *
          * @param id the ID
          * @return the DoubleCommandState that corresponds to the given ID
@@ -97,7 +95,5 @@ public class IeDoubleCommand extends IeAbstractQualifierOfCommand {
         public int getId() {
             return id;
         }
-
     }
-
 }

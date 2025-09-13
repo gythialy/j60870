@@ -20,11 +20,6 @@
  */
 package org.openmuc.j60870;
 
-import org.openmuc.j60870.APdu.ApciType;
-import org.openmuc.j60870.ie.*;
-import org.openmuc.j60870.internal.ExtendedDataInputStream;
-import org.openmuc.j60870.internal.SerialExecutor;
-
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -35,30 +30,34 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import org.openmuc.j60870.APdu.ApciType;
+import org.openmuc.j60870.ie.*;
+import org.openmuc.j60870.internal.ExtendedDataInputStream;
+import org.openmuc.j60870.internal.SerialExecutor;
 
 /**
- * Represents an open connection to a specific 60870 server. It is created either through an instance of
- * {@link ClientConnectionBuilder} or passed to {@link ServerEventListener}. Once it has been closed it cannot be opened
- * again. A newly created connection has successfully build up a TCP/IP connection to the server. Before receiving ASDUs
- * or sending commands one has to call {@link Connection#startDataTransfer()}. Afterwards incoming ASDUs are forwarded
- * to the {@link ConnectionEventListener}. Incoming ASDUs are queued so that
- * {@link ConnectionEventListener#newASdu(Connection connection, ASdu)} is never called simultaneously for the same
- * connection.
+ * Represents an open connection to a specific 60870 server. It is created either through an
+ * instance of {@link ClientConnectionBuilder} or passed to {@link ServerEventListener}. Once it has
+ * been closed it cannot be opened again. A newly created connection has successfully build up a
+ * TCP/IP connection to the server. Before receiving ASDUs or sending commands one has to call
+ * {@link Connection#startDataTransfer()}. Afterwards incoming ASDUs are forwarded to the {@link
+ * ConnectionEventListener}. Incoming ASDUs are queued so that {@link
+ * ConnectionEventListener#newASdu(Connection connection, ASdu)} is never called simultaneously for
+ * the same connection.
  *
- * <p>
- * Connection offers a method for every possible command defined by IEC 60870 (e.g. singleCommand). Every command
- * function may throw an IOException indicating a fatal connection error. In this case the connection will be
- * automatically closed and a new connection will have to be built up. The command methods do not wait for an
- * acknowledgment but return right after the command has been sent.
- * </p>
+ * <p>Connection offers a method for every possible command defined by IEC 60870 (e.g.
+ * singleCommand). Every command function may throw an IOException indicating a fatal connection
+ * error. In this case the connection will be automatically closed and a new connection will have to
+ * be built up. The command methods do not wait for an acknowledgment but return right after the
+ * command has been sent.
  */
 public class Connection implements AutoCloseable {
-    private static final byte[] TESTFR_CON_BUFFER = new byte[]{0x68, 0x04, (byte) 0x83, 0x00, 0x00, 0x00};
-    private static final byte[] TESTFR_ACT_BUFFER = new byte[]{0x68, 0x04, (byte) 0x43, 0x00, 0x00, 0x00};
-    private static final byte[] STARTDT_ACT_BUFFER = new byte[]{0x68, 0x04, 0x07, 0x00, 0x00, 0x00};
-    private static final byte[] STARTDT_CON_BUFFER = new byte[]{0x68, 0x04, 0x0b, 0x00, 0x00, 0x00};
-    private static final byte[] STOPDT_ACT_BUFFER = new byte[]{0x68, 0x04, 0x13, 0x00, 0x00, 0x00};
-    private static final byte[] STOPDT_CON_BUFFER = new byte[]{0x68, 0x04, 0x23, 0x00, 0x00, 0x00};
+    private static final byte[] TESTFR_CON_BUFFER = new byte[] {0x68, 0x04, (byte) 0x83, 0x00, 0x00, 0x00};
+    private static final byte[] TESTFR_ACT_BUFFER = new byte[] {0x68, 0x04, (byte) 0x43, 0x00, 0x00, 0x00};
+    private static final byte[] STARTDT_ACT_BUFFER = new byte[] {0x68, 0x04, 0x07, 0x00, 0x00, 0x00};
+    private static final byte[] STARTDT_CON_BUFFER = new byte[] {0x68, 0x04, 0x0b, 0x00, 0x00, 0x00};
+    private static final byte[] STOPDT_ACT_BUFFER = new byte[] {0x68, 0x04, 0x13, 0x00, 0x00, 0x00};
+    private static final byte[] STOPDT_CON_BUFFER = new byte[] {0x68, 0x04, 0x23, 0x00, 0x00, 0x00};
 
     private final Socket socket;
     private final ExtendedDataInputStream is;
@@ -218,7 +217,6 @@ public class Connection implements AutoCloseable {
                 || (maxTimeNoAckSentTimer.isPlanned() && numUnconfirmedIPdusReceived == 1)) {
             timeoutManager.addTimerTask(maxTimeNoAckSentTimer);
         }
-
     }
 
     private void mirrorUnknownAsduType(APdu aPdu) throws IOException {
@@ -246,8 +244,8 @@ public class Connection implements AutoCloseable {
 
     private void verifySeqNumber(int sendSeqNumber) throws IOException {
         if (receiveSequenceNumber != sendSeqNumber) {
-            String msg = MessageFormat.format("Got unexpected send sequence number: {0}, expected: {1}.", sendSeqNumber,
-                    receiveSequenceNumber);
+            String msg = MessageFormat.format(
+                    "Got unexpected send sequence number: {0}, expected: {1}.", sendSeqNumber, receiveSequenceNumber);
             throw new IOException(msg);
         }
     }
@@ -297,9 +295,10 @@ public class Connection implements AutoCloseable {
     }
 
     /**
-     * Stops the data transfer. First sends S-Format to confirm unconfirmed I-Format messages, then sends a STOPDT act
-     * and waits for a STOPDT con. If successful the data transfer stops and releases the ASduListener. If no STOPDT con
-     * could be received, while t1, the connection will be closed.
+     * Stops the data transfer. First sends S-Format to confirm unconfirmed I-Format messages, then
+     * sends a STOPDT act and waits for a STOPDT con. If successful the data transfer stops and
+     * releases the ASduListener. If no STOPDT con could be received, while t1, the connection will be
+     * closed.
      */
     public void stopDataTransfer() throws IOException {
 
@@ -348,8 +347,8 @@ public class Connection implements AutoCloseable {
     }
 
     /**
-     * Starts a connection. Sends a STARTDT act and waits for a STARTDT con. If successful a new thread will be started
-     * that listens for incoming ASDUs and notifies the given ASduListener.
+     * Starts a connection. Sends a STARTDT act and waits for a STARTDT con. If successful a new
+     * thread will be started that listens for incoming ASDUs and notifies the given ASduListener.
      *
      * @throws IOException if any kind of IOException occurs.
      */
@@ -400,10 +399,11 @@ public class Connection implements AutoCloseable {
     }
 
     /**
-     * Set the Originator Address. It is the address of controlling station (client) so that responses can be routed
-     * back to it. Originator addresses from 1 to 255 are used to address a particular controlling station. Address 0 is
-     * the default and is used if responses are to be routed to all controlling stations in the system. Note that the
-     * same Originator Address is sent in a command and its confirmation.
+     * Set the Originator Address. It is the address of controlling station (client) so that responses
+     * can be routed back to it. Originator addresses from 1 to 255 are used to address a particular
+     * controlling station. Address 0 is the default and is used if responses are to be routed to all
+     * controlling stations in the system. Note that the same Originator Address is sent in a command
+     * and its confirmation.
      *
      * @param originatorAddress the Originator Address. Valid values are 0...255.
      */
@@ -420,9 +420,7 @@ public class Connection implements AutoCloseable {
         }
     }
 
-    /**
-     * Will close the TCP connection if it's still open and free any resources of this connection.
-     */
+    /** Will close the TCP connection if it's still open and free any resources of this connection. */
     @Override
     public synchronized void close() {
         if (closed) {
@@ -535,10 +533,10 @@ public class Connection implements AutoCloseable {
     }
 
     /**
-     * Send response with given aSdu. Given station address is used as Common ASDU Address, if we response to broadcast
-     * else given Common ASDU Address of aSdu.
+     * Send response with given aSdu. Given station address is used as Common ASDU Address, if we
+     * response to broadcast else given Common ASDU Address of aSdu.
      *
-     * @param aSdu           ASDU which response to
+     * @param aSdu ASDU which response to
      * @param stationAddress address of this station
      * @throws IOException if a fatal communication error occurred.
      */
@@ -547,11 +545,11 @@ public class Connection implements AutoCloseable {
     }
 
     /**
-     * Send response with given aSdu. Given station address is used as Common ASDU Address, if we response to broadcast
-     * else given Common ASDU Address of aSdu.
+     * Send response with given aSdu. Given station address is used as Common ASDU Address, if we
+     * response to broadcast else given Common ASDU Address of aSdu.
      *
-     * @param aSdu              ASDU which response to
-     * @param stationAddress    address of this station
+     * @param aSdu ASDU which response to
+     * @param stationAddress address of this station
      * @param isNegativeConfirm true if it is a negative confirmation
      * @throws IOException if a fatal communication error occurred.
      */
@@ -561,15 +559,15 @@ public class Connection implements AutoCloseable {
     }
 
     /**
-     * Send response with given aSdu. Given station address is used as Common ASDU Address, if we response to broadcast
-     * else given Common ASDU Address of aSdu.
+     * Send response with given aSdu. Given station address is used as Common ASDU Address, if we
+     * response to broadcast else given Common ASDU Address of aSdu.
      *
-     * @param aSdu              ASDU which response to
-     * @param stationAddress    address of this station
+     * @param aSdu ASDU which response to
+     * @param stationAddress address of this station
      * @param isNegativeConfirm true if it is a negative confirmation
-     * @param cot               Cause of transmission, for e.g. negative confirm UNKNOWN_TYPE_ID(44),
-     *                          UNKNOWN_CAUSE_OF_TRANSMISSION(45), UNKNOWN_COMMON_ADDRESS_OF_ASDU(46) and
-     *                          UNKNOWN_INFORMATION_OBJECT_ADDRESS(47)
+     * @param cot Cause of transmission, for e.g. negative confirm UNKNOWN_TYPE_ID(44),
+     *     UNKNOWN_CAUSE_OF_TRANSMISSION(45), UNKNOWN_COMMON_ADDRESS_OF_ASDU(46) and
+     *     UNKNOWN_INFORMATION_OBJECT_ADDRESS(47)
      * @throws IOException if a fatal communication error occurred.
      */
     public void sendConfirmation(ASdu aSdu, int stationAddress, boolean isNegativeConfirm, CauseOfTransmission cot)
@@ -578,10 +576,10 @@ public class Connection implements AutoCloseable {
     }
 
     /**
-     * Send activation termination with given aSdu. Given station address is used as Common ASDU Address, if we response
-     * to broadcast else given Common ASDU Address of aSdu.
+     * Send activation termination with given aSdu. Given station address is used as Common ASDU
+     * Address, if we response to broadcast else given Common ASDU Address of aSdu.
      *
-     * @param aSdu           ASDU which response to
+     * @param aSdu ASDU which response to
      * @param stationAddress address of this station
      * @throws IOException if a fatal communication error occurred.
      */
@@ -590,7 +588,8 @@ public class Connection implements AutoCloseable {
     }
 
     /**
-     * Send activation termination with given aSdu. Common ASDU address of given ASDU is used as station address.
+     * Send activation termination with given aSdu. Common ASDU address of given ASDU is used as
+     * station address.
      *
      * @param aSdu ASDU which response to
      * @throws IOException if a fatal communication error occurred.
@@ -605,8 +604,15 @@ public class Connection implements AutoCloseable {
 
         commonAddress = setCommonAddress(stationAddress, commonAddress);
 
-        send(new ASdu(aSdu.getTypeIdentification(), aSdu.isSequenceOfElements(), cot, aSdu.isTestFrame(),
-                isNegativeConfirm, aSdu.getOriginatorAddress(), commonAddress, aSdu.getInformationObjects()));
+        send(new ASdu(
+                aSdu.getTypeIdentification(),
+                aSdu.isSequenceOfElements(),
+                cot,
+                aSdu.isTestFrame(),
+                isNegativeConfirm,
+                aSdu.getOriginatorAddress(),
+                commonAddress,
+                aSdu.getInformationObjects()));
     }
 
     private int setCommonAddress(int stationAddress, int commonAddress) {
@@ -637,15 +643,24 @@ public class Connection implements AutoCloseable {
     /**
      * Sends a single command (C_SC_NA_1, TI: 45).
      *
-     * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
-     * @param cot                      the cause of transmission. Allowed are activation and deactivation.
+     * @param commonAddress the Common ASDU Address. Valid value are 1...255 or 1...65535 for field
+     *     lengths 1 or 2 respectively.
+     * @param cot the cause of transmission. Allowed are activation and deactivation.
      * @param informationObjectAddress the information object address.
-     * @param singleCommand            the command to be sent.
+     * @param singleCommand the command to be sent.
      * @throws IOException if a fatal communication error occurred.
      */
-    public void singleCommand(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
-                              IeSingleCommand singleCommand) throws IOException {
-        ASdu aSdu = new ASdu(ASduType.C_SC_NA_1, false, cot, false, false, originatorAddress, commonAddress,
+    public void singleCommand(
+            int commonAddress, CauseOfTransmission cot, int informationObjectAddress, IeSingleCommand singleCommand)
+            throws IOException {
+        ASdu aSdu = new ASdu(
+                ASduType.C_SC_NA_1,
+                false,
+                cot,
+                false,
+                false,
+                originatorAddress,
+                commonAddress,
                 new InformationObject(informationObjectAddress, singleCommand));
         send(aSdu);
     }
@@ -653,17 +668,30 @@ public class Connection implements AutoCloseable {
     /**
      * Sends a single command with time tag CP56Time2a (C_SC_TA_1, TI: 58).
      *
-     * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
-     * @param cot                      the cause of transmission. Allowed are activation and deactivation.
+     * @param commonAddress the Common ASDU Address. Valid value are 1...255 or 1...65535 for field
+     *     lengths 1 or 2 respectively.
+     * @param cot the cause of transmission. Allowed are activation and deactivation.
      * @param informationObjectAddress the information object address.
-     * @param singleCommand            the command to be sent.
-     * @param timeTag                  the time tag to be sent.
+     * @param singleCommand the command to be sent.
+     * @param timeTag the time tag to be sent.
      * @throws IOException if a fatal communication error occurred.
      */
-    public void singleCommandWithTimeTag(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
-                                         IeSingleCommand singleCommand, IeTime56 timeTag) throws IOException {
+    public void singleCommandWithTimeTag(
+            int commonAddress,
+            CauseOfTransmission cot,
+            int informationObjectAddress,
+            IeSingleCommand singleCommand,
+            IeTime56 timeTag)
+            throws IOException {
 
-        ASdu aSdu = new ASdu(ASduType.C_SC_TA_1, false, cot, false, false, originatorAddress, commonAddress,
+        ASdu aSdu = new ASdu(
+                ASduType.C_SC_TA_1,
+                false,
+                cot,
+                false,
+                false,
+                originatorAddress,
+                commonAddress,
                 new InformationObject(informationObjectAddress, singleCommand, timeTag));
         send(aSdu);
     }
@@ -671,16 +699,25 @@ public class Connection implements AutoCloseable {
     /**
      * Sends a double command (C_DC_NA_1, TI: 46).
      *
-     * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
-     * @param cot                      the cause of transmission. Allowed are activation and deactivation.
+     * @param commonAddress the Common ASDU Address. Valid value are 1...255 or 1...65535 for field
+     *     lengths 1 or 2 respectively.
+     * @param cot the cause of transmission. Allowed are activation and deactivation.
      * @param informationObjectAddress the information object address.
-     * @param doubleCommand            the command to be sent.
+     * @param doubleCommand the command to be sent.
      * @throws IOException if a fatal communication error occurred.
      */
-    public void doubleCommand(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
-                              IeDoubleCommand doubleCommand) throws IOException {
+    public void doubleCommand(
+            int commonAddress, CauseOfTransmission cot, int informationObjectAddress, IeDoubleCommand doubleCommand)
+            throws IOException {
 
-        ASdu aSdu = new ASdu(ASduType.C_DC_NA_1, false, cot, false, false, originatorAddress, commonAddress,
+        ASdu aSdu = new ASdu(
+                ASduType.C_DC_NA_1,
+                false,
+                cot,
+                false,
+                false,
+                originatorAddress,
+                commonAddress,
                 new InformationObject(informationObjectAddress, doubleCommand));
         send(aSdu);
     }
@@ -688,17 +725,30 @@ public class Connection implements AutoCloseable {
     /**
      * Sends a double command with time tag CP56Time2a (C_DC_TA_1, TI: 59).
      *
-     * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
-     * @param cot                      the cause of transmission. Allowed are activation and deactivation.
+     * @param commonAddress the Common ASDU Address. Valid value are 1...255 or 1...65535 for field
+     *     lengths 1 or 2 respectively.
+     * @param cot the cause of transmission. Allowed are activation and deactivation.
      * @param informationObjectAddress the information object address.
-     * @param doubleCommand            the command to be sent.
-     * @param timeTag                  the time tag to be sent.
+     * @param doubleCommand the command to be sent.
+     * @param timeTag the time tag to be sent.
      * @throws IOException if a fatal communication error occurred.
      */
-    public void doubleCommandWithTimeTag(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
-                                         IeDoubleCommand doubleCommand, IeTime56 timeTag) throws IOException {
+    public void doubleCommandWithTimeTag(
+            int commonAddress,
+            CauseOfTransmission cot,
+            int informationObjectAddress,
+            IeDoubleCommand doubleCommand,
+            IeTime56 timeTag)
+            throws IOException {
 
-        ASdu aSdu = new ASdu(ASduType.C_DC_TA_1, false, cot, false, false, originatorAddress, commonAddress,
+        ASdu aSdu = new ASdu(
+                ASduType.C_DC_TA_1,
+                false,
+                cot,
+                false,
+                false,
+                originatorAddress,
+                commonAddress,
                 new InformationObject(informationObjectAddress, doubleCommand, timeTag));
         send(aSdu);
     }
@@ -706,16 +756,28 @@ public class Connection implements AutoCloseable {
     /**
      * Sends a regulating step command (C_RC_NA_1, TI: 47).
      *
-     * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
-     * @param cot                      the cause of transmission. Allowed are activation and deactivation.
+     * @param commonAddress the Common ASDU Address. Valid value are 1...255 or 1...65535 for field
+     *     lengths 1 or 2 respectively.
+     * @param cot the cause of transmission. Allowed are activation and deactivation.
      * @param informationObjectAddress the information object address.
-     * @param regulatingStepCommand    the command to be sent.
+     * @param regulatingStepCommand the command to be sent.
      * @throws IOException if a fatal communication error occurred.
      */
-    public void regulatingStepCommand(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
-                                      IeRegulatingStepCommand regulatingStepCommand) throws IOException {
+    public void regulatingStepCommand(
+            int commonAddress,
+            CauseOfTransmission cot,
+            int informationObjectAddress,
+            IeRegulatingStepCommand regulatingStepCommand)
+            throws IOException {
 
-        ASdu aSdu = new ASdu(ASduType.C_RC_NA_1, false, cot, false, false, originatorAddress, commonAddress,
+        ASdu aSdu = new ASdu(
+                ASduType.C_RC_NA_1,
+                false,
+                cot,
+                false,
+                false,
+                originatorAddress,
+                commonAddress,
                 new InformationObject(informationObjectAddress, regulatingStepCommand));
         send(aSdu);
     }
@@ -723,18 +785,30 @@ public class Connection implements AutoCloseable {
     /**
      * Sends a regulating step command with time tag CP56Time2a (C_RC_TA_1, TI: 60).
      *
-     * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
-     * @param cot                      the cause of transmission. Allowed are activation and deactivation.
+     * @param commonAddress the Common ASDU Address. Valid value are 1...255 or 1...65535 for field
+     *     lengths 1 or 2 respectively.
+     * @param cot the cause of transmission. Allowed are activation and deactivation.
      * @param informationObjectAddress the information object address.
-     * @param regulatingStepCommand    the command to be sent.
-     * @param timeTag                  the time tag to be sent.
+     * @param regulatingStepCommand the command to be sent.
+     * @param timeTag the time tag to be sent.
      * @throws IOException if a fatal communication error occurred.
      */
-    public void regulatingStepCommandWithTimeTag(int commonAddress, CauseOfTransmission cot,
-                                                 int informationObjectAddress, IeRegulatingStepCommand regulatingStepCommand, IeTime56 timeTag)
+    public void regulatingStepCommandWithTimeTag(
+            int commonAddress,
+            CauseOfTransmission cot,
+            int informationObjectAddress,
+            IeRegulatingStepCommand regulatingStepCommand,
+            IeTime56 timeTag)
             throws IOException {
 
-        ASdu aSdu = new ASdu(ASduType.C_RC_TA_1, false, cot, false, false, originatorAddress, commonAddress,
+        ASdu aSdu = new ASdu(
+                ASduType.C_RC_TA_1,
+                false,
+                cot,
+                false,
+                false,
+                originatorAddress,
+                commonAddress,
                 new InformationObject(informationObjectAddress, regulatingStepCommand, timeTag));
         send(aSdu);
     }
@@ -742,17 +816,30 @@ public class Connection implements AutoCloseable {
     /**
      * Sends a set-point command, normalized value (C_SE_NA_1, TI: 48).
      *
-     * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
-     * @param cot                      the cause of transmission. Allowed are activation and deactivation.
+     * @param commonAddress the Common ASDU Address. Valid value are 1...255 or 1...65535 for field
+     *     lengths 1 or 2 respectively.
+     * @param cot the cause of transmission. Allowed are activation and deactivation.
      * @param informationObjectAddress the information object address.
-     * @param normalizedValue          the value to be sent.
-     * @param qualifier                the qualifier to be sent.
+     * @param normalizedValue the value to be sent.
+     * @param qualifier the qualifier to be sent.
      * @throws IOException if a fatal communication error occurred.
      */
-    public void setNormalizedValueCommand(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
-                                          IeNormalizedValue normalizedValue, IeQualifierOfSetPointCommand qualifier) throws IOException {
+    public void setNormalizedValueCommand(
+            int commonAddress,
+            CauseOfTransmission cot,
+            int informationObjectAddress,
+            IeNormalizedValue normalizedValue,
+            IeQualifierOfSetPointCommand qualifier)
+            throws IOException {
 
-        ASdu aSdu = new ASdu(ASduType.C_SE_NA_1, false, cot, false, false, originatorAddress, commonAddress,
+        ASdu aSdu = new ASdu(
+                ASduType.C_SE_NA_1,
+                false,
+                cot,
+                false,
+                false,
+                originatorAddress,
+                commonAddress,
                 new InformationObject(informationObjectAddress, normalizedValue, qualifier));
 
         send(aSdu);
@@ -761,19 +848,32 @@ public class Connection implements AutoCloseable {
     /**
      * Sends a set-point command with time tag CP56Time2a, normalized value (C_SE_TA_1, TI: 61).
      *
-     * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
-     * @param cot                      the cause of transmission. Allowed are activation and deactivation.
+     * @param commonAddress the Common ASDU Address. Valid value are 1...255 or 1...65535 for field
+     *     lengths 1 or 2 respectively.
+     * @param cot the cause of transmission. Allowed are activation and deactivation.
      * @param informationObjectAddress the information object address.
-     * @param normalizedValue          the value to be sent.
-     * @param qualifier                the qualifier to be sent.executor
-     * @param timeTag                  the time tag to be sent.
+     * @param normalizedValue the value to be sent.
+     * @param qualifier the qualifier to be sent.executor
+     * @param timeTag the time tag to be sent.
      * @throws IOException if a fatal communication error occurred.
      */
-    public void setNormalizedValueCommandWithTimeTag(int commonAddress, CauseOfTransmission cot,
-                                                     int informationObjectAddress, IeNormalizedValue normalizedValue, IeQualifierOfSetPointCommand qualifier,
-                                                     IeTime56 timeTag) throws IOException {
+    public void setNormalizedValueCommandWithTimeTag(
+            int commonAddress,
+            CauseOfTransmission cot,
+            int informationObjectAddress,
+            IeNormalizedValue normalizedValue,
+            IeQualifierOfSetPointCommand qualifier,
+            IeTime56 timeTag)
+            throws IOException {
 
-        ASdu aSdu = new ASdu(ASduType.C_SE_TA_1, false, cot, false, false, originatorAddress, commonAddress,
+        ASdu aSdu = new ASdu(
+                ASduType.C_SE_TA_1,
+                false,
+                cot,
+                false,
+                false,
+                originatorAddress,
+                commonAddress,
                 new InformationObject(informationObjectAddress, normalizedValue, qualifier, timeTag));
 
         send(aSdu);
@@ -782,18 +882,31 @@ public class Connection implements AutoCloseable {
     /**
      * Sends a set-point command, scaled value (C_SE_NB_1, TI: 49).
      *
-     * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
-     * @param cot                      the cause of transmission. Allowed are activation and deactivation.
+     * @param commonAddress the Common ASDU Address. Valid value are 1...255 or 1...65535 for field
+     *     lengths 1 or 2 respectively.
+     * @param cot the cause of transmission. Allowed are activation and deactivation.
      * @param informationObjectAddress the information object address.
-     * @param scaledValue              the value to be sent.
-     * @param qualifier                the qualifier to be sent.
+     * @param scaledValue the value to be sent.
+     * @param qualifier the qualifier to be sent.
      * @throws IOException if a fatal communication error occurred.
      */
-    public void setScaledValueCommand(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
-                                      IeScaledValue scaledValue, IeQualifierOfSetPointCommand qualifier) throws IOException {
+    public void setScaledValueCommand(
+            int commonAddress,
+            CauseOfTransmission cot,
+            int informationObjectAddress,
+            IeScaledValue scaledValue,
+            IeQualifierOfSetPointCommand qualifier)
+            throws IOException {
 
         ASduType typeId = ASduType.C_SE_NB_1;
-        ASdu aSdu = new ASdu(typeId, false, cot, false, false, originatorAddress, commonAddress,
+        ASdu aSdu = new ASdu(
+                typeId,
+                false,
+                cot,
+                false,
+                false,
+                originatorAddress,
+                commonAddress,
                 new InformationObject(informationObjectAddress, scaledValue, qualifier));
         send(aSdu);
     }
@@ -801,19 +914,32 @@ public class Connection implements AutoCloseable {
     /**
      * Sends a set-point command with time tag CP56Time2a, scaled value (C_SE_TB_1, TI: 62).
      *
-     * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
-     * @param cot                      the cause of transmission. Allowed are activation and deactivation.
+     * @param commonAddress the Common ASDU Address. Valid value are 1...255 or 1...65535 for field
+     *     lengths 1 or 2 respectively.
+     * @param cot the cause of transmission. Allowed are activation and deactivation.
      * @param informationObjectAddress the information object address.
-     * @param scaledValue              the value to be sent.
-     * @param qualifier                the qualifier to be sent.
-     * @param timeTag                  the time tag to be sent.
+     * @param scaledValue the value to be sent.
+     * @param qualifier the qualifier to be sent.
+     * @param timeTag the time tag to be sent.
      * @throws IOException if a fatal communication error occurred.
      */
-    public void setScaledValueCommandWithTimeTag(int commonAddress, CauseOfTransmission cot,
-                                                 int informationObjectAddress, IeScaledValue scaledValue, IeQualifierOfSetPointCommand qualifier,
-                                                 IeTime56 timeTag) throws IOException {
+    public void setScaledValueCommandWithTimeTag(
+            int commonAddress,
+            CauseOfTransmission cot,
+            int informationObjectAddress,
+            IeScaledValue scaledValue,
+            IeQualifierOfSetPointCommand qualifier,
+            IeTime56 timeTag)
+            throws IOException {
 
-        ASdu aSdu = new ASdu(ASduType.C_SE_TB_1, false, cot, false, false, originatorAddress, commonAddress,
+        ASdu aSdu = new ASdu(
+                ASduType.C_SE_TB_1,
+                false,
+                cot,
+                false,
+                false,
+                originatorAddress,
+                commonAddress,
                 new InformationObject(informationObjectAddress, scaledValue, qualifier, timeTag));
         send(aSdu);
     }
@@ -821,37 +947,64 @@ public class Connection implements AutoCloseable {
     /**
      * Sends a set-point command, short floating point number (C_SE_NC_1, TI: 50).
      *
-     * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
-     * @param cot                      the cause of transmission. Allowed are activation and deactivation.
+     * @param commonAddress the Common ASDU Address. Valid value are 1...255 or 1...65535 for field
+     *     lengths 1 or 2 respectively.
+     * @param cot the cause of transmission. Allowed are activation and deactivation.
      * @param informationObjectAddress the information object address.
-     * @param floatVal                 the value to be sent.
-     * @param qualifier                the qualifier to be sent.
+     * @param floatVal the value to be sent.
+     * @param qualifier the qualifier to be sent.
      * @throws IOException if a fatal communication error occurred.
      */
-    public void setShortFloatCommand(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
-                                     IeShortFloat floatVal, IeQualifierOfSetPointCommand qualifier) throws IOException {
+    public void setShortFloatCommand(
+            int commonAddress,
+            CauseOfTransmission cot,
+            int informationObjectAddress,
+            IeShortFloat floatVal,
+            IeQualifierOfSetPointCommand qualifier)
+            throws IOException {
 
-        ASdu aSdu = new ASdu(ASduType.C_SE_NC_1, false, cot, false, false, originatorAddress, commonAddress,
+        ASdu aSdu = new ASdu(
+                ASduType.C_SE_NC_1,
+                false,
+                cot,
+                false,
+                false,
+                originatorAddress,
+                commonAddress,
                 new InformationObject(informationObjectAddress, floatVal, qualifier));
         send(aSdu);
     }
 
     /**
-     * Sends a set-point command with time tag CP56Time2a, short floating point number (C_SE_TC_1, TI: 63).
+     * Sends a set-point command with time tag CP56Time2a, short floating point number (C_SE_TC_1, TI:
+     * 63).
      *
-     * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
-     * @param cot                      the cause of transmission. Allowed are activation and deactivation.
+     * @param commonAddress the Common ASDU Address. Valid value are 1...255 or 1...65535 for field
+     *     lengths 1 or 2 respectively.
+     * @param cot the cause of transmission. Allowed are activation and deactivation.
      * @param informationObjectAddress the information object address.
-     * @param shortFloat               the value to be sent.
-     * @param qualifier                the qualifier to be sent.
-     * @param timeTag                  the time tag to be sent.
+     * @param shortFloat the value to be sent.
+     * @param qualifier the qualifier to be sent.
+     * @param timeTag the time tag to be sent.
      * @throws IOException if a fatal communication error occurred.
      */
-    public void setShortFloatCommandWithTimeTag(int commonAddress, CauseOfTransmission cot,
-                                                int informationObjectAddress, IeShortFloat shortFloat, IeQualifierOfSetPointCommand qualifier,
-                                                IeTime56 timeTag) throws IOException {
+    public void setShortFloatCommandWithTimeTag(
+            int commonAddress,
+            CauseOfTransmission cot,
+            int informationObjectAddress,
+            IeShortFloat shortFloat,
+            IeQualifierOfSetPointCommand qualifier,
+            IeTime56 timeTag)
+            throws IOException {
 
-        ASdu aSdu = new ASdu(ASduType.C_SE_TC_1, false, cot, false, false, originatorAddress, commonAddress,
+        ASdu aSdu = new ASdu(
+                ASduType.C_SE_TC_1,
+                false,
+                cot,
+                false,
+                false,
+                originatorAddress,
+                commonAddress,
                 new InformationObject(informationObjectAddress, shortFloat, qualifier, timeTag));
 
         send(aSdu);
@@ -860,16 +1013,28 @@ public class Connection implements AutoCloseable {
     /**
      * Sends a bitstring of 32 bit (C_BO_NA_1, TI: 51).
      *
-     * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
-     * @param cot                      the cause of transmission. Allowed are activation and deactivation.
+     * @param commonAddress the Common ASDU Address. Valid value are 1...255 or 1...65535 for field
+     *     lengths 1 or 2 respectively.
+     * @param cot the cause of transmission. Allowed are activation and deactivation.
      * @param informationObjectAddress the information object address.
-     * @param binaryStateInformation   the value to be sent.
+     * @param binaryStateInformation the value to be sent.
      * @throws IOException if a fatal communication error occurred.
      */
-    public void bitStringCommand(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
-                                 IeBinaryStateInformation binaryStateInformation) throws IOException {
+    public void bitStringCommand(
+            int commonAddress,
+            CauseOfTransmission cot,
+            int informationObjectAddress,
+            IeBinaryStateInformation binaryStateInformation)
+            throws IOException {
 
-        ASdu aSdu = new ASdu(ASduType.C_BO_NA_1, false, cot, false, false, originatorAddress, commonAddress,
+        ASdu aSdu = new ASdu(
+                ASduType.C_BO_NA_1,
+                false,
+                cot,
+                false,
+                false,
+                originatorAddress,
+                commonAddress,
                 new InformationObject(informationObjectAddress, binaryStateInformation));
         send(aSdu);
     }
@@ -877,17 +1042,30 @@ public class Connection implements AutoCloseable {
     /**
      * Sends a bitstring of 32 bit with time tag CP56Time2a (C_BO_TA_1, TI: 64).
      *
-     * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
-     * @param cot                      the cause of transmission. Allowed are activation and deactivation.
+     * @param commonAddress the Common ASDU Address. Valid value are 1...255 or 1...65535 for field
+     *     lengths 1 or 2 respectively.
+     * @param cot the cause of transmission. Allowed are activation and deactivation.
      * @param informationObjectAddress the information object address.
-     * @param binaryStateInformation   the value to be sent.
-     * @param timeTag                  the time tag to be sent.
+     * @param binaryStateInformation the value to be sent.
+     * @param timeTag the time tag to be sent.
      * @throws IOException if a fatal communication error occurred.
      */
-    public void bitStringCommandWithTimeTag(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
-                                            IeBinaryStateInformation binaryStateInformation, IeTime56 timeTag) throws IOException {
+    public void bitStringCommandWithTimeTag(
+            int commonAddress,
+            CauseOfTransmission cot,
+            int informationObjectAddress,
+            IeBinaryStateInformation binaryStateInformation,
+            IeTime56 timeTag)
+            throws IOException {
 
-        ASdu aSdu = new ASdu(ASduType.C_BO_TA_1, false, cot, false, false, originatorAddress, commonAddress,
+        ASdu aSdu = new ASdu(
+                ASduType.C_BO_TA_1,
+                false,
+                cot,
+                false,
+                false,
+                originatorAddress,
+                commonAddress,
                 new InformationObject(informationObjectAddress, binaryStateInformation, timeTag));
         send(aSdu);
     }
@@ -895,14 +1073,22 @@ public class Connection implements AutoCloseable {
     /**
      * Sends an interrogation command (C_IC_NA_1, TI: 100).
      *
-     * @param commonAddress the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
-     * @param cot           the cause of transmission. Allowed are activation and deactivation.
-     * @param qualifier     the qualifier to be sent.
+     * @param commonAddress the Common ASDU Address. Valid value are 1...255 or 1...65535 for field
+     *     lengths 1 or 2 respectively.
+     * @param cot the cause of transmission. Allowed are activation and deactivation.
+     * @param qualifier the qualifier to be sent.
      * @throws IOException if a fatal communication error occurred.
      */
     public void interrogation(int commonAddress, CauseOfTransmission cot, IeQualifierOfInterrogation qualifier)
             throws IOException {
-        ASdu aSdu = new ASdu(ASduType.C_IC_NA_1, false, cot, false, false, originatorAddress, commonAddress,
+        ASdu aSdu = new ASdu(
+                ASduType.C_IC_NA_1,
+                false,
+                cot,
+                false,
+                false,
+                originatorAddress,
+                commonAddress,
                 new InformationObject(0, qualifier));
 
         send(aSdu);
@@ -911,14 +1097,23 @@ public class Connection implements AutoCloseable {
     /**
      * Sends a counter interrogation command (C_CI_NA_1, TI: 101).
      *
-     * @param commonAddress the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
-     * @param cot           the cause of transmission. Allowed are activation and deactivation.
-     * @param qualifier     the qualifier to be sent.
+     * @param commonAddress the Common ASDU Address. Valid value are 1...255 or 1...65535 for field
+     *     lengths 1 or 2 respectively.
+     * @param cot the cause of transmission. Allowed are activation and deactivation.
+     * @param qualifier the qualifier to be sent.
      * @throws IOException if a fatal communication error occurred.
      */
-    public void counterInterrogation(int commonAddress, CauseOfTransmission cot,
-                                     IeQualifierOfCounterInterrogation qualifier) throws IOException {
-        ASdu aSdu = new ASdu(ASduType.C_CI_NA_1, false, cot, false, false, originatorAddress, commonAddress,
+    public void counterInterrogation(
+            int commonAddress, CauseOfTransmission cot, IeQualifierOfCounterInterrogation qualifier)
+            throws IOException {
+        ASdu aSdu = new ASdu(
+                ASduType.C_CI_NA_1,
+                false,
+                cot,
+                false,
+                false,
+                originatorAddress,
+                commonAddress,
                 new InformationObject(0, qualifier));
         send(aSdu);
     }
@@ -926,28 +1121,44 @@ public class Connection implements AutoCloseable {
     /**
      * Sends a read command (C_RD_NA_1, TI: 102).
      *
-     * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
+     * @param commonAddress the Common ASDU Address. Valid value are 1...255 or 1...65535 for field
+     *     lengths 1 or 2 respectively.
      * @param informationObjectAddress the information object address.
      * @throws IOException if a fatal communication error occurred.
      */
     public void readCommand(int commonAddress, int informationObjectAddress) throws IOException {
-        ASdu aSdu = new ASdu(ASduType.C_RD_NA_1, false, CauseOfTransmission.REQUEST, false, false, originatorAddress,
-                commonAddress, new InformationObject(informationObjectAddress));
+        ASdu aSdu = new ASdu(
+                ASduType.C_RD_NA_1,
+                false,
+                CauseOfTransmission.REQUEST,
+                false,
+                false,
+                originatorAddress,
+                commonAddress,
+                new InformationObject(informationObjectAddress));
         send(aSdu);
     }
 
     /**
      * Sends a clock synchronization command (C_CS_NA_1, TI: 103).
      *
-     * @param commonAddress the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
-     * @param time          the time to be sent.
+     * @param commonAddress the Common ASDU Address. Valid value are 1...255 or 1...65535 for field
+     *     lengths 1 or 2 respectively.
+     * @param time the time to be sent.
      * @throws IOException if a fatal communication error occurred.
      */
     public void synchronizeClocks(int commonAddress, IeTime56 time) throws IOException {
         InformationObject io = new InformationObject(0, time);
 
-        ASdu aSdu = new ASdu(ASduType.C_CS_NA_1, false, CauseOfTransmission.ACTIVATION, false, false, originatorAddress,
-                commonAddress, io);
+        ASdu aSdu = new ASdu(
+                ASduType.C_CS_NA_1,
+                false,
+                CauseOfTransmission.ACTIVATION,
+                false,
+                false,
+                originatorAddress,
+                commonAddress,
+                io);
 
         send(aSdu);
     }
@@ -955,12 +1166,20 @@ public class Connection implements AutoCloseable {
     /**
      * Sends a test command (C_TS_NA_1, TI: 104).
      *
-     * @param commonAddress the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
+     * @param commonAddress the Common ASDU Address. Valid value are 1...255 or 1...65535 for field
+     *     lengths 1 or 2 respectively.
      * @throws IOException if a fatal communication error occurred.
      */
     public void testCommand(int commonAddress) throws IOException {
-        ASdu aSdu = new ASdu(ASduType.C_TS_NA_1, false, CauseOfTransmission.ACTIVATION, false, false, originatorAddress,
-                commonAddress, new InformationObject(0, new IeFixedTestBitPattern()));
+        ASdu aSdu = new ASdu(
+                ASduType.C_TS_NA_1,
+                false,
+                CauseOfTransmission.ACTIVATION,
+                false,
+                false,
+                originatorAddress,
+                commonAddress,
+                new InformationObject(0, new IeFixedTestBitPattern()));
 
         send(aSdu);
     }
@@ -968,26 +1187,42 @@ public class Connection implements AutoCloseable {
     /**
      * Sends a reset process command (C_RP_NA_1, TI: 105).
      *
-     * @param commonAddress the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
-     * @param qualifier     the qualifier to be sent.
+     * @param commonAddress the Common ASDU Address. Valid value are 1...255 or 1...65535 for field
+     *     lengths 1 or 2 respectively.
+     * @param qualifier the qualifier to be sent.
      * @throws IOException if a fatal communication error occurred.
      */
     public void resetProcessCommand(int commonAddress, IeQualifierOfResetProcessCommand qualifier) throws IOException {
-        ASdu aSdu = new ASdu(ASduType.C_RP_NA_1, false, CauseOfTransmission.ACTIVATION, false, false, originatorAddress,
-                commonAddress, new InformationObject(0, qualifier));
+        ASdu aSdu = new ASdu(
+                ASduType.C_RP_NA_1,
+                false,
+                CauseOfTransmission.ACTIVATION,
+                false,
+                false,
+                originatorAddress,
+                commonAddress,
+                new InformationObject(0, qualifier));
         send(aSdu);
     }
 
     /**
      * Sends a delay acquisition command (C_CD_NA_1, TI: 106).
      *
-     * @param commonAddress the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
-     * @param cot           the cause of transmission. Allowed are activation and spontaneous.
-     * @param time          the time to be sent.
+     * @param commonAddress the Common ASDU Address. Valid value are 1...255 or 1...65535 for field
+     *     lengths 1 or 2 respectively.
+     * @param cot the cause of transmission. Allowed are activation and spontaneous.
+     * @param time the time to be sent.
      * @throws IOException if a fatal communication error occurred.
      */
     public void delayAcquisitionCommand(int commonAddress, CauseOfTransmission cot, IeTime16 time) throws IOException {
-        ASdu aSdu = new ASdu(ASduType.C_CD_NA_1, false, cot, false, false, originatorAddress, commonAddress,
+        ASdu aSdu = new ASdu(
+                ASduType.C_CD_NA_1,
+                false,
+                cot,
+                false,
+                false,
+                originatorAddress,
+                commonAddress,
                 new InformationObject(0, time));
         send(aSdu);
     }
@@ -995,149 +1230,291 @@ public class Connection implements AutoCloseable {
     /**
      * Sends a test command with time tag CP56Time2a (C_TS_TA_1, TI: 107).
      *
-     * @param commonAddress       the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
+     * @param commonAddress the Common ASDU Address. Valid value are 1...255 or 1...65535 for field
+     *     lengths 1 or 2 respectively.
      * @param testSequenceCounter the value to be sent.
-     * @param time                the time to be sent.
+     * @param time the time to be sent.
      * @throws IOException if a fatal communication error occurred.
      */
     public void testCommandWithTimeTag(int commonAddress, IeTestSequenceCounter testSequenceCounter, IeTime56 time)
             throws IOException {
-        ASdu aSdu = new ASdu(ASduType.C_TS_TA_1, false, CauseOfTransmission.ACTIVATION, false, false, originatorAddress,
-                commonAddress, new InformationObject(0, testSequenceCounter, time));
+        ASdu aSdu = new ASdu(
+                ASduType.C_TS_TA_1,
+                false,
+                CauseOfTransmission.ACTIVATION,
+                false,
+                false,
+                originatorAddress,
+                commonAddress,
+                new InformationObject(0, testSequenceCounter, time));
         send(aSdu);
     }
 
     /**
      * Sends a parameter of measured values, normalized value (P_ME_NA_1, TI: 110).
      *
-     * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
+     * @param commonAddress the Common ASDU Address. Valid value are 1...255 or 1...65535 for field
+     *     lengths 1 or 2 respectively.
      * @param informationObjectAddress the information object address.
-     * @param normalizedValue          the value to be sent.
-     * @param qualifier                the qualifier to be sent.
+     * @param normalizedValue the value to be sent.
+     * @param qualifier the qualifier to be sent.
      * @throws IOException if a fatal communication error occurred.
      */
-    public void parameterNormalizedValueCommand(int commonAddress, int informationObjectAddress,
-                                                IeNormalizedValue normalizedValue, IeQualifierOfParameterOfMeasuredValues qualifier) throws IOException {
-        ASdu aSdu = new ASdu(ASduType.P_ME_NA_1, false, CauseOfTransmission.ACTIVATION, false, false, originatorAddress,
-                commonAddress, new InformationObject(informationObjectAddress, normalizedValue, qualifier));
+    public void parameterNormalizedValueCommand(
+            int commonAddress,
+            int informationObjectAddress,
+            IeNormalizedValue normalizedValue,
+            IeQualifierOfParameterOfMeasuredValues qualifier)
+            throws IOException {
+        ASdu aSdu = new ASdu(
+                ASduType.P_ME_NA_1,
+                false,
+                CauseOfTransmission.ACTIVATION,
+                false,
+                false,
+                originatorAddress,
+                commonAddress,
+                new InformationObject(informationObjectAddress, normalizedValue, qualifier));
         send(aSdu);
     }
 
     /**
      * Sends a parameter of measured values, scaled value (P_ME_NB_1, TI: 111).
      *
-     * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
+     * @param commonAddress the Common ASDU Address. Valid value are 1...255 or 1...65535 for field
+     *     lengths 1 or 2 respectively.
      * @param informationObjectAddress the information object address.
-     * @param scaledValue              the value to be sent.
-     * @param qualifier                the qualifier to be sent.
+     * @param scaledValue the value to be sent.
+     * @param qualifier the qualifier to be sent.
      * @throws IOException if a fatal communication error occurred.
      */
-    public void parameterScaledValueCommand(int commonAddress, int informationObjectAddress, IeScaledValue scaledValue,
-                                            IeQualifierOfParameterOfMeasuredValues qualifier) throws IOException {
-        ASdu aSdu = new ASdu(ASduType.P_ME_NB_1, false, CauseOfTransmission.ACTIVATION, false, false, originatorAddress,
-                commonAddress, new InformationObject(informationObjectAddress, scaledValue, qualifier));
+    public void parameterScaledValueCommand(
+            int commonAddress,
+            int informationObjectAddress,
+            IeScaledValue scaledValue,
+            IeQualifierOfParameterOfMeasuredValues qualifier)
+            throws IOException {
+        ASdu aSdu = new ASdu(
+                ASduType.P_ME_NB_1,
+                false,
+                CauseOfTransmission.ACTIVATION,
+                false,
+                false,
+                originatorAddress,
+                commonAddress,
+                new InformationObject(informationObjectAddress, scaledValue, qualifier));
         send(aSdu);
     }
 
     /**
      * Sends a parameter of measured values, short floating point number (P_ME_NC_1, TI: 112).
      *
-     * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
+     * @param commonAddress the Common ASDU Address. Valid value are 1...255 or 1...65535 for field
+     *     lengths 1 or 2 respectively.
      * @param informationObjectAddress the information object address.
-     * @param shortFloat               the value to be sent.
-     * @param qualifier                the qualifier to be sent.
+     * @param shortFloat the value to be sent.
+     * @param qualifier the qualifier to be sent.
      * @throws IOException if a fatal communication error occurred.
      */
-    public void parameterShortFloatCommand(int commonAddress, int informationObjectAddress, IeShortFloat shortFloat,
-                                           IeQualifierOfParameterOfMeasuredValues qualifier) throws IOException {
-        ASdu aSdu = new ASdu(ASduType.P_ME_NC_1, false, CauseOfTransmission.ACTIVATION, false, false, originatorAddress,
-                commonAddress, new InformationObject(informationObjectAddress, shortFloat, qualifier));
+    public void parameterShortFloatCommand(
+            int commonAddress,
+            int informationObjectAddress,
+            IeShortFloat shortFloat,
+            IeQualifierOfParameterOfMeasuredValues qualifier)
+            throws IOException {
+        ASdu aSdu = new ASdu(
+                ASduType.P_ME_NC_1,
+                false,
+                CauseOfTransmission.ACTIVATION,
+                false,
+                false,
+                originatorAddress,
+                commonAddress,
+                new InformationObject(informationObjectAddress, shortFloat, qualifier));
         send(aSdu);
     }
 
     /**
      * Sends a parameter activation (P_AC_NA_1, TI: 113).
      *
-     * @param commonAddress            the Common ASDU Address. Valid value are 1...255 or 1...65535 for field lengths 1 or 2 respectively.
-     * @param cot                      the cause of transmission. Allowed are activation and deactivation.
+     * @param commonAddress the Common ASDU Address. Valid value are 1...255 or 1...65535 for field
+     *     lengths 1 or 2 respectively.
+     * @param cot the cause of transmission. Allowed are activation and deactivation.
      * @param informationObjectAddress the information object address.
-     * @param qualifier                the qualifier to be sent.
+     * @param qualifier the qualifier to be sent.
      * @throws IOException if a fatal communication error occurred.
      */
-    public void parameterActivation(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
-                                    IeQualifierOfParameterActivation qualifier) throws IOException {
-        ASdu aSdu = new ASdu(ASduType.P_AC_NA_1, false, cot, false, false, originatorAddress, commonAddress,
+    public void parameterActivation(
+            int commonAddress,
+            CauseOfTransmission cot,
+            int informationObjectAddress,
+            IeQualifierOfParameterActivation qualifier)
+            throws IOException {
+        ASdu aSdu = new ASdu(
+                ASduType.P_AC_NA_1,
+                false,
+                cot,
+                false,
+                false,
+                originatorAddress,
+                commonAddress,
                 new InformationObject(informationObjectAddress, qualifier));
         send(aSdu);
     }
 
-    public void fileReady(int commonAddress, int informationObjectAddress, IeNameOfFile nameOfFile,
-                          IeLengthOfFileOrSection lengthOfFile, IeFileReadyQualifier qualifier) throws IOException {
-        ASdu aSdu = new ASdu(ASduType.F_FR_NA_1, false, CauseOfTransmission.FILE_TRANSFER, false, false,
-                originatorAddress, commonAddress,
+    public void fileReady(
+            int commonAddress,
+            int informationObjectAddress,
+            IeNameOfFile nameOfFile,
+            IeLengthOfFileOrSection lengthOfFile,
+            IeFileReadyQualifier qualifier)
+            throws IOException {
+        ASdu aSdu = new ASdu(
+                ASduType.F_FR_NA_1,
+                false,
+                CauseOfTransmission.FILE_TRANSFER,
+                false,
+                false,
+                originatorAddress,
+                commonAddress,
                 new InformationObject(informationObjectAddress, nameOfFile, lengthOfFile, qualifier));
         send(aSdu);
     }
 
-    public void sectionReady(int commonAddress, int informationObjectAddress, IeNameOfFile nameOfFile,
-                             IeNameOfSection nameOfSection, IeLengthOfFileOrSection lengthOfSection, IeSectionReadyQualifier qualifier)
+    public void sectionReady(
+            int commonAddress,
+            int informationObjectAddress,
+            IeNameOfFile nameOfFile,
+            IeNameOfSection nameOfSection,
+            IeLengthOfFileOrSection lengthOfSection,
+            IeSectionReadyQualifier qualifier)
             throws IOException {
-        ASdu aSdu = new ASdu(ASduType.F_SR_NA_1, false, CauseOfTransmission.FILE_TRANSFER, false, false,
-                originatorAddress, commonAddress,
+        ASdu aSdu = new ASdu(
+                ASduType.F_SR_NA_1,
+                false,
+                CauseOfTransmission.FILE_TRANSFER,
+                false,
+                false,
+                originatorAddress,
+                commonAddress,
                 new InformationObject(informationObjectAddress, nameOfFile, nameOfSection, lengthOfSection, qualifier));
         send(aSdu);
     }
 
-    public void callOrSelectFiles(int commonAddress, CauseOfTransmission cot, int informationObjectAddress,
-                                  IeNameOfFile nameOfFile, IeNameOfSection nameOfSection, IeSelectAndCallQualifier qualifier)
+    public void callOrSelectFiles(
+            int commonAddress,
+            CauseOfTransmission cot,
+            int informationObjectAddress,
+            IeNameOfFile nameOfFile,
+            IeNameOfSection nameOfSection,
+            IeSelectAndCallQualifier qualifier)
             throws IOException {
-        ASdu aSdu = new ASdu(ASduType.F_SC_NA_1, false, cot, false, false, originatorAddress, commonAddress,
+        ASdu aSdu = new ASdu(
+                ASduType.F_SC_NA_1,
+                false,
+                cot,
+                false,
+                false,
+                originatorAddress,
+                commonAddress,
                 new InformationObject(informationObjectAddress, nameOfFile, nameOfSection, qualifier));
         send(aSdu);
     }
 
-    public void lastSectionOrSegment(int commonAddress, int informationObjectAddress, IeNameOfFile nameOfFile,
-                                     IeNameOfSection nameOfSection, IeLastSectionOrSegmentQualifier qualifier, IeChecksum checksum)
+    public void lastSectionOrSegment(
+            int commonAddress,
+            int informationObjectAddress,
+            IeNameOfFile nameOfFile,
+            IeNameOfSection nameOfSection,
+            IeLastSectionOrSegmentQualifier qualifier,
+            IeChecksum checksum)
             throws IOException {
-        ASdu aSdu = new ASdu(ASduType.F_LS_NA_1, false, CauseOfTransmission.FILE_TRANSFER, false, false,
-                originatorAddress, commonAddress,
+        ASdu aSdu = new ASdu(
+                ASduType.F_LS_NA_1,
+                false,
+                CauseOfTransmission.FILE_TRANSFER,
+                false,
+                false,
+                originatorAddress,
+                commonAddress,
                 new InformationObject(informationObjectAddress, nameOfFile, nameOfSection, qualifier, checksum));
         send(aSdu);
     }
 
-    public void ackFileOrSection(int commonAddress, int informationObjectAddress, IeNameOfFile nameOfFile,
-                                 IeNameOfSection nameOfSection, IeAckFileOrSectionQualifier qualifier) throws IOException {
-        ASdu aSdu = new ASdu(ASduType.F_AF_NA_1, false, CauseOfTransmission.FILE_TRANSFER, false, false,
-                originatorAddress, commonAddress,
+    public void ackFileOrSection(
+            int commonAddress,
+            int informationObjectAddress,
+            IeNameOfFile nameOfFile,
+            IeNameOfSection nameOfSection,
+            IeAckFileOrSectionQualifier qualifier)
+            throws IOException {
+        ASdu aSdu = new ASdu(
+                ASduType.F_AF_NA_1,
+                false,
+                CauseOfTransmission.FILE_TRANSFER,
+                false,
+                false,
+                originatorAddress,
+                commonAddress,
                 new InformationObject(informationObjectAddress, nameOfFile, nameOfSection, qualifier));
         send(aSdu);
     }
 
-    public void sendSegment(int commonAddress, int informationObjectAddress, IeNameOfFile nameOfFile,
-                            IeNameOfSection nameOfSection, IeFileSegment segment) throws IOException {
-        ASdu aSdu = new ASdu(ASduType.F_SG_NA_1, false, CauseOfTransmission.FILE_TRANSFER, false, false,
-                originatorAddress, commonAddress,
+    public void sendSegment(
+            int commonAddress,
+            int informationObjectAddress,
+            IeNameOfFile nameOfFile,
+            IeNameOfSection nameOfSection,
+            IeFileSegment segment)
+            throws IOException {
+        ASdu aSdu = new ASdu(
+                ASduType.F_SG_NA_1,
+                false,
+                CauseOfTransmission.FILE_TRANSFER,
+                false,
+                false,
+                originatorAddress,
+                commonAddress,
                 new InformationObject(informationObjectAddress, nameOfFile, nameOfSection, segment));
         send(aSdu);
     }
 
     public void sendDirectory(int commonAddress, int informationObjectAddress, InformationElement[][] directory)
             throws IOException {
-        ASdu aSdu = new ASdu(ASduType.F_DR_TA_1, false, CauseOfTransmission.FILE_TRANSFER, false, false,
-                originatorAddress, commonAddress, new InformationObject(informationObjectAddress, directory));
+        ASdu aSdu = new ASdu(
+                ASduType.F_DR_TA_1,
+                false,
+                CauseOfTransmission.FILE_TRANSFER,
+                false,
+                false,
+                originatorAddress,
+                commonAddress,
+                new InformationObject(informationObjectAddress, directory));
         send(aSdu);
     }
 
-    public void queryLog(int commonAddress, int informationObjectAddress, IeNameOfFile nameOfFile,
-                         IeTime56 rangeStartTime, IeTime56 rangeEndTime) throws IOException {
-        ASdu aSdu = new ASdu(ASduType.F_SC_NB_1, false, CauseOfTransmission.FILE_TRANSFER, false, false,
-                originatorAddress, commonAddress,
+    public void queryLog(
+            int commonAddress,
+            int informationObjectAddress,
+            IeNameOfFile nameOfFile,
+            IeTime56 rangeStartTime,
+            IeTime56 rangeEndTime)
+            throws IOException {
+        ASdu aSdu = new ASdu(
+                ASduType.F_SC_NB_1,
+                false,
+                CauseOfTransmission.FILE_TRANSFER,
+                false,
+                false,
+                originatorAddress,
+                commonAddress,
                 new InformationObject(informationObjectAddress, nameOfFile, rangeStartTime, rangeEndTime));
         send(aSdu);
     }
 
     /**
-     * @return the remote IP address to which the used socket is connected, or null if the socket is not connected.
+     * @return the remote IP address to which the used socket is connected, or null if the socket is
+     *     not connected.
      * @see Socket#getInetAddress()
      */
     public InetAddress getRemoteInetAddress() {
@@ -1145,8 +1522,8 @@ public class Connection implements AutoCloseable {
     }
 
     /**
-     * @return the local address to which the used socket is bound, the loopback address if denied by the security
-     * manager, or the wildcard address if the socket is closed or not bound yet.
+     * @return the local address to which the used socket is bound, the loopback address if denied by
+     *     the security manager, or the wildcard address if the socket is closed or not bound yet.
      * @see Socket#getLocalAddress()
      */
     public InetAddress getLocalAddress() {
@@ -1154,7 +1531,8 @@ public class Connection implements AutoCloseable {
     }
 
     /**
-     * @return a SocketAddress representing the remote endpoint of the used socket, or null if it is not connected yet.
+     * @return a SocketAddress representing the remote endpoint of the used socket, or null if it is
+     *     not connected yet.
      * @see Socket#getRemoteSocketAddress()
      */
     public SocketAddress getRemoteSocketAddress() {
@@ -1162,8 +1540,9 @@ public class Connection implements AutoCloseable {
     }
 
     /**
-     * @return a SocketAddress representing the local endpoint of the used socket, or a SocketAddress representing the
-     * loopback address if denied by the security manager, or null if the socket is not bound yet.
+     * @return a SocketAddress representing the local endpoint of the used socket, or a SocketAddress
+     *     representing the loopback address if denied by the security manager, or null if the socket
+     *     is not bound yet.
      * @see Socket#getLocalSocketAddress()
      */
     public SocketAddress getLocalSocketAddress() {
@@ -1171,14 +1550,16 @@ public class Connection implements AutoCloseable {
     }
 
     /**
-     * @return the remote port number to which this socket is connected, or 0 if the socket is not connected yet.
+     * @return the remote port number to which this socket is connected, or 0 if the socket is not
+     *     connected yet.
      */
     public int getPort() {
         return socket.getPort();
     }
 
     /**
-     * @return the local port number to which the used socket is bound or -1 if the socket is not bound yet.
+     * @return the local port number to which the used socket is bound or -1 if the socket is not
+     *     bound yet.
      * @see Socket#getLocalPort()
      */
     public int getLocalPort() {
@@ -1189,9 +1570,7 @@ public class Connection implements AutoCloseable {
         return closedIOException;
     }
 
-    /**
-     * Time-out of send or test APDUs (t1: default 15 s)
-     */
+    /** Time-out of send or test APDUs (t1: default 15 s) */
     private class MaxTimeNoAckReceivedTimer extends TimeoutTask {
 
         public MaxTimeNoAckReceivedTimer() {
@@ -1207,18 +1586,18 @@ public class Connection implements AutoCloseable {
                 }
                 close();
                 if (aSduListener != null) {
-                    aSduListener.connectionClosed(Connection.this,
+                    aSduListener.connectionClosed(
+                            Connection.this,
                             new IOException(
                                     "The maximum time that no confirmation was received (t1) has been exceeded. t1 = "
-                                            + settings.getMaxTimeNoAckReceived() + "ms"));
+                                            + settings.getMaxTimeNoAckReceived()
+                                            + "ms"));
                 }
             }
         }
     }
 
-    /**
-     * Time-out for acknowledges in case of no data messages t2 < t1 (t2: default 10 s)
-     */
+    /** Time-out for acknowledges in case of no data messages t2 < t1 (t2: default 10 s) */
     private class MaxTimeNoAckSentTimer extends TimeoutTask {
 
         public MaxTimeNoAckSentTimer() {
@@ -1240,9 +1619,7 @@ public class Connection implements AutoCloseable {
         }
     }
 
-    /**
-     * Time-out for sending test frames in case of a long idle state (t3: default 20 s)
-     */
+    /** Time-out for sending test frames in case of a long idle state (t3: default 20 s) */
     private class MaxIdleTimeTimer extends TimeoutTask {
         public MaxIdleTimeTimer() {
             super(Connection.this.settings.getMaxIdleTime());
@@ -1263,7 +1640,6 @@ public class Connection implements AutoCloseable {
                 timeoutManager.addTimerTask(maxTimeNoTestConReceived);
             }
         }
-
     }
 
     private class ConnectionReader extends Thread {
@@ -1277,13 +1653,12 @@ public class Connection implements AutoCloseable {
                     APdu aPdu = APdu.decode(socket, settings, is);
 
                     synchronized (Connection.this) {
-
                         switch (aPdu.getApciType()) {
                             case I_FORMAT:
                                 closeIfStopped(aPdu.getApciType());
 
-                                ExtendedDataInputStream is = new ExtendedDataInputStream(
-                                        new ByteArrayInputStream(aPdu.getASduBuffer()));
+                                ExtendedDataInputStream is =
+                                        new ExtendedDataInputStream(new ByteArrayInputStream(aPdu.getASduBuffer()));
                                 ASdu asdu;
                                 try {
                                     asdu = ASdu.decode(is, settings, aPdu.getASduBuffer().length);
@@ -1354,6 +1729,5 @@ public class Connection implements AutoCloseable {
                 }
             }
         }
-
     }
 }

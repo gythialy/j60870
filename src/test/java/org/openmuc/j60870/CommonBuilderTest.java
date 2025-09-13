@@ -90,5 +90,4 @@ public class CommonBuilderTest {
     public void testTimeOK() {
         setTime(15000, 10000, 20000);
     }
-
 }

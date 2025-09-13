@@ -26,9 +26,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * Represents a status of file (SOF) information element.
- */
+/** Represents a status of file (SOF) information element. */
 public class IeStatusOfFile extends InformationElement {
 
     private final int status;
@@ -71,8 +69,13 @@ public class IeStatusOfFile extends InformationElement {
 
     @Override
     public String toString() {
-        return "Status of file: " + status + ", last file of directory: " + flags.contains(Flag.LAST_FILE_OF_DIRECTORY)
-                + ", name defines directory: " + flags.contains(Flag.NAME_DEFINES_DIRECTORY) + ", transfer is active: "
+        return "Status of file: "
+                + status
+                + ", last file of directory: "
+                + flags.contains(Flag.LAST_FILE_OF_DIRECTORY)
+                + ", name defines directory: "
+                + flags.contains(Flag.NAME_DEFINES_DIRECTORY)
+                + ", transfer is active: "
                 + flags.contains(Flag.TRANSFER_IS_ACTIVE);
     }
 
@@ -97,6 +100,5 @@ public class IeStatusOfFile extends InformationElement {
             }
             return res;
         }
-
     }
 }

@@ -23,9 +23,7 @@ package org.openmuc.j60870.ie;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-/**
- * Represents a checksum (CHS) information element.
- */
+/** Represents a checksum (CHS) information element. */
 public class IeChecksum extends InformationElement {
 
     private final int value;

@@ -1,5 +1,0 @@
-eclipse.project.name = 'j60870-cli-app'
-
-dependencies {
-    implementation project(':')
-}

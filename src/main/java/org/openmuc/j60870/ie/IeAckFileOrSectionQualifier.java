@@ -23,9 +23,7 @@ package org.openmuc.j60870.ie;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-/**
- * Represents an acknowledge file or section qualifier (AFQ) information element.
- */
+/** Represents an acknowledge file or section qualifier (AFQ) information element. */
 public class IeAckFileOrSectionQualifier extends InformationElement {
 
     private final int action;

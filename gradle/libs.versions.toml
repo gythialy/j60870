@@ -1,0 +1,21 @@
+[versions]
+junit = "4.13.2"
+powermock = "2.0.9"
+junitParams = "1.1.1"
+awaitility = "4.2.2"
+asciidoctor = "4.0.5"
+spotless = "7.2.1"
+
+[libraries]
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+powermock-junit4 = { group = "org.powermock", name = "powermock-module-junit4", version.ref = "powermock" }
+powermock-mockito2 = { group = "org.powermock", name = "powermock-api-mockito2", version.ref = "powermock" }
+junit-params = { group = "pl.pragmatists", name = "JUnitParams", version.ref = "junitParams" }
+awaitility = { group = "org.awaitility", name = "awaitility", version.ref = "awaitility" }
+
+[plugins]
+java = { id = "java" }
+jacoco = { id = "jacoco" }
+asciidoctor-convert = { id = "org.asciidoctor.jvm.convert", version.ref = "asciidoctor" }
+asciidoctor-pdf = { id = "org.asciidoctor.jvm.pdf", version.ref = "asciidoctor" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

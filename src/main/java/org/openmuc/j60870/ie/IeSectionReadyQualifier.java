@@ -23,9 +23,7 @@ package org.openmuc.j60870.ie;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-/**
- * Represents a section ready qualifier (SRQ) information element.
- */
+/** Represents a section ready qualifier (SRQ) information element. */
 public class IeSectionReadyQualifier extends InformationElement {
 
     private final int value;

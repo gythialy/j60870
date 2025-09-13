@@ -20,16 +20,14 @@
  */
 package org.openmuc.j60870;
 
-import javax.net.ServerSocketFactory;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import javax.net.ServerSocketFactory;
 
-/**
- * The server is used to start listening for IEC 60870-5-104 client connections.
- */
+/** The server is used to start listening for IEC 60870-5-104 client connections. */
 public class Server {
 
     private final int port;
@@ -63,8 +61,8 @@ public class Server {
     /**
      * Starts a new thread that listens on the configured port. This method is non-blocking.
      *
-     * @param listener the ServerConnectionListener that will be notified when remote clients are connecting or the server
-     *                 stopped listening.
+     * @param listener the ServerConnectionListener that will be notified when remote clients are
+     *     connecting or the server stopped listening.
      * @throws IOException if any kind of error occurs while creating the server socket.
      */
     public void start(ServerEventListener listener) throws IOException {
@@ -74,14 +72,17 @@ public class Server {
         } else {
             this.exec = Executors.newCachedThreadPool();
         }
-        serverThread = new ServerThread(serverSocketFactory.createServerSocket(port, backlog, bindAddr), settings,
-                maxConnections, listener, exec, allowedClientIps);
+        serverThread = new ServerThread(
+                serverSocketFactory.createServerSocket(port, backlog, bindAddr),
+                settings,
+                maxConnections,
+                listener,
+                exec,
+                allowedClientIps);
         this.exec.execute(this.serverThread);
     }
 
-    /**
-     * Stop listening for new connections. Existing connections are not touched.
-     */
+    /** Stop listening for new connections. Existing connections are not touched. */
     public void stop() {
         if (serverThread == null) {
             return;
@@ -113,8 +114,7 @@ public class Server {
 
         private int maxConnections = 100;
 
-        private Builder() {
-        }
+        private Builder() {}
 
         /**
          * Sets the TCP port that the server will listen on. IEC 60870-5-104 usually uses port 2404.
@@ -173,7 +173,8 @@ public class Server {
         /**
          * Set the maximum number of client connections that are allowed in parallel.
          *
-         * @param maxConnections the number of connections allowed (default is 100) @ return this builder
+         * @param maxConnections the number of connections allowed (default is 100) @ return this
+         *     builder
          * @return this builder
          */
         public Builder setMaxConnections(int maxConnections) {
@@ -185,8 +186,8 @@ public class Server {
         }
 
         /**
-         * Set the IPs from which clients may connect. Pass {@code null} to allow all clients. By default all clients
-         * are allowed to connect.
+         * Set the IPs from which clients may connect. Pass {@code null} to allow all clients. By
+         * default all clients are allowed to connect.
          *
          * @param allowedClientIps the allowed client IPs
          * @return this builder
@@ -197,13 +198,12 @@ public class Server {
         }
 
         /**
-         * To start/activate the server call {@link Server#start(ServerEventListener)} on the returned server.
+         * To start/activate the server call {@link Server#start(ServerEventListener)} on the returned
+         * server.
          */
         @Override
         public Server build() {
             return new Server(this);
         }
-
     }
-
 }

@@ -20,11 +20,10 @@
  */
 package org.openmuc.j60870;
 
-import org.openmuc.j60870.internal.HexUtils;
-
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.Random;
+import org.openmuc.j60870.internal.HexUtils;
 
 public class TestUtils {
     private static final int MIN_PORT_NUMBER = 2024;
@@ -44,7 +43,7 @@ public class TestUtils {
 
         while (!isAvailable && tries < MAX_TRIES) {
             port = RANDOM.nextInt((MAX_PORT_NUMBER - MIN_PORT_NUMBER) + 1) + MIN_PORT_NUMBER;
-            try (ServerSocket ss = new ServerSocket(port);) {
+            try (ServerSocket ss = new ServerSocket(port); ) {
                 ss.setReuseAddress(true);
                 isAvailable = ss.isBound();
             } catch (IOException e) {

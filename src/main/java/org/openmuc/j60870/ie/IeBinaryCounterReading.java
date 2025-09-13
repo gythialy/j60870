@@ -20,18 +20,15 @@
  */
 package org.openmuc.j60870.ie;
 
-import org.openmuc.j60870.internal.ExtendedDataInputStream;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.Set;
+import org.openmuc.j60870.internal.ExtendedDataInputStream;
 
-/**
- * Represents a binary counter reading (BCR) information element.
- */
+/** Represents a binary counter reading (BCR) information element. */
 public class IeBinaryCounterReading extends InformationElement {
 
     private final int counterReading;
@@ -63,7 +60,6 @@ public class IeBinaryCounterReading extends InformationElement {
 
         Set<Flag> flags = Flag.flagsFor(b0);
         return new IeBinaryCounterReading(counterReading, sequenceNumber, flags);
-
     }
 
     @Override
@@ -74,7 +70,6 @@ public class IeBinaryCounterReading extends InformationElement {
         buf.putInt(counterReading).put(seq());
 
         return buf.position() - i;
-
     }
 
     private byte seq() {
@@ -128,6 +123,5 @@ public class IeBinaryCounterReading extends InformationElement {
 
             return s;
         }
-
     }
 }

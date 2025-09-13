@@ -23,9 +23,7 @@ package org.openmuc.j60870.ie;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-/**
- * Represents a last section or segment qualifier (LSQ) information element.
- */
+/** Represents a last section or segment qualifier (LSQ) information element. */
 public class IeLastSectionOrSegmentQualifier extends InformationElement {
 
     private final int value;

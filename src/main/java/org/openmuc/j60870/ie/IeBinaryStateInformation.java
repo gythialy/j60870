@@ -20,14 +20,11 @@
  */
 package org.openmuc.j60870.ie;
 
-import org.openmuc.j60870.internal.HexUtils;
-
 import java.io.DataInputStream;
 import java.io.IOException;
+import org.openmuc.j60870.internal.HexUtils;
 
-/**
- * Represents a binary state information (BSI) information element.
- */
+/** Represents a binary state information (BSI) information element. */
 public class IeBinaryStateInformation extends InformationElement {
 
     private final int value;
@@ -35,8 +32,9 @@ public class IeBinaryStateInformation extends InformationElement {
     /**
      * Creates a BSI (binary state information) information element from an integer value.
      *
-     * @param value the bits of value represent the 32 binary states of this element. When encoded in a message, the MSB
-     *              of <code>value</code> is transmitted first and the LSB of <code>value</code> is transmitted last.
+     * @param value the bits of value represent the 32 binary states of this element. When encoded in
+     *     a message, the MSB of <code>value</code> is transmitted first and the LSB of <code>value
+     *     </code> is transmitted last.
      */
     public IeBinaryStateInformation(int value) {
         this.value = value;
@@ -45,8 +43,9 @@ public class IeBinaryStateInformation extends InformationElement {
     /**
      * Creates a BSI (binary state information) information element from a byte array.
      *
-     * @param value the bits of value represent the 32 binary states of this element. When encoded in a message, the MSB
-     *              of the first byte is transmitted first and the LSB of fourth byte is transmitted last.
+     * @param value the bits of value represent the 32 binary states of this element. When encoded in
+     *     a message, the MSB of the first byte is transmitted first and the LSB of fourth byte is
+     *     transmitted last.
      */
     public IeBinaryStateInformation(byte[] value) {
         if (value == null || value.length != 4) {
@@ -69,8 +68,8 @@ public class IeBinaryStateInformation extends InformationElement {
     }
 
     /**
-     * Returns the 32 binary states of this element as an integer. When encoded in a message, the MSB of the return
-     * value is transmitted first and the LSB of the return value is transmitted last.
+     * Returns the 32 binary states of this element as an integer. When encoded in a message, the MSB
+     * of the return value is transmitted first and the LSB of the return value is transmitted last.
      *
      * @return the 32 binary states of this element.
      */
@@ -79,22 +78,22 @@ public class IeBinaryStateInformation extends InformationElement {
     }
 
     /**
-     * Returns the 32 binary states of this element as a byte array. When encoded in a message, the MSB of the first
-     * byte is transmitted first and the LSB of the fourth byte is transmitted last.
+     * Returns the 32 binary states of this element as a byte array. When encoded in a message, the
+     * MSB of the first byte is transmitted first and the LSB of the fourth byte is transmitted last.
      *
      * @return the 32 binary states of this element.
      */
     public byte[] getValueAsByteArray() {
-        return new byte[]{(byte) (value >> 24), (byte) (value >> 16), (byte) (value >> 8), (byte) (value)};
+        return new byte[] {(byte) (value >> 24), (byte) (value >> 16), (byte) (value >> 8), (byte) (value)};
     }
 
     /**
      * Returns true if the bit at the given position is 1 and false otherwise.
      *
-     * @param position the position in the bit string. Range: 1-32. Position 1 represents the last bit in the encoded message
-     *                 and is the least significant bit (LSB) of the value returned by <code>getValue()</code>. Position 32
-     *                 represents the first bit in the encoded message and is the most significant bit (MSB) of the value
-     *                 returned by <code>getValue()</code>.
+     * @param position the position in the bit string. Range: 1-32. Position 1 represents the last bit
+     *     in the encoded message and is the least significant bit (LSB) of the value returned by
+     *     <code>getValue()</code>. Position 32 represents the first bit in the encoded message and is
+     *     the most significant bit (MSB) of the value returned by <code>getValue()</code>.
      * @return true if the bit at the given position is 1 and false otherwise.
      */
     public boolean getBinaryState(int position) {
@@ -106,8 +105,8 @@ public class IeBinaryStateInformation extends InformationElement {
 
     @Override
     public String toString() {
-        return "BinaryStateInformation (32 bits as hex): " + HexUtils.bytesToHex(
-                new byte[]{(byte) (value >> 24), (byte) (value >> 16), (byte) (value >> 8), (byte) (value)});
+        return "BinaryStateInformation (32 bits as hex): "
+                + HexUtils.bytesToHex(
+                        new byte[] {(byte) (value >> 24), (byte) (value >> 16), (byte) (value >> 8), (byte) (value)});
     }
-
 }

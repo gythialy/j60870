@@ -23,9 +23,7 @@ package org.openmuc.j60870.ie;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-/**
- * Represents a select and call qualifier (SCQ) information element.
- */
+/** Represents a select and call qualifier (SCQ) information element. */
 public class IeSelectAndCallQualifier extends InformationElement {
 
     private final int action;

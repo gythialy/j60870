@@ -23,9 +23,7 @@ package org.openmuc.j60870.ie;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-/**
- * Represents a test sequence Counter (TSC) information element.
- */
+/** Represents a test sequence Counter (TSC) information element. */
 public class IeTestSequenceCounter extends InformationElement {
 
     private static final int LOWER_BOUND = 0;
@@ -62,5 +60,4 @@ public class IeTestSequenceCounter extends InformationElement {
     public String toString() {
         return "Test sequence counter: " + getValue();
     }
-
 }

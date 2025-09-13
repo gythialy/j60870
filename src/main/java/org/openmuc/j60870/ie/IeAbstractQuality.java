@@ -44,7 +44,6 @@ abstract class IeAbstractQuality extends InformationElement {
         if (invalid) {
             value |= 0x80;
         }
-
     }
 
     IeAbstractQuality(DataInputStream is) throws IOException {
@@ -79,7 +78,8 @@ abstract class IeAbstractQuality extends InformationElement {
 
     @Override
     public String toString() {
-        return MessageFormat.format("blocked: {0}, substituted: {1}, not topical: {2}, invalid: {3}", isBlocked(),
-                isSubstituted(), isNotTopical(), isInvalid());
+        return MessageFormat.format(
+                "blocked: {0}, substituted: {1}, not topical: {2}, invalid: {3}",
+                isBlocked(), isSubstituted(), isNotTopical(), isInvalid());
     }
 }

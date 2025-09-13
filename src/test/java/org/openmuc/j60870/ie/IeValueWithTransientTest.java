@@ -20,9 +20,9 @@
  */
 package org.openmuc.j60870.ie;
 
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
+
+import org.junit.Test;
 
 public class IeValueWithTransientTest {
 
@@ -32,6 +32,5 @@ public class IeValueWithTransientTest {
         IeValueWithTransientState valueWithTransientState = new IeValueWithTransientState(-64, false);
 
         assertEquals(-64, valueWithTransientState.getValue());
-
     }
 }
