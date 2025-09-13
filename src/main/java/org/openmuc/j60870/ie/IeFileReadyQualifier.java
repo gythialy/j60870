@@ -23,9 +23,7 @@ package org.openmuc.j60870.ie;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-/**
- * Represents a file ready qualifier (FRQ) information element.
- */
+/** Represents a file ready qualifier (FRQ) information element. */
 public class IeFileReadyQualifier extends InformationElement {
 
     private final int value;
@@ -65,5 +63,4 @@ public class IeFileReadyQualifier extends InformationElement {
     public String toString() {
         return "File ready qualifier: " + value + ", negative confirm: " + negativeConfirm;
     }
-
 }

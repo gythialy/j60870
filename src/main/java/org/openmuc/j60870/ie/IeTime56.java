@@ -28,9 +28,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.TimeZone;
 
-/**
- * Represents a seven octet binary time (CP56Time2a) information element.
- */
+/** Represents a seven octet binary time (CP56Time2a) information element. */
 public class IeTime56 extends InformationElement {
 
     private static final int LENGTH = 7;
@@ -41,8 +39,8 @@ public class IeTime56 extends InformationElement {
      * Creates a Time56 instance using the given timestamp and time zone.
      *
      * @param timestamp the timestamp that shall be used to calculate Time56
-     * @param timeZone  the time zone to use
-     * @param invalid   true if the time shall be marked as invalid
+     * @param timeZone the time zone to use
+     * @param invalid true if the time shall be marked as invalid
      */
     public IeTime56(long timestamp, TimeZone timeZone, boolean invalid) {
         Calendar calendar = Calendar.getInstance(timeZone);
@@ -51,8 +49,8 @@ public class IeTime56 extends InformationElement {
 
         short ms = (short) (calendar.get(Calendar.MILLISECOND) + 1000 * calendar.get(Calendar.SECOND));
 
-        byte day = (byte) (calendar.get(Calendar.DAY_OF_MONTH)
-                + ((((calendar.get(Calendar.DAY_OF_WEEK) + 5) % 7) + 1) << 5));
+        byte day = (byte)
+                (calendar.get(Calendar.DAY_OF_MONTH) + ((((calendar.get(Calendar.DAY_OF_WEEK) + 5) % 7) + 1) << 5));
 
         this.value = ByteBuffer.allocate(7)
                 .order(ByteOrder.LITTLE_ENDIAN)
@@ -114,14 +112,15 @@ public class IeTime56 extends InformationElement {
     }
 
     /**
-     * Returns the timestamp in ms equivalent to this Time56 instance. Note that Time56 does not store the century of
-     * the date. Therefore you have to pass the earliest possible year of the Time56 instance. Say the year stored by
-     * Time56 is 10. From this information alone it is not possible to tell whether the real year is 1910 or 2010 or
-     * 2110. If you pass 1970 as the start of century, then this function will know that the year of the given date lies
-     * between 1970 and 2069 and can therefore calculate that the correct date is 2010.
+     * Returns the timestamp in ms equivalent to this Time56 instance. Note that Time56 does not store
+     * the century of the date. Therefore you have to pass the earliest possible year of the Time56
+     * instance. Say the year stored by Time56 is 10. From this information alone it is not possible
+     * to tell whether the real year is 1910 or 2010 or 2110. If you pass 1970 as the start of
+     * century, then this function will know that the year of the given date lies between 1970 and
+     * 2069 and can therefore calculate that the correct date is 2010.
      *
      * @param startOfCentury The timestamp will
-     * @param timeZone       the timezone that shall be used to calculate the timestamp.
+     * @param timeZone the timezone that shall be used to calculate the timestamp.
      * @return the timestamp in ms equivalent to this Time56 instance
      */
     public long getTimestamp(int startOfCentury, TimeZone timeZone) {
@@ -140,11 +139,12 @@ public class IeTime56 extends InformationElement {
     }
 
     /**
-     * Returns the timestamp in ms equivalent to this Time56 instance. The default time zone is used if no time zone is
-     * configured. Note that Time56 does not store the century of the date. Therefore you have to pass the earliest
-     * possible year of the Time56 instance. Say the year stored by Time56 is 10. From this information alone it is not
-     * possible to tell whether the real year is 1910 or 2010 or 2110. If you pass 1970 as the start of century, then
-     * this function will know that the year of the given date lies between 1970 and 2069 and can therefore calculate
+     * Returns the timestamp in ms equivalent to this Time56 instance. The default time zone is used
+     * if no time zone is configured. Note that Time56 does not store the century of the date.
+     * Therefore you have to pass the earliest possible year of the Time56 instance. Say the year
+     * stored by Time56 is 10. From this information alone it is not possible to tell whether the real
+     * year is 1910 or 2010 or 2110. If you pass 1970 as the start of century, then this function will
+     * know that the year of the given date lies between 1970 and 2069 and can therefore calculate
      * that the correct date is 2010.
      *
      * @param startOfCentury The timestamp will
@@ -155,8 +155,8 @@ public class IeTime56 extends InformationElement {
     }
 
     /**
-     * Returns the timestamp in ms equivalent to this Time56 instance. Assumes that the given date is between 1970 and
-     * 2070.The default time zone is used if no time zone is configured.
+     * Returns the timestamp in ms equivalent to this Time56 instance. Assumes that the given date is
+     * between 1970 and 2070.The default time zone is used if no time zone is configured.
      *
      * @return the timestamp in ms equivalent to this Time56 instance
      */
@@ -241,8 +241,8 @@ public class IeTime56 extends InformationElement {
     }
 
     /**
-     * Returns the year in the century. Returned values can range from 0 to 99. Note that the century is not stored by
-     * Time56.
+     * Returns the year in the century. Returned values can range from 0 to 99. Note that the century
+     * is not stored by Time56.
      *
      * @return the number of years in the century
      */

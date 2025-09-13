@@ -20,33 +20,34 @@
  */
 package org.openmuc.j60870;
 
-import org.openmuc.j60870.internal.ExtendedDataInputStream;
-import org.openmuc.j60870.internal.StartBytesSimpleReader;
-
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.text.MessageFormat;
+import org.openmuc.j60870.internal.ExtendedDataInputStream;
+import org.openmuc.j60870.internal.StartBytesSimpleReader;
 
 class APdu {
 
     private static final int CONTROL_FIELDS_LENGTH = 4;
-    /**
-     * Since the length of the control field is control field is 4 octets.
-     */
+
+    /** Since the length of the control field is control field is 4 octets. */
     private static final int MIN_APDU_LENGTH = CONTROL_FIELDS_LENGTH;
+
     /**
-     * The maximum length of APDU for both directions is 253. APDU max = 255 minus start and length octet.
+     * The maximum length of APDU for both directions is 253. APDU max = 255 minus start and length
+     * octet.
      */
     private static final int MAX_APDU_LENGTH = 253;
-    /**
-     * START flag of an APDU.
-     */
+
+    /** START flag of an APDU. */
     private static final byte START_FLAG = 0x68;
+
     private final int sendSeqNum;
     private final int receiveSeqNum;
     private final ApciType apciType;
     private final byte[] asduBuffer;
+
     public APdu(int sendSeqNum, int receiveSeqNum, ApciType apciType) {
         this(sendSeqNum, receiveSeqNum, apciType, null);
     }
@@ -63,8 +64,8 @@ class APdu {
             throws IOException {
         socket.setSoTimeout(0);
 
-        StartBytesSimpleReader startBytesSimpleReader = new StartBytesSimpleReader(new byte[]{START_FLAG},
-                socketInputStream);
+        StartBytesSimpleReader startBytesSimpleReader =
+                new StartBytesSimpleReader(new byte[] {START_FLAG}, socketInputStream);
         startBytesSimpleReader.readStartBytes();
 
         socket.setSoTimeout(settings.getMessageFragmentTimeout());
@@ -91,7 +92,6 @@ class APdu {
             default:
                 return new APdu(0, 0, apciType);
         }
-
     }
 
     private static int seqNumFrom(byte b1, byte b2) {
@@ -102,8 +102,8 @@ class APdu {
         int length = is.readUnsignedByte();
 
         if (length < MIN_APDU_LENGTH || length > MAX_APDU_LENGTH) {
-            String msg = MessageFormat
-                    .format("APDU has an invalid length must be between 4 and 253.\nReceived length was: {0}.", length);
+            String msg = MessageFormat.format(
+                    "APDU has an invalid length must be between 4 and 253.\nReceived length was: {0}.", length);
             throw new IOException(msg);
         }
         return length;
@@ -155,7 +155,6 @@ class APdu {
         buffer[1] = (byte) length;
 
         return length + 2;
-
     }
 
     private void writeReceiveSeqNumTo(byte[] buffer) {
@@ -180,13 +179,9 @@ class APdu {
     }
 
     public enum ApciType {
-        /**
-         * Numbered information transfer. I format APDUs always contain an ASDU.
-         */
+        /** Numbered information transfer. I format APDUs always contain an ASDU. */
         I_FORMAT,
-        /**
-         * Numbered supervisory functions. S format APDUs consist of the APCI only.
-         */
+        /** Numbered supervisory functions. S format APDUs consist of the APCI only. */
         S_FORMAT,
 
         // Unnumbered control functions.
@@ -210,7 +205,6 @@ class APdu {
                 default:
                     return unnumberedFormatFor(controlField1);
             }
-
         }
 
         private static ApciType unnumberedFormatFor(byte controlField1) {
@@ -229,5 +223,4 @@ class APdu {
             }
         }
     }
-
 }

@@ -24,9 +24,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.Calendar;
 
-/**
- * Represents a three octet binary time (CP24Time2a) information element.
- */
+/** Represents a three octet binary time (CP24Time2a) information element. */
 public class IeTime24 extends InformationElement {
 
     private final byte[] value = new byte[3];

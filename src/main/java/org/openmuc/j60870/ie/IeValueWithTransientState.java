@@ -24,9 +24,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.text.MessageFormat;
 
-/**
- * Represents a value with transient state indication (VTI) information element.
- */
+/** Represents a value with transient state indication (VTI) information element. */
 public class IeValueWithTransientState extends InformationElement {
 
     private final int value;
@@ -35,7 +33,7 @@ public class IeValueWithTransientState extends InformationElement {
     /**
      * Creates a VTI (value with transient state indication) information element.
      *
-     * @param value          value between -64 and 63
+     * @param value value between -64 and 63
      * @param transientState true if in transient state
      */
     public IeValueWithTransientState(int value, boolean transientState) {
@@ -46,7 +44,6 @@ public class IeValueWithTransientState extends InformationElement {
 
         this.value = value;
         this.transientState = transientState;
-
     }
 
     IeValueWithTransientState(DataInputStream is) throws IOException {
@@ -59,7 +56,6 @@ public class IeValueWithTransientState extends InformationElement {
         } else {
             value = b1 & 0x3f;
         }
-
     }
 
     @Override
@@ -72,7 +68,6 @@ public class IeValueWithTransientState extends InformationElement {
         }
 
         return 1;
-
     }
 
     public int getValue() {
@@ -85,7 +80,7 @@ public class IeValueWithTransientState extends InformationElement {
 
     @Override
     public String toString() {
-        return MessageFormat.format("Value with transient state, value: {0}, transient state: {1}.", getValue(),
-                getTransientState());
+        return MessageFormat.format(
+                "Value with transient state, value: {0}, transient state: {1}.", getValue(), getTransientState());
     }
 }

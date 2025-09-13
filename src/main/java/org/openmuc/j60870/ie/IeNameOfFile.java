@@ -23,9 +23,7 @@ package org.openmuc.j60870.ie;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-/**
- * Represents a name of file (NOF) information element.
- */
+/** Represents a name of file (NOF) information element. */
 public class IeNameOfFile extends InformationElement {
 
     private final int value;
@@ -45,7 +43,6 @@ public class IeNameOfFile extends InformationElement {
         buffer[i] = (byte) (value >> 8);
 
         return 2;
-
     }
 
     public int getValue() {

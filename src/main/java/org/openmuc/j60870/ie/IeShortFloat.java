@@ -23,9 +23,7 @@ package org.openmuc.j60870.ie;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-/**
- * Represents a short floating point number (R32-IEEE STD 754) information element.
- */
+/** Represents a short floating point number (R32-IEEE STD 754) information element. */
 public class IeShortFloat extends InformationElement {
 
     private final float value;
@@ -35,8 +33,10 @@ public class IeShortFloat extends InformationElement {
     }
 
     IeShortFloat(DataInputStream is) throws IOException {
-        value = Float.intBitsToFloat((is.readByte() & 0xff) | ((is.readByte() & 0xff) << 8)
-                | ((is.readByte() & 0xff) << 16) | ((is.readByte() & 0xff) << 24));
+        value = Float.intBitsToFloat((is.readByte() & 0xff)
+                | ((is.readByte() & 0xff) << 8)
+                | ((is.readByte() & 0xff) << 16)
+                | ((is.readByte() & 0xff) << 24));
     }
 
     @Override

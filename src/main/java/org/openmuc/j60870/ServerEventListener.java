@@ -28,13 +28,12 @@ public interface ServerEventListener extends EventListener {
     ConnectionEventListener connectionIndication(Connection connection);
 
     /**
-     * This function is only called when an IOException in ServerSocket.accept() occurred which was not forced using
-     * ServerSap.stopListening()
+     * This function is only called when an IOException in ServerSocket.accept() occurred which was
+     * not forced using ServerSap.stopListening()
      *
      * @param e The IOException caught form ServerSocket.accept()
      */
     void serverStoppedListeningIndication(IOException e);
 
     void connectionAttemptFailed(IOException e);
-
 }

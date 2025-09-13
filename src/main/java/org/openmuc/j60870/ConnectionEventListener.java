@@ -24,11 +24,13 @@ import java.io.IOException;
 import java.util.EventListener;
 
 /**
- * The listener interface for receiving incoming ASDUs and connection closed events. The class that is interested in
- * incoming ASDUs implements this interface. The object of that class is registered as a listener through the
- * {@link ClientConnectionBuilder#setConnectionEventListener(ConnectionEventListener)} or returned by
+ * The listener interface for receiving incoming ASDUs and connection closed events. The class that
+ * is interested in incoming ASDUs implements this interface. The object of that class is registered
+ * as a listener through the {@link
+ * ClientConnectionBuilder#setConnectionEventListener(ConnectionEventListener)} or returned by
  * {@link ServerEventListener#connectionIndication(Connection)}. Incoming ASDUs are queued so that
- * {@link #newASdu(Connection connection, ASdu)} is never called simultaneously for the same connection.
+ * {@link #newASdu(Connection connection, ASdu)} is never called simultaneously for the same
+ * connection.
  */
 public interface ConnectionEventListener extends EventListener {
 
@@ -40,9 +42,9 @@ public interface ConnectionEventListener extends EventListener {
     void newASdu(Connection connection, ASdu aSdu);
 
     /**
-     * Invoked when an IOException occurred while listening for incoming ASDUs. An IOException implies that the
-     * {@link Connection} that feeds this listener was automatically closed and can no longer be used to send commands
-     * or receive ASDUs.
+     * Invoked when an IOException occurred while listening for incoming ASDUs. An IOException implies
+     * that the {@link Connection} that feeds this listener was automatically closed and can no longer
+     * be used to send commands or receive ASDUs.
      *
      * @param cause the exception that occurred.
      */
@@ -54,5 +56,4 @@ public interface ConnectionEventListener extends EventListener {
      * @param stopped true if data transfer stopped, false if data transfer started
      */
     void dataTransferStateChanged(Connection connection, boolean stopped);
-
 }

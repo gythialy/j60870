@@ -20,11 +20,7 @@
  */
 package org.openmuc.j60870.ie;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.openmuc.j60870.*;
-import org.openmuc.j60870.internal.ExtendedDataInputStream;
+import static org.junit.Assert.*;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -32,8 +28,11 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-
-import static org.junit.Assert.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.openmuc.j60870.*;
+import org.openmuc.j60870.internal.ExtendedDataInputStream;
 
 public class TransmissionControlUsingStartStopTest {
 
@@ -57,7 +56,8 @@ public class TransmissionControlUsingStartStopTest {
         connectionWaitLatch = new CountDownLatch(1);
         serverSap = Server.builder().setPort(port).build();
         serverSap.start(serverListener);
-        clientConnection = new ClientConnectionBuilder("127.0.0.1").setPort(port)
+        clientConnection = new ClientConnectionBuilder("127.0.0.1")
+                .setPort(port)
                 .setReservedASduTypeDecoder(new ReservedASduTypeDecoderImpl())
                 .setConnectionEventListener(clientConnectionListener)
                 .build();
@@ -86,7 +86,9 @@ public class TransmissionControlUsingStartStopTest {
         assertFalse(newASduCalled);
         assertEquals(serverStoppedCause.getClass(), IOException.class);
         assertTrue(serverStoppedCause.getMessage().contains("message while STOPDT state"));
-        // controlled station (server) closes because it receives an ASdu while in stopped state, thus controller
+        // controlled station (server) closes because it receives an ASdu while in stopped state,
+        // thus
+        // controller
         // throws EOFException because remote closed
         Thread.sleep(1000);
         assertEquals(EOFException.class, clientStoppedCause.getClass());
@@ -125,8 +127,10 @@ public class TransmissionControlUsingStartStopTest {
     @Test
     public void sendNoneStandardASdu() throws IOException, InterruptedException {
         clientConnection.startDataTransfer();
-        serverConnection.send(new ASdu(ASduType.PRIVATE_136, false, 1, CauseOfTransmission.SPONTANEOUS, false, false, 0,
-                10, new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9}));
+        serverConnection.send(new ASdu(
+                ASduType.PRIVATE_136, false, 1, CauseOfTransmission.SPONTANEOUS, false, false, 0, 10, new byte[] {
+                    1, 2, 3, 4, 5, 6, 7, 8, 9
+                }));
         Thread.sleep(1000);
         assertTrue(newASduCalled);
     }
@@ -169,9 +173,7 @@ public class TransmissionControlUsingStartStopTest {
         }
 
         @Override
-        public void dataTransferStateChanged(Connection connection, boolean stopped) {
-
-        }
+        public void dataTransferStateChanged(Connection connection, boolean stopped) {}
     }
 
     private class ServerConnectionListenerImpl implements ConnectionEventListener {
@@ -187,9 +189,7 @@ public class TransmissionControlUsingStartStopTest {
         }
 
         @Override
-        public void dataTransferStateChanged(Connection connection, boolean stopped) {
-
-        }
+        public void dataTransferStateChanged(Connection connection, boolean stopped) {}
     }
 
     private class ServerListenerImpl implements ServerEventListener {
@@ -202,13 +202,9 @@ public class TransmissionControlUsingStartStopTest {
         }
 
         @Override
-        public void serverStoppedListeningIndication(IOException e) {
-
-        }
+        public void serverStoppedListeningIndication(IOException e) {}
 
         @Override
-        public void connectionAttemptFailed(IOException e) {
-
-        }
+        public void connectionAttemptFailed(IOException e) {}
     }
 }

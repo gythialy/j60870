@@ -20,10 +20,9 @@
  */
 package org.openmuc.j60870;
 
+import java.util.List;
 import org.openmuc.j60870.ie.InformationObject;
 import org.openmuc.j60870.internal.ExtendedDataInputStream;
-
-import java.util.List;
 
 public interface ReservedASduTypeDecoder {
     public List<ASduType> getSupportedTypes();

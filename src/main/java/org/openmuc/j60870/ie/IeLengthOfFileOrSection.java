@@ -23,9 +23,7 @@ package org.openmuc.j60870.ie;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-/**
- * Represents a length of file or section (LOF) information element.
- */
+/** Represents a length of file or section (LOF) information element. */
 public class IeLengthOfFileOrSection extends InformationElement {
 
     private final int value;
@@ -50,7 +48,6 @@ public class IeLengthOfFileOrSection extends InformationElement {
         buffer[i] = (byte) (value >> 16);
 
         return 3;
-
     }
 
     public int getValue() {

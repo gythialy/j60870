@@ -23,13 +23,11 @@ package org.openmuc.j60870.ie;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-/**
- * Represents a quality descriptor for events of protection equipment (QDP) information element.
- */
+/** Represents a quality descriptor for events of protection equipment (QDP) information element. */
 public class IeProtectionQuality extends IeAbstractQuality {
 
-    public IeProtectionQuality(boolean elapsedTimeInvalid, boolean blocked, boolean substituted, boolean notTopical,
-                               boolean invalid) {
+    public IeProtectionQuality(
+            boolean elapsedTimeInvalid, boolean blocked, boolean substituted, boolean notTopical, boolean invalid) {
         super(blocked, substituted, notTopical, invalid);
 
         if (elapsedTimeInvalid) {

@@ -20,6 +20,11 @@
  */
 package org.openmuc.j60870.ie;
 
+import static org.junit.Assert.*;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.EnumSet;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import org.junit.Test;
@@ -27,18 +32,12 @@ import org.junit.runner.RunWith;
 import org.openmuc.j60870.ie.IeBinaryCounterReading.Flag;
 import org.openmuc.j60870.internal.ExtendedDataInputStream;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.util.EnumSet;
-
-import static org.junit.Assert.*;
-
 @RunWith(JUnitParamsRunner.class)
 public class IeBinaryCounterReadingTest {
 
     private static IeBinaryCounterReading decode(byte[] buffer) throws IOException {
         IeBinaryCounterReading binaryCounterReadingD;
-        try (ExtendedDataInputStream is = new ExtendedDataInputStream(new ByteArrayInputStream(buffer));) {
+        try (ExtendedDataInputStream is = new ExtendedDataInputStream(new ByteArrayInputStream(buffer)); ) {
             binaryCounterReadingD = IeBinaryCounterReading.decode(is);
         }
         return binaryCounterReadingD;
@@ -48,8 +47,8 @@ public class IeBinaryCounterReadingTest {
     public void t1_initialization() throws Exception {
         int counterReading = -300;
         int sequenceNumber = 4;
-        IeBinaryCounterReading binaryCounterReading = new IeBinaryCounterReading(counterReading, sequenceNumber,
-                Flag.CARRY, Flag.INVALID);
+        IeBinaryCounterReading binaryCounterReading =
+                new IeBinaryCounterReading(counterReading, sequenceNumber, Flag.CARRY, Flag.INVALID);
 
         assertEquals(counterReading, binaryCounterReading.getCounterReading());
         assertEquals(sequenceNumber, binaryCounterReading.getSequenceNumber());
@@ -63,22 +62,22 @@ public class IeBinaryCounterReadingTest {
     public void t2_encoding() throws Exception {
         int counterReading = -300;
         int sequenceNumber = 4;
-        IeBinaryCounterReading binaryCounterReading = new IeBinaryCounterReading(counterReading, sequenceNumber,
-                Flag.CARRY, Flag.INVALID);
+        IeBinaryCounterReading binaryCounterReading =
+                new IeBinaryCounterReading(counterReading, sequenceNumber, Flag.CARRY, Flag.INVALID);
 
         byte[] buffer = new byte[5];
         int length = binaryCounterReading.encode(buffer, 0);
 
         assertEquals(5, length);
-        assertArrayEquals(new byte[]{-44, -2, -1, -1, -92}, buffer);
+        assertArrayEquals(new byte[] {-44, -2, -1, -1, -92}, buffer);
     }
 
     @Test
     public void t3_encoding_symmetry() throws Exception {
         int counterReading = -300;
         int sequenceNumber = 4;
-        IeBinaryCounterReading binaryCounterReading = new IeBinaryCounterReading(counterReading, sequenceNumber,
-                Flag.CARRY, Flag.INVALID);
+        IeBinaryCounterReading binaryCounterReading =
+                new IeBinaryCounterReading(counterReading, sequenceNumber, Flag.CARRY, Flag.INVALID);
 
         byte[] buffer = new byte[5];
         int length = binaryCounterReading.encode(buffer, 0);
@@ -98,7 +97,7 @@ public class IeBinaryCounterReadingTest {
         Object[] p1 = {0x80, Flag.INVALID};
         Object[] p2 = {0x40, Flag.COUNTER_ADJUSTED};
         Object[] p3 = {0x20, Flag.CARRY};
-        return new Object[][]{p1, p2, p3};
+        return new Object[][] {p1, p2, p3};
     }
 
     @Test
@@ -113,5 +112,4 @@ public class IeBinaryCounterReadingTest {
 
         assertFalse("Also contained flag, which should not have been there.", es.removeAll(d.getFlags()));
     }
-
 }

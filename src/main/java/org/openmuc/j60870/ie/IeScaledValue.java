@@ -23,9 +23,7 @@ package org.openmuc.j60870.ie;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-/**
- * Represents a scaled value (SVA) information element.
- */
+/** Represents a scaled value (SVA) information element. */
 public class IeScaledValue extends IeNormalizedValue {
 
     /**
@@ -45,5 +43,4 @@ public class IeScaledValue extends IeNormalizedValue {
     public String toString() {
         return "Scaled value: " + value;
     }
-
 }

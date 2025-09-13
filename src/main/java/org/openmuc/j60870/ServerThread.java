@@ -37,8 +37,13 @@ class ServerThread implements Runnable {
     private volatile boolean stopServer = false;
     private int numConnections = 0;
 
-    ServerThread(ServerSocket serverSocket, ConnectionSettings settings, int maxConnections,
-                 ServerEventListener serverSapListener, ExecutorService exec, List<String> allowedClientIps) {
+    ServerThread(
+            ServerSocket serverSocket,
+            ConnectionSettings settings,
+            int maxConnections,
+            ServerEventListener serverSapListener,
+            ExecutorService exec,
+            List<String> allowedClientIps) {
         this.serverSocket = serverSocket;
         this.settings = settings;
         this.maxConnections = maxConnections;
@@ -92,7 +97,6 @@ class ServerThread implements Runnable {
                 } catch (IOException e) {
                 }
             }
-
         }
     }
 
@@ -102,9 +106,7 @@ class ServerThread implements Runnable {
         }
     }
 
-    /**
-     * Stops listening for new connections. Existing connections are not touched.
-     */
+    /** Stops listening for new connections. Existing connections are not touched. */
     void stopServer() {
         stopServer = true;
         if (serverSocket.isBound()) {
@@ -143,5 +145,4 @@ class ServerThread implements Runnable {
             serverConnection.start(listener);
         }
     }
-
 }

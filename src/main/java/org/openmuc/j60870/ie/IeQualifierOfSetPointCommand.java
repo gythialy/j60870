@@ -23,9 +23,7 @@ package org.openmuc.j60870.ie;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-/**
- * Represents a qualifier of set-point command (QOS) information element.
- */
+/** Represents a qualifier of set-point command (QOS) information element. */
 public class IeQualifierOfSetPointCommand extends InformationElement {
 
     private final int ql;

@@ -38,7 +38,6 @@ abstract class IeAbstractQualifierOfCommand extends InformationElement {
         if (select) {
             value |= 0x80;
         }
-
     }
 
     IeAbstractQualifierOfCommand(DataInputStream is) throws IOException {
@@ -68,5 +67,4 @@ abstract class IeAbstractQualifierOfCommand extends InformationElement {
     public String toString() {
         return "selected: " + isSelect() + ", qualifier: " + getQualifier();
     }
-
 }

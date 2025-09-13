@@ -20,9 +20,9 @@
  */
 package org.openmuc.j60870;
 
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
+
+import org.junit.Test;
 
 public class UtilTest {
 
@@ -30,5 +30,4 @@ public class UtilTest {
     public void testSetGetValue() {
         assertEquals(327832, Util.convertToInformationObjectAddress(152, 0, 5));
     }
-
 }

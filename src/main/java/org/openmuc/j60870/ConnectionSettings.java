@@ -199,7 +199,6 @@ class ConnectionSettings {
 
     public void setConnectionTimeout(int time) {
         this.connectionTimeout = time;
-
     }
 
     public ConnectionEventListener getConnectionEventListener() {
@@ -221,5 +220,4 @@ class ConnectionSettings {
     public void setUseSharedThreadPool(boolean useSharedThreadPool) {
         this.useSharedThreadPool = useSharedThreadPool;
     }
-
 }

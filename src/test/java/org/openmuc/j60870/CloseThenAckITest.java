@@ -20,6 +20,12 @@
  */
 package org.openmuc.j60870;
 
+import static org.openmuc.j60870.TestUtils.*;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
 import org.junit.Assert;
 import org.junit.Test;
 import org.openmuc.j60870.ie.IeNormalizedValue;
@@ -29,22 +35,16 @@ import org.openmuc.j60870.ie.InformationObject;
 import org.openmuc.j60870.internal.ByteStreamHelper;
 import org.openmuc.j60870.internal.HexUtils;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.Socket;
-
-import static org.openmuc.j60870.TestUtils.*;
-
 public class CloseThenAckITest {
 
     private static final int PORT = TestUtils.getAvailablePort();
-    private final ASdu spontaneousAsdu = new ASdu(ASduType.M_ME_NA_1, true, CauseOfTransmission.SPONTANEOUS, false,
-            false, 0, 1,
-            new InformationObject[]{new InformationObject(1,
-                    new InformationElement[][]{
-                            {new IeNormalizedValue(-32768), new IeQuality(true, true, true, true, true)},
-                            {new IeNormalizedValue(0), new IeQuality(true, true, true, true, true)}})});
+    private final ASdu spontaneousAsdu = new ASdu(
+            ASduType.M_ME_NA_1, true, CauseOfTransmission.SPONTANEOUS, false, false, 0, 1, new InformationObject[] {
+                new InformationObject(1, new InformationElement[][] {
+                    {new IeNormalizedValue(-32768), new IeQuality(true, true, true, true, true)},
+                    {new IeNormalizedValue(0), new IeQuality(true, true, true, true, true)}
+                })
+            });
     volatile Connection serverConnection = null;
 
     private static boolean sleep(int ms) {

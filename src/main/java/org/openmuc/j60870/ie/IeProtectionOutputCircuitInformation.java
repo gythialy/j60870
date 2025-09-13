@@ -23,15 +23,13 @@ package org.openmuc.j60870.ie;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-/**
- * Represents an output circuit information of protection equipment (OCI) information element.
- */
+/** Represents an output circuit information of protection equipment (OCI) information element. */
 public class IeProtectionOutputCircuitInformation extends InformationElement {
 
     private int value;
 
-    public IeProtectionOutputCircuitInformation(boolean generalCommand, boolean commandToL1, boolean commandToL2,
-                                                boolean commandToL3) {
+    public IeProtectionOutputCircuitInformation(
+            boolean generalCommand, boolean commandToL1, boolean commandToL2, boolean commandToL3) {
 
         value = 0;
 
@@ -47,7 +45,6 @@ public class IeProtectionOutputCircuitInformation extends InformationElement {
         if (commandToL3) {
             value |= 0x08;
         }
-
     }
 
     IeProtectionOutputCircuitInformation(DataInputStream is) throws IOException {
@@ -78,8 +75,13 @@ public class IeProtectionOutputCircuitInformation extends InformationElement {
 
     @Override
     public String toString() {
-        return "Protection output circuit information, general command: " + isGeneralCommand() + ", command to L1: "
-                + isCommandToL1() + ", command to L2: " + isCommandToL2() + ", command to L3: " + isCommandToL3();
+        return "Protection output circuit information, general command: "
+                + isGeneralCommand()
+                + ", command to L1: "
+                + isCommandToL1()
+                + ", command to L2: "
+                + isCommandToL2()
+                + ", command to L3: "
+                + isCommandToL3();
     }
-
 }

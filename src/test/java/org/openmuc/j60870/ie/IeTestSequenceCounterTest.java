@@ -33,5 +33,4 @@ public class IeTestSequenceCounterTest {
     public void testConstrcutorRange(int i) throws Exception {
         new IeTestSequenceCounter(i);
     }
-
 }

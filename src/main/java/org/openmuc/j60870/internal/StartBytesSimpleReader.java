@@ -32,7 +32,7 @@ public final class StartBytesSimpleReader {
      * Creates a StartBytesSimpleReader.
      *
      * @param startBytes the start bytes to read
-     * @param is         the input stream to read the start bytes from
+     * @param is the input stream to read the start bytes from
      */
     public StartBytesSimpleReader(byte[] startBytes, DataInputStream is) {
         this.startBytes = startBytes;
@@ -41,8 +41,8 @@ public final class StartBytesSimpleReader {
 
     /**
      * Reads from the input stream until the start bytes are received. The start bytes are put in the
-     * {@code destBuffer}. Any bytes that do not match the start byte sequence are discarded. If reading from the input
-     * stream causes an IOException it is propagated.
+     * {@code destBuffer}. Any bytes that do not match the start byte sequence are discarded. If
+     * reading from the input stream causes an IOException it is propagated.
      *
      * @throws IOException if an IOException is thrown reading from the input stream
      */

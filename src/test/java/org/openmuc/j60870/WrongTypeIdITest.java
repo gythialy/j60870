@@ -20,17 +20,16 @@
  */
 package org.openmuc.j60870;
 
-import org.junit.Assert;
-import org.junit.Test;
-import org.openmuc.j60870.internal.ByteStreamHelper;
-import org.openmuc.j60870.internal.HexUtils;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
+import org.junit.Assert;
+import org.junit.Test;
+import org.openmuc.j60870.internal.ByteStreamHelper;
+import org.openmuc.j60870.internal.HexUtils;
 
 public class WrongTypeIdITest {
 
@@ -60,15 +59,15 @@ public class WrongTypeIdITest {
                 ByteStreamHelper.readFully(is, startdtCon);
                 Assert.assertArrayEquals(HexUtils.hexToBytes("68040B000000"), startdtCon);
 
-                byte[] malformedUnsupportedTypeApdu = HexUtils
-                        .hexToBytes("6816000000002D01060039000000008D670A99130D190118");
+                byte[] malformedUnsupportedTypeApdu =
+                        HexUtils.hexToBytes("6816000000002D01060039000000008D670A99130D190118");
                 os.write(malformedUnsupportedTypeApdu);
 
                 byte[] response = new byte[malformedUnsupportedTypeApdu.length];
                 ByteStreamHelper.readFully(is, response);
 
-                byte[] expectedResponse = Arrays.copyOf(malformedUnsupportedTypeApdu,
-                        malformedUnsupportedTypeApdu.length);
+                byte[] expectedResponse =
+                        Arrays.copyOf(malformedUnsupportedTypeApdu, malformedUnsupportedTypeApdu.length);
                 expectedResponse[4] = 0x02;
                 expectedResponse[8] = (byte) (0x40 | CauseOfTransmission.UNKNOWN_TYPE_ID.getId());
                 Assert.assertArrayEquals(expectedResponse, response);

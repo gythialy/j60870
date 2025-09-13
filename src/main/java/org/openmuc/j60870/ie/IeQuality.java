@@ -23,9 +23,7 @@ package org.openmuc.j60870.ie;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-/**
- * Represents a quality descriptor (QDS) information element.
- */
+/** Represents a quality descriptor (QDS) information element. */
 public class IeQuality extends IeAbstractQuality {
 
     public IeQuality(boolean overflow, boolean blocked, boolean substituted, boolean notTopical, boolean invalid) {

@@ -1,4 +1,1 @@
-packageSearchIndex = [{
-    "l": "All Packages",
-    "url": "allpackages-index.html"
-}, {"l": "org.openmuc.j60870"}, {"l": "org.openmuc.j60870.ie"}]
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"org.openmuc.j60870"},{"l":"org.openmuc.j60870.ie"},{"l":"org.openmuc.j60870.internal"}];updateSearchResults();
