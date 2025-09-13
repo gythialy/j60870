@@ -2,7 +2,7 @@
 junit = "4.13.2"
 powermock = "2.0.9"
 junitParams = "1.1.1"
-awaitility = "4.2.2"
+awaitility = "4.3.0"
 asciidoctor = "4.0.5"
 spotless = "7.2.1"
 
