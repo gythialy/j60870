@@ -8,4 +8,4 @@ j60870 is a library implementing the IEC 60870-5-104 communication standard. The
 as well as servers. j60870 is licensed under the GPLv3. In addition we sell j60870 under proprietary licenses if needed.
 Please contact us if you need another license. Proprietary licenses are negotiated individually.
 
-Read the [user guide](https://gythialy.github.io/j60870/) on how to get started with the library.
+Read the [user guide](https://gythialy.github.io/j60870/) and [java doc](https://gythialy.github.io/j60870/javadoc) on how to get started with the library.
