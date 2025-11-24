@@ -4,7 +4,7 @@ powermock = "2.0.9"
 junitParams = "1.1.1"
 awaitility = "4.3.0"
 asciidoctor = "4.0.5"
-spotless = "8.0.0"
+spotless = "8.1.0"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
