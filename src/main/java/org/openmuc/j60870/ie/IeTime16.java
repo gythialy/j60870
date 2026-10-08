@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 Fraunhofer ISE
+ * Copyright 2014-2026 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -24,7 +24,9 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.Calendar;
 
-/** Represents a two octet binary time (CP16Time2a) information element. */
+/**
+ * Represents a two octet binary time (CP16Time2a) information element.
+ */
 public class IeTime16 extends InformationElement {
 
     private final byte[] value = new byte[2];

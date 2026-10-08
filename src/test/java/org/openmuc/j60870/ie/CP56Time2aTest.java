@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 Fraunhofer ISE
+ * Copyright 2014-2026 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -20,36 +20,16 @@
  */
 package org.openmuc.j60870.ie;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.openmuc.j60870.internal.HexUtils.hexToBytes;
 
 import java.util.TimeZone;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class CP56Time2aTest {
 
-    TimeZone cet = TimeZone.getTimeZone("CET");
-    TimeZone systemDefault;
-
-    @Before
-    public void setup() {
-        systemDefault = TimeZone.getDefault();
-        TimeZone.setDefault(cet);
-    }
-
-    @After
-    public void init() {
-        TimeZone.setDefault(systemDefault);
-    }
-
-    @After
-    public void deinit() {
-        TimeZone cet = TimeZone.getTimeZone("CET");
-        TimeZone.setDefault(cet);
-    }
+    private static final TimeZone CET = TimeZone.getTimeZone("CET");
 
     @Test
     public void testTimestampToCalendarInvalid() {
@@ -79,35 +59,35 @@ public class CP56Time2aTest {
     public void summertime_20181028_0100() {
         // 28.10.2018 01:00:30 CET DST (UTC+2)
         IeTime56 ts = new IeTime56(new byte[] {0x30, 0x75, 0x00, (byte) 0x81, (byte) 0xFC, 0x0a, 0x12});
-        assertEquals(1540681230000L, ts.getTimestamp());
+        assertEquals(1540681230000L, ts.getTimestamp(1970, CET));
     }
 
     @Test
     public void summertime_20181028_0200() {
         // 28.10.2018 02:00:30 CET DST (UTC+2)
         IeTime56 ts = new IeTime56(new byte[] {(byte) 0x30, 0x75, 0x00, (byte) 0x82, (byte) 0xfc, 0x0a, 0x12});
-        assertEquals(1540684830000L, ts.getTimestamp());
+        assertEquals(1540684830000L, ts.getTimestamp(1970, CET));
     }
 
     @Test
     public void standardtime_20181028_0200() {
         // 28.10.2018 02:00:30 CET (UTC+1)
-        IeTime56 ts = new IeTime56(new byte[] {0x30, 0x75, 0x00, (byte) 0x02, (byte) 0xfc, 0x0a, 0x12});
-        assertEquals(1540688430000L, ts.getTimestamp());
+        IeTime56 ts = new IeTime56(new byte[] {0x30, 0x75, 0x00, 0x02, (byte) 0xfc, 0x0a, 0x12});
+        assertEquals(1540688430000L, ts.getTimestamp(1970, CET));
     }
 
     @Test
     public void standardtime_20190331_0100() {
         // 31.03.2019 01:00:30 CET (UTC+1)
-        IeTime56 ts = new IeTime56(new byte[] {0x30, 0x75, 0x00, (byte) 0x01, (byte) 0xff, 0x03, 0x13});
-        assertEquals(1553990430000L, ts.getTimestamp());
+        IeTime56 ts = new IeTime56(new byte[] {0x30, 0x75, 0x00, 0x01, (byte) 0xff, 0x03, 0x13});
+        assertEquals(1553990430000L, ts.getTimestamp(1970, CET));
     }
 
     @Test
     public void summtertime_20190331_0300() {
         // 31.03.2019 03:00:30 CET DST (UTC+2)
         IeTime56 ts = new IeTime56(new byte[] {0x30, 0x75, 0x00, (byte) 0x83, (byte) 0xff, 0x03, 0x13});
-        assertEquals(1553994030000L, ts.getTimestamp());
+        assertEquals(1553994030000L, ts.getTimestamp(1970, CET));
     }
 
     private void testIeTime56(

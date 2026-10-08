@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 Fraunhofer ISE
+ * Copyright 2014-2026 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -25,15 +25,64 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-/** Represents a double command (DCO) information element. */
+/**
+ * Represents a double command (DCO) information element.
+ */
 public class IeDoubleCommand extends IeAbstractQualifierOfCommand {
+
+    public enum DoubleCommandState {
+        NOT_PERMITTED_A(0),
+        OFF(1),
+        ON(2),
+        NOT_PERMITTED_B(3);
+
+        private final int id;
+
+        private static final Map<Integer, DoubleCommandState> idMap = new HashMap<>();
+
+        static {
+            for (DoubleCommandState enumInstance : DoubleCommandState.values()) {
+                if (idMap.put(enumInstance.getId(), enumInstance) != null) {
+                    throw new IllegalArgumentException("duplicate ID: " + enumInstance.getId());
+                }
+            }
+        }
+
+        private DoubleCommandState(int id) {
+            this.id = id;
+        }
+
+        /**
+         * Returns the ID of this DoubleCommandState.
+         *
+         * @return the ID
+         */
+        public int getId() {
+            return id;
+        }
+
+        /**
+         * Returns the DoubleCommandState that corresponds to the given ID. Returns <code>null</code> if no
+         * DoubleCommandState with the given ID exists.
+         *
+         * @param id
+         *            the ID
+         * @return the DoubleCommandState that corresponds to the given ID
+         */
+        public static DoubleCommandState getInstance(int id) {
+            return idMap.get(id);
+        }
+    }
 
     /**
      * Create the Double Command Information Element.
      *
-     * @param commandState the command state
-     * @param qualifier the qualifier
-     * @param select true if select, false if execute
+     * @param commandState
+     *            the command state
+     * @param qualifier
+     *            the qualifier
+     * @param select
+     *            true if select, false if execute
      */
     public IeDoubleCommand(DoubleCommandState commandState, int qualifier, boolean select) {
         super(qualifier, select);
@@ -52,48 +101,5 @@ public class IeDoubleCommand extends IeAbstractQualifierOfCommand {
     @Override
     public String toString() {
         return "Double Command state: " + getCommandState() + ", " + super.toString();
-    }
-
-    public enum DoubleCommandState {
-        NOT_PERMITTED_A(0),
-        OFF(1),
-        ON(2),
-        NOT_PERMITTED_B(3);
-
-        private static final Map<Integer, DoubleCommandState> idMap = new HashMap<>();
-
-        static {
-            for (DoubleCommandState enumInstance : DoubleCommandState.values()) {
-                if (idMap.put(enumInstance.getId(), enumInstance) != null) {
-                    throw new IllegalArgumentException("duplicate ID: " + enumInstance.getId());
-                }
-            }
-        }
-
-        private final int id;
-
-        private DoubleCommandState(int id) {
-            this.id = id;
-        }
-
-        /**
-         * Returns the DoubleCommandState that corresponds to the given ID. Returns <code>null</code> if
-         * no DoubleCommandState with the given ID exists.
-         *
-         * @param id the ID
-         * @return the DoubleCommandState that corresponds to the given ID
-         */
-        public static DoubleCommandState getInstance(int id) {
-            return idMap.get(id);
-        }
-
-        /**
-         * Returns the ID of this DoubleCommandState.
-         *
-         * @return the ID
-         */
-        public int getId() {
-            return id;
-        }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 Fraunhofer ISE
+ * Copyright 2014-2026 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -20,14 +20,17 @@
  */
 package org.openmuc.j60870;
 
-import static org.openmuc.j60870.TestUtils.*;
+import static org.openmuc.j60870.TestUtils.STARTDT_ACT_BYTES;
+import static org.openmuc.j60870.TestUtils.STARTDT_CON_BYTES;
+import static org.openmuc.j60870.TestUtils.STOPDT_ACT_BYTES;
+import static org.openmuc.j60870.TestUtils.STOPDT_CON_BYTES;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.openmuc.j60870.ie.IeNormalizedValue;
 import org.openmuc.j60870.ie.IeQuality;
 import org.openmuc.j60870.ie.InformationElement;
@@ -38,6 +41,8 @@ import org.openmuc.j60870.internal.HexUtils;
 public class CloseThenAckITest {
 
     private static final int PORT = TestUtils.getAvailablePort();
+    volatile Connection serverConnection = null;
+
     private final ASdu spontaneousAsdu = new ASdu(
             ASduType.M_ME_NA_1, true, CauseOfTransmission.SPONTANEOUS, false, false, 0, 1, new InformationObject[] {
                 new InformationObject(1, new InformationElement[][] {
@@ -45,7 +50,6 @@ public class CloseThenAckITest {
                     {new IeNormalizedValue(0), new IeQuality(true, true, true, true, true)}
                 })
             });
-    volatile Connection serverConnection = null;
 
     private static boolean sleep(int ms) {
         try {
@@ -105,7 +109,7 @@ public class CloseThenAckITest {
 
                 sleep(1_000);
 
-                Assert.assertEquals(0, is.available());
+                Assertions.assertEquals(0, is.available());
 
                 serverConnection.send(spontaneousAsdu);
 
@@ -113,7 +117,7 @@ public class CloseThenAckITest {
 
                 os.write(STOPDT_ACT_BYTES);
 
-                Assert.assertEquals(-1, is.read());
+                Assertions.assertEquals(-1, is.read());
 
             } finally {
                 socket.close();
@@ -126,7 +130,7 @@ public class CloseThenAckITest {
     private void receive(InputStream is, byte[] bytesToReceive) throws IOException {
         byte[] receiveBuffer = new byte[bytesToReceive.length];
         ByteStreamHelper.readFully(is, receiveBuffer);
-        Assert.assertArrayEquals(receiveBuffer, bytesToReceive);
+        Assertions.assertArrayEquals(receiveBuffer, bytesToReceive);
     }
 
     class ServerListener implements ServerEventListener {

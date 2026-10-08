@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 Fraunhofer ISE
+ * Copyright 2014-2026 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -23,10 +23,18 @@ package org.openmuc.j60870.ie;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-/** Represents a single event of protection equipment (SEP) information element. */
+/**
+ * Represents a single event of protection equipment (SEP) information element.
+ */
 public class IeSingleProtectionEvent extends InformationElement {
 
     private int value;
+
+    public enum EventState {
+        INDETERMINATE,
+        OFF,
+        ON;
+    }
 
     public IeSingleProtectionEvent(
             EventState eventState,
@@ -109,21 +117,8 @@ public class IeSingleProtectionEvent extends InformationElement {
 
     @Override
     public String toString() {
-        return "Single protection event, elapsed time invalid: "
-                + isElapsedTimeInvalid()
-                + ", blocked: "
-                + isBlocked()
-                + ", substituted: "
-                + isSubstituted()
-                + ", not topical: "
-                + isNotTopical()
-                + ", event invalid: "
+        return "Single protection event, elapsed time invalid: " + isElapsedTimeInvalid() + ", blocked: " + isBlocked()
+                + ", substituted: " + isSubstituted() + ", not topical: " + isNotTopical() + ", event invalid: "
                 + isEventInvalid();
-    }
-
-    public enum EventState {
-        INDETERMINATE,
-        OFF,
-        ON;
     }
 }

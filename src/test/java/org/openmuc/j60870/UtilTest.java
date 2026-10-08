@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 Fraunhofer ISE
+ * Copyright 2014-2026 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -20,14 +20,13 @@
  */
 package org.openmuc.j60870;
 
-import static org.junit.Assert.assertEquals;
-
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class UtilTest {
 
     @Test
     public void testSetGetValue() {
-        assertEquals(327832, Util.convertToInformationObjectAddress(152, 0, 5));
+        Assertions.assertEquals(327832, Util.convertToInformationObjectAddress(152, 0, 5));
     }
 }

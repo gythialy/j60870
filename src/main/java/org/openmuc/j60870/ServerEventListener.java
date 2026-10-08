@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 Fraunhofer ISE
+ * Copyright 2014-2026 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -28,10 +28,11 @@ public interface ServerEventListener extends EventListener {
     ConnectionEventListener connectionIndication(Connection connection);
 
     /**
-     * This function is only called when an IOException in ServerSocket.accept() occurred which was
-     * not forced using ServerSap.stopListening()
+     * This function is only called when an IOException in ServerSocket.accept() occurred which was not forced using
+     * ServerSap.stopListening()
      *
-     * @param e The IOException caught form ServerSocket.accept()
+     * @param e
+     *            The IOException caught form ServerSocket.accept()
      */
     void serverStoppedListeningIndication(IOException e);
 

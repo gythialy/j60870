@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 Fraunhofer ISE
+ * Copyright 2014-2026 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -23,7 +23,9 @@ package org.openmuc.j60870.ie;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-/** Represents a single-point information with quality descriptor (SIQ) information element. */
+/**
+ * Represents a single-point information with quality descriptor (SIQ) information element.
+ */
 public class IeSinglePointWithQuality extends IeAbstractQuality {
 
     public IeSinglePointWithQuality(

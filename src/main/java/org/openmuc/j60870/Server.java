@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 Fraunhofer ISE
+ * Copyright 2014-2026 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -27,8 +27,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import javax.net.ServerSocketFactory;
 
-/** The server is used to start listening for IEC 60870-5-104 client connections. */
+/**
+ * The server is used to start listening for IEC 60870-5-104 client connections.
+ */
 public class Server {
+
+    private ServerThread serverThread;
 
     private final int port;
     private final InetAddress bindAddr;
@@ -36,9 +40,14 @@ public class Server {
     private final ServerSocketFactory serverSocketFactory;
     private final int maxConnections;
     private final List<String> allowedClientIps;
+
     private final ConnectionSettings settings;
-    private ServerThread serverThread;
+
     private ExecutorService exec;
+
+    public boolean isStopped() {
+        return serverThread == null;
+    }
 
     private Server(Builder builder) {
         port = builder.port;
@@ -54,19 +63,17 @@ public class Server {
         return new Builder();
     }
 
-    public boolean isStopped() {
-        return serverThread == null;
-    }
-
     /**
      * Starts a new thread that listens on the configured port. This method is non-blocking.
      *
-     * @param listener the ServerConnectionListener that will be notified when remote clients are
-     *     connecting or the server stopped listening.
-     * @throws IOException if any kind of error occurs while creating the server socket.
+     * @param listener
+     *            the ServerConnectionListener that will be notified when remote clients are connecting or the server
+     *            stopped listening.
+     * @throws IOException
+     *             if any kind of error occurs while creating the server socket.
      */
     public void start(ServerEventListener listener) throws IOException {
-        ConnectionSettings.incremntConnectionsCounter();
+        ConnectionSettings.incrementConnectionsCounter();
         if (this.settings.useSharedThreadPool()) {
             this.exec = ConnectionSettings.getThreadPool();
         } else {
@@ -82,7 +89,9 @@ public class Server {
         this.exec.execute(this.serverThread);
     }
 
-    /** Stop listening for new connections. Existing connections are not touched. */
+    /**
+     * Stop listening for new connections. Existing connections are not touched.
+     */
     public void stop() {
         if (serverThread == null) {
             return;
@@ -119,7 +128,8 @@ public class Server {
         /**
          * Sets the TCP port that the server will listen on. IEC 60870-5-104 usually uses port 2404.
          *
-         * @param port the port
+         * @param port
+         *            the port
          * @return this builder
          */
         public Builder setPort(int port) {
@@ -130,7 +140,8 @@ public class Server {
         /**
          * Sets the backlog that is passed to the java.net.ServerSocket.
          *
-         * @param backlog the backlog
+         * @param backlog
+         *            the backlog
          * @return this builder
          */
         public Builder setBacklog(int backlog) {
@@ -141,7 +152,8 @@ public class Server {
         /**
          * Sets an implementation of the ReservedASduTypeDecoder to define supported reserved ASdus
          *
-         * @param reservedASduTypeDecoder implementation of the ReservedASduTypeDecoder
+         * @param reservedASduTypeDecoder
+         *            implementation of the ReservedASduTypeDecoder
          */
         public void setReservedASduTypeDecoder(ReservedASduTypeDecoder reservedASduTypeDecoder) {
             this.settings.setReservedASduTypeDecoder(reservedASduTypeDecoder);
@@ -150,7 +162,8 @@ public class Server {
         /**
          * Sets the IP address to bind to. It is passed to java.net.ServerSocket
          *
-         * @param bindAddr the IP address to bind to
+         * @param bindAddr
+         *            the IP address to bind to
          * @return this builder
          */
         public Builder setBindAddr(InetAddress bindAddr) {
@@ -162,7 +175,8 @@ public class Server {
          * Sets the ServerSocketFactory to be used to create the ServerSocket. Default is
          * ServerSocketFactory.getDefault().
          *
-         * @param socketFactory the ServerSocketFactory to be used to create the ServerSocket
+         * @param socketFactory
+         *            the ServerSocketFactory to be used to create the ServerSocket
          * @return this builder
          */
         public Builder setSocketFactory(ServerSocketFactory socketFactory) {
@@ -173,8 +187,8 @@ public class Server {
         /**
          * Set the maximum number of client connections that are allowed in parallel.
          *
-         * @param maxConnections the number of connections allowed (default is 100) @ return this
-         *     builder
+         * @param maxConnections
+         *            the number of connections allowed (default is 100) @ return this builder
          * @return this builder
          */
         public Builder setMaxConnections(int maxConnections) {
@@ -186,10 +200,11 @@ public class Server {
         }
 
         /**
-         * Set the IPs from which clients may connect. Pass {@code null} to allow all clients. By
-         * default all clients are allowed to connect.
+         * Set the IPs from which clients may connect. Pass {@code null} to allow all clients. By default, all clients
+         * are allowed to connect.
          *
-         * @param allowedClientIps the allowed client IPs
+         * @param allowedClientIps
+         *            the allowed client IPs
          * @return this builder
          */
         public Builder setAllowedClients(List<String> allowedClientIps) {
@@ -198,8 +213,7 @@ public class Server {
         }
 
         /**
-         * To start/activate the server call {@link Server#start(ServerEventListener)} on the returned
-         * server.
+         * To start/activate the server call {@link Server#start(ServerEventListener)} on the returned server.
          */
         @Override
         public Server build() {

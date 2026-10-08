@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 Fraunhofer ISE
+ * Copyright 2014-2026 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -24,7 +24,9 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.text.MessageFormat;
 
-/** Represents a value with transient state indication (VTI) information element. */
+/**
+ * Represents a value with transient state indication (VTI) information element.
+ */
 public class IeValueWithTransientState extends InformationElement {
 
     private final int value;
@@ -33,8 +35,10 @@ public class IeValueWithTransientState extends InformationElement {
     /**
      * Creates a VTI (value with transient state indication) information element.
      *
-     * @param value value between -64 and 63
-     * @param transientState true if in transient state
+     * @param value
+     *            value between -64 and 63
+     * @param transientState
+     *            true if in transient state
      */
     public IeValueWithTransientState(int value, boolean transientState) {
 

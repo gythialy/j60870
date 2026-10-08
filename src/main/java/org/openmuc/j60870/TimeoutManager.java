@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 Fraunhofer ISE
+ * Copyright 2014-2026 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -24,9 +24,12 @@ import java.util.concurrent.PriorityBlockingQueue;
 
 class TimeoutManager implements Runnable {
 
-    private static final int INITIAL_QUE_CAPACITY = 4;
     private final PriorityBlockingQueue<TimeoutTask> queue;
+
     private final Object guardedLock;
+
+    private static final int INITIAL_QUE_CAPACITY = 4;
+
     boolean canceled;
 
     public TimeoutManager() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 Fraunhofer ISE
+ * Copyright 2014-2026 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -51,7 +51,17 @@ class ConnectionSettings {
 
     private boolean useSharedThreadPool;
     private Set<ASduType> allowedTypes;
+
+    public ReservedASduTypeDecoder getReservedASduTypeDecoder() {
+        return reservedASduTypeDecoder;
+    }
+
+    public void setReservedASduTypeDecoder(ReservedASduTypeDecoder reservedASduTypeDecoder) {
+        this.reservedASduTypeDecoder = reservedASduTypeDecoder;
+    }
+
     private ReservedASduTypeDecoder reservedASduTypeDecoder;
+
     private ConnectionEventListener connectionEventListener;
 
     public ConnectionSettings() {
@@ -95,28 +105,6 @@ class ConnectionSettings {
         this.allowedTypes = connectionSettings.allowedTypes;
     }
 
-    public static ExecutorService getThreadPool() {
-        return threadPool;
-    }
-
-    public static synchronized void incremntConnectionsCounter() {
-        numOpenConnections++;
-    }
-
-    public static synchronized void decrementConnectionsCounter() {
-        if (--numOpenConnections == 0) {
-            threadPool.shutdown();
-        }
-    }
-
-    public ReservedASduTypeDecoder getReservedASduTypeDecoder() {
-        return reservedASduTypeDecoder;
-    }
-
-    public void setReservedASduTypeDecoder(ReservedASduTypeDecoder reservedASduTypeDecoder) {
-        this.reservedASduTypeDecoder = reservedASduTypeDecoder;
-    }
-
     public boolean useSharedThreadPool() {
         return useSharedThreadPool;
     }
@@ -125,99 +113,113 @@ class ConnectionSettings {
         return messageFragmentTimeout;
     }
 
-    public void setMessageFragmentTimeout(int messageFragmentTimeout) {
-        this.messageFragmentTimeout = messageFragmentTimeout;
-    }
-
     public int getCotFieldLength() {
         return cotFieldLength;
-    }
-
-    public void setCotFieldLength(int cotFieldLength) {
-        this.cotFieldLength = cotFieldLength;
     }
 
     public int getCommonAddressFieldLength() {
         return commonAddressFieldLength;
     }
 
-    public void setCommonAddressFieldLength(int commonAddressFieldLength) {
-        this.commonAddressFieldLength = commonAddressFieldLength;
-    }
-
     public int getIoaFieldLength() {
         return ioaFieldLength;
-    }
-
-    public void setIoaFieldLength(int ioaFieldLength) {
-        this.ioaFieldLength = ioaFieldLength;
     }
 
     public int getMaxTimeNoAckReceived() {
         return maxTimeNoAckReceived;
     }
 
-    public void setMaxTimeNoAckReceived(int maxTimeNoAckReceived) {
-        this.maxTimeNoAckReceived = maxTimeNoAckReceived;
-    }
-
     public int getMaxTimeNoAckSent() {
         return maxTimeNoAckSent;
-    }
-
-    public void setMaxTimeNoAckSent(int maxTimeNoAckSent) {
-        this.maxTimeNoAckSent = maxTimeNoAckSent;
     }
 
     public int getMaxIdleTime() {
         return maxIdleTime;
     }
 
-    public void setMaxIdleTime(int maxIdleTime) {
-        this.maxIdleTime = maxIdleTime;
-    }
-
     public int getMaxUnconfirmedIPdusReceived() {
         return maxUnconfirmedIPdusReceived;
-    }
-
-    public void setMaxUnconfirmedIPdusReceived(int maxUnconfirmedIPdusReceived) {
-        this.maxUnconfirmedIPdusReceived = maxUnconfirmedIPdusReceived;
     }
 
     public int getMaxNumOfOutstandingIPdus() {
         return this.maxNumOfOutstandingIPdus;
     }
 
-    public void setMaxNumOfOutstandingIPdus(int maxNumOfOutstandingIPdus) {
-        this.maxNumOfOutstandingIPdus = maxNumOfOutstandingIPdus;
-    }
-
     public int getConnectionTimeout() {
         return this.connectionTimeout;
-    }
-
-    public void setConnectionTimeout(int time) {
-        this.connectionTimeout = time;
     }
 
     public ConnectionEventListener getConnectionEventListener() {
         return this.connectionEventListener;
     }
 
-    public void setConnectionEventListener(ConnectionEventListener listener) {
-        this.connectionEventListener = listener;
-    }
-
     public Set<ASduType> getAllowedTypes() {
         return this.allowedTypes;
+    }
+
+    public void setUseSharedThreadPool(boolean useSharedThreadPool) {
+        this.useSharedThreadPool = useSharedThreadPool;
+    }
+
+    public void setMessageFragmentTimeout(int messageFragmentTimeout) {
+        this.messageFragmentTimeout = messageFragmentTimeout;
+    }
+
+    public void setCotFieldLength(int cotFieldLength) {
+        this.cotFieldLength = cotFieldLength;
+    }
+
+    public void setCommonAddressFieldLength(int commonAddressFieldLength) {
+        this.commonAddressFieldLength = commonAddressFieldLength;
+    }
+
+    public void setIoaFieldLength(int ioaFieldLength) {
+        this.ioaFieldLength = ioaFieldLength;
+    }
+
+    public void setMaxTimeNoAckReceived(int maxTimeNoAckReceived) {
+        this.maxTimeNoAckReceived = maxTimeNoAckReceived;
+    }
+
+    public void setMaxTimeNoAckSent(int maxTimeNoAckSent) {
+        this.maxTimeNoAckSent = maxTimeNoAckSent;
+    }
+
+    public void setMaxIdleTime(int maxIdleTime) {
+        this.maxIdleTime = maxIdleTime;
+    }
+
+    public void setMaxUnconfirmedIPdusReceived(int maxUnconfirmedIPdusReceived) {
+        this.maxUnconfirmedIPdusReceived = maxUnconfirmedIPdusReceived;
+    }
+
+    public void setMaxNumOfOutstandingIPdus(int maxNumOfOutstandingIPdus) {
+        this.maxNumOfOutstandingIPdus = maxNumOfOutstandingIPdus;
+    }
+
+    public void setConnectionTimeout(int time) {
+        this.connectionTimeout = time;
+    }
+
+    public void setConnectionEventListener(ConnectionEventListener listener) {
+        this.connectionEventListener = listener;
     }
 
     public void setAllowedTypes(List<ASduType> allowedTypes) {
         this.allowedTypes = new HashSet<>(allowedTypes);
     }
 
-    public void setUseSharedThreadPool(boolean useSharedThreadPool) {
-        this.useSharedThreadPool = useSharedThreadPool;
+    public static ExecutorService getThreadPool() {
+        return threadPool;
+    }
+
+    public static synchronized void incrementConnectionsCounter() {
+        numOpenConnections++;
+    }
+
+    public static synchronized void decrementConnectionsCounter() {
+        if (--numOpenConnections == 0) {
+            threadPool.shutdown();
+        }
     }
 }

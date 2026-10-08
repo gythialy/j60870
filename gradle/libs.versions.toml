@@ -1,21 +1,22 @@
 [versions]
-junit = "4.13.2"
-powermock = "2.0.9"
-junitParams = "1.1.1"
+junit = "5.14.4"
 awaitility = "4.3.0"
-asciidoctor = "4.0.5"
-spotless = "8.10.3"
+spotless = "8.7.0"
+mockito="5.23.0"
+jacoco = "0.8.15"
 
 [libraries]
-junit = { group = "junit", name = "junit", version.ref = "junit" }
-powermock-junit4 = { group = "org.powermock", name = "powermock-module-junit4", version.ref = "powermock" }
-powermock-mockito2 = { group = "org.powermock", name = "powermock-api-mockito2", version.ref = "powermock" }
-junit-params = { group = "pl.pragmatists", name = "JUnitParams", version.ref = "junitParams" }
+junit = { group = "org.junit", name = "junit-bom", version.ref = "junit" }
+junit-api = { group = "org.junit.jupiter", name = "junit-jupiter-api" }
+junit-params = { group = "org.junit.jupiter", name = "junit-jupiter-params" }
+junit-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine"}
+junit-launcher = { group = "org.junit.platform", name = "junit-platform-launcher" }
+mockito = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }
 awaitility = { group = "org.awaitility", name = "awaitility", version.ref = "awaitility" }
+jacoco-ant = { group = "org.jacoco", name = "org.jacoco.ant", version.ref = "jacoco" }
+jacoco-agent = { group = "org.jacoco", name = "org.jacoco.agent", version.ref = "jacoco" }
 
 [plugins]
 java = { id = "java" }
 jacoco = { id = "jacoco" }
-asciidoctor-convert = { id = "org.asciidoctor.jvm.convert", version.ref = "asciidoctor" }
-asciidoctor-pdf = { id = "org.asciidoctor.jvm.pdf", version.ref = "asciidoctor" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 Fraunhofer ISE
+ * Copyright 2014-2026 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -20,28 +20,23 @@
  */
 package org.openmuc.j60870.ie;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.EnumSet;
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.openmuc.j60870.ie.IeBinaryCounterReading.Flag;
 import org.openmuc.j60870.internal.ExtendedDataInputStream;
 
-@RunWith(JUnitParamsRunner.class)
 public class IeBinaryCounterReadingTest {
-
-    private static IeBinaryCounterReading decode(byte[] buffer) throws IOException {
-        IeBinaryCounterReading binaryCounterReadingD;
-        try (ExtendedDataInputStream is = new ExtendedDataInputStream(new ByteArrayInputStream(buffer)); ) {
-            binaryCounterReadingD = IeBinaryCounterReading.decode(is);
-        }
-        return binaryCounterReadingD;
-    }
 
     @Test
     public void t1_initialization() throws Exception {
@@ -93,23 +88,31 @@ public class IeBinaryCounterReadingTest {
         assertFalse(binaryCounterReadingD.getFlags().contains(Flag.COUNTER_ADJUSTED));
     }
 
-    public Object t4_data() {
-        Object[] p1 = {0x80, Flag.INVALID};
-        Object[] p2 = {0x40, Flag.COUNTER_ADJUSTED};
-        Object[] p3 = {0x20, Flag.CARRY};
-        return new Object[][] {p1, p2, p3};
+    static Stream<Arguments> t4_data() {
+        return Stream.of(
+                Arguments.of(0x80, Flag.INVALID),
+                Arguments.of(0x40, Flag.COUNTER_ADJUSTED),
+                Arguments.of(0x20, Flag.CARRY));
     }
 
-    @Test
-    @Parameters(method = "t4_data")
+    @ParameterizedTest
+    @MethodSource("t4_data")
     public void t4(int flagTag, Flag f) throws Exception {
         byte[] buffer = {-44, -2, -1, -1, (byte) flagTag};
         IeBinaryCounterReading d = decode(buffer);
 
         EnumSet<Flag> es = EnumSet.allOf(Flag.class);
-        assertTrue("Flag is somehow not there..?", es.remove(f));
-        assertTrue("Flag was not represented..", d.getFlags().contains(f));
+        assertTrue(es.remove(f), "Flag is somehow not there..?");
+        assertTrue(d.getFlags().contains(f), "Flag was not represented..");
 
-        assertFalse("Also contained flag, which should not have been there.", es.removeAll(d.getFlags()));
+        assertFalse(es.removeAll(d.getFlags()), "Also contained flag, which should not have been there.");
+    }
+
+    private static IeBinaryCounterReading decode(byte[] buffer) throws IOException {
+        IeBinaryCounterReading binaryCounterReadingD;
+        try (ExtendedDataInputStream is = new ExtendedDataInputStream(new ByteArrayInputStream(buffer)); ) {
+            binaryCounterReadingD = IeBinaryCounterReading.decode(is);
+        }
+        return binaryCounterReadingD;
     }
 }

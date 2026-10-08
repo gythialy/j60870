@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 Fraunhofer ISE
+ * Copyright 2014-2026 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -20,17 +20,16 @@
  */
 package org.openmuc.j60870;
 
-import junitparams.JUnitParamsRunner;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.openmuc.j60870.Server.Builder;
 
-@RunWith(JUnitParamsRunner.class)
 public class CommonBuilderTest {
     private Builder builder;
 
-    @Before
+    @BeforeEach
     public void init() {
         builder = Server.builder();
     }
@@ -46,44 +45,44 @@ public class CommonBuilderTest {
         }
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test()
     public void testT2BiggerThenT1() {
-        setTime(15000, 16000, 20000);
+        assertThrows(IllegalArgumentException.class, () -> setTime(15000, 16000, 20000));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test()
     public void testT3SmallerThenT1() {
-        setTime(15000, 10000, 14000);
+        assertThrows(IllegalArgumentException.class, () -> setTime(15000, 10000, 14000));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test()
     public void testT1toSmall() {
-        setTime(Integer.MIN_VALUE, 10000, 20000);
+        assertThrows(IllegalArgumentException.class, () -> setTime(Integer.MIN_VALUE, 10000, 20000));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test()
     public void testT1toBig() {
-        setTime(Integer.MAX_VALUE, 10000, 20000);
+        assertThrows(IllegalArgumentException.class, () -> setTime(Integer.MAX_VALUE, 10000, 20000));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test()
     public void testT2toSmall() {
-        setTime(15000, Integer.MIN_VALUE, 20000);
+        assertThrows(IllegalArgumentException.class, () -> setTime(15000, Integer.MIN_VALUE, 20000));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test()
     public void testT2toBig() {
-        setTime(15000, Integer.MAX_VALUE, 20000);
+        assertThrows(IllegalArgumentException.class, () -> setTime(15000, Integer.MAX_VALUE, 20000));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test()
     public void testT3toSmall() {
-        setTime(15000, 10000, Integer.MIN_VALUE);
+        assertThrows(IllegalArgumentException.class, () -> setTime(15000, 10000, Integer.MIN_VALUE));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test()
     public void testT3toBig() {
-        setTime(15000, 10000, Integer.MAX_VALUE);
+        assertThrows(IllegalArgumentException.class, () -> setTime(15000, 10000, Integer.MAX_VALUE));
     }
 
     @Test

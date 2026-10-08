@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 Fraunhofer ISE
+ * Copyright 2014-2026 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -23,7 +23,9 @@ package org.openmuc.j60870.ie;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-/** Represents a cause of initialization (COI) information element. */
+/**
+ * Represents a cause of initialization (COI) information element.
+ */
 public class IeCauseOfInitialization extends InformationElement {
 
     private final int value;
@@ -32,9 +34,11 @@ public class IeCauseOfInitialization extends InformationElement {
     /**
      * Creates a COI (cause of initialization) information element.
      *
-     * @param value value between 0 and 127
-     * @param initAfterParameterChange true if initialization after change of local parameters and
-     *     false if initialization with unchanged local parameters
+     * @param value
+     *            value between 0 and 127
+     * @param initAfterParameterChange
+     *            true if initialization after change of local parameters and false if initialization with unchanged
+     *            local parameters
      */
     public IeCauseOfInitialization(int value, boolean initAfterParameterChange) {
 

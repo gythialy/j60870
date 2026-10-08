@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 Fraunhofer ISE
+ * Copyright 2014-2026 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -20,21 +20,41 @@
  */
 package org.openmuc.j60870.app;
 
-import org.openmuc.j60870.*;
-import org.openmuc.j60870.Server.Builder;
-import org.openmuc.j60870.ie.*;
-import org.openmuc.j60870.internal.cli.*;
-
 import java.io.EOFException;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
+import org.openmuc.j60870.ASdu;
+import org.openmuc.j60870.ASduType;
+import org.openmuc.j60870.CauseOfTransmission;
+import org.openmuc.j60870.Connection;
+import org.openmuc.j60870.ConnectionEventListener;
+import org.openmuc.j60870.Server;
+import org.openmuc.j60870.Server.Builder;
+import org.openmuc.j60870.ServerEventListener;
+import org.openmuc.j60870.ie.IeQuality;
+import org.openmuc.j60870.ie.IeScaledValue;
+import org.openmuc.j60870.ie.IeSingleCommand;
+import org.openmuc.j60870.ie.IeTime56;
+import org.openmuc.j60870.ie.InformationElement;
+import org.openmuc.j60870.ie.InformationObject;
+import org.openmuc.j60870.internal.cli.CliParameter;
+import org.openmuc.j60870.internal.cli.CliParameterBuilder;
+import org.openmuc.j60870.internal.cli.CliParseException;
+import org.openmuc.j60870.internal.cli.CliParser;
+import org.openmuc.j60870.internal.cli.IntCliParameter;
+import org.openmuc.j60870.internal.cli.StringCliParameter;
+import org.openmuc.j60870.logging.LoggerInterface;
+import org.openmuc.j60870.logging.LoggerFactory;
+
 public class SampleServer {
+
+    private static final LoggerInterface log =
+            LoggerFactory.getLogger(MethodHandles.lookup().lookupClass().getName());
 
     private static final StringCliParameter bindAddressParam = new CliParameterBuilder("-a")
             .setDescription("The bind address.")
@@ -50,6 +70,120 @@ public class SampleServer {
     private static final IntCliParameter caLengthParam = new CliParameterBuilder("-cal")
             .setDescription("Common Address (CA) field length.")
             .buildIntParameter("ca_length", 2);
+
+    public class ServerListener implements ServerEventListener {
+
+        public class ConnectionListener implements ConnectionEventListener {
+
+            private final int connectionId;
+            private boolean selected = false;
+
+            public ConnectionListener(Connection connection, int connectionId) {
+                this.connectionId = connectionId;
+            }
+
+            @Override
+            public void newASdu(Connection connection, ASdu aSdu) {
+                log.info("Got new ASdu: \n{}\n", aSdu.toString());
+                InformationObject informationObject = null;
+                try {
+                    switch (aSdu.getTypeIdentification()) {
+                    // interrogation command
+                    case C_IC_NA_1:
+                        log.info("Got interrogation command (100). Will send scaled measured values.");
+                        connection.sendConfirmation(aSdu);
+                        // example GI response values
+                        connection.send(new ASdu(ASduType.M_ME_NB_1, true, CauseOfTransmission.INTERROGATED_BY_STATION,
+                                false, false, 0, aSdu.getCommonAddress(),
+                                new InformationObject(1, new InformationElement[][] {
+                                        { new IeScaledValue(-32768), new IeQuality(false, false, false, false, false) },
+                                        { new IeScaledValue(10), new IeQuality(false, false, false, false, false) },
+                                        { new IeScaledValue(-5),
+                                                new IeQuality(false, false, false, false, false) } })));
+                        connection.sendActivationTermination(aSdu);
+                        break;
+                    case C_SC_NA_1:
+                        informationObject = aSdu.getInformationObjects()[0];
+                        IeSingleCommand singleCommand = (IeSingleCommand) informationObject
+                                .getInformationElements()[0][0];
+
+                        if (informationObject.getInformationObjectAddress() != 5000) {
+                            break;
+                        }
+                        if (singleCommand.isSelect()) {
+                            log.info("Got single command (45) with select true. Select command.");
+                            selected = true;
+                            connection.sendConfirmation(aSdu);
+                        }
+                        else if (!singleCommand.isSelect() && selected) {
+                            log.info("Got single command (45) with select false. Execute selected command.");
+                            selected = false;
+                            connection.sendConfirmation(aSdu);
+                        }
+                        else {
+                            log.info("Got single command (45) with select false. But no command is selected, no execution.");
+                        }
+                        break;
+                    case C_CS_NA_1:
+                        IeTime56 ieTime56 = new IeTime56(System.currentTimeMillis());
+                        log.info("Got Clock synchronization command (103). Send current time: \n{}", ieTime56);
+                        connection.synchronizeClocks(aSdu.getCommonAddress(), ieTime56);
+                        break;
+                    case C_SE_NB_1:
+                        log.info("Got Set point command, scaled value (49)");
+                        break;
+                    default:
+                        log.warn("Got unknown request: {}. Send negative confirm with CoT UNKNOWN_TYPE_ID(44)\n", aSdu);
+                        connection.sendConfirmation(aSdu, aSdu.getCommonAddress(), true,
+                                CauseOfTransmission.UNKNOWN_TYPE_ID);
+                    }
+
+                } catch (EOFException e) {
+                    log.error("Will quit listening for commands on connection ({}) because socket was closed.", connectionId);
+                } catch (IOException e) {
+                    log.error("Will quit listening for commands on connection ({}) because of error: \"{}\".", connectionId, e.getMessage());
+                }
+
+            }
+
+            @Override
+            public void connectionClosed(Connection connection, IOException e) {
+                log.info("Connection ({}}) was closed. {}",connectionId, e.getMessage());
+            }
+
+            @Override
+            public void dataTransferStateChanged(Connection connection, boolean stopped) {
+                String dtState = "started";
+                if (stopped) {
+                    dtState = "stopped";
+                }
+                log.info("Data transfer of connection ({}) was {}.", connectionId, dtState);
+            }
+
+        }
+
+        @Override
+        public ConnectionEventListener connectionIndication(Connection connection) {
+            int myConnectionId = connectionIdCounter++;
+            log.info("A client (Originator Address {}) has connected using TCP/IP. Will listen for a StartDT request. Connection ID: {}"
+                    ,connection.getOriginatorAddress(), myConnectionId);
+            log.info("Started data transfer on connection ({}) Will listen for incoming commands.", myConnectionId);
+
+            return new ConnectionListener(connection, myConnectionId);
+        }
+
+        @Override
+        public void serverStoppedListeningIndication(IOException e) {
+            log.warn("Server has stopped listening for new connections : \"{}\". Will quit.",  e.getMessage());
+        }
+
+        @Override
+        public void connectionAttemptFailed(IOException e) {
+            log.error("Connection attempt failed: {}", e.getMessage());
+        }
+
+    }
+
     private int connectionIdCounter = 1;
 
     public static void main(String[] args) throws UnknownHostException {
@@ -71,17 +205,16 @@ public class SampleServer {
         try {
             cliParser.parseArguments(args);
         } catch (CliParseException e) {
-            System.err.println("Error parsing command line parameters: " + e.getMessage());
-            System.out.println(cliParser.getUsageString());
+            log.error("Error parsing command line parameters: {}\n{}", e.getMessage(), cliParser.getUsageString());
             System.exit(1);
         }
     }
 
     public void start() throws UnknownHostException {
-        log("### Starting Server ###\n", "\nBind Address: ", bindAddressParam.getValue(), "\nPort:         ",
-                String.valueOf(portParam.getValue()), "\nIAO length:   ", String.valueOf(iaoLengthParam.getValue()),
-                "\nCA length:    ", String.valueOf(caLengthParam.getValue()), "\nCOT length:   ",
-                String.valueOf(cotLengthParam.getValue()), "\n");
+        log.info(
+                "### Starting Server ###\n\nBind Address: {}\nPort:         {}\nIAO length:   {}\nCA length:    {}\nCOT length:   {}\n",
+                bindAddressParam.getValue(), portParam.getValue(), iaoLengthParam.getValue(), caLengthParam.getValue(),
+                cotLengthParam.getValue());
 
         Builder builder = Server.builder();
         InetAddress bindAddress = InetAddress.getByName(bindAddressParam.getValue());
@@ -95,140 +228,8 @@ public class SampleServer {
         try {
             server.start(new ServerListener());
         } catch (IOException e) {
-            log("Unable to start listening: \"", e.getMessage(), "\". Will quit.");
+            log.error("Unable to start listening: \"{}\". Will quit.", e.getMessage());
         }
-    }
-
-    private void log(String... strings) {
-        String time = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss.SSS ").format(new Date());
-        println(time, strings);
-    }
-
-    private void println(String string, String... strings) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(string);
-        for (String s : strings) {
-            sb.append(s);
-        }
-        System.out.println(sb.toString());
-    }
-
-    public class ServerListener implements ServerEventListener {
-
-        @Override
-        public ConnectionEventListener connectionIndication(Connection connection) {
-            int myConnectionId = connectionIdCounter++;
-            log("A client (Originator Address " + connection.getOriginatorAddress()
-                    + ") has connected using TCP/IP. Will listen for a StartDT request. Connection ID: "
-                    + myConnectionId);
-            log("Started data transfer on connection (" + myConnectionId, ") Will listen for incoming commands.");
-
-            return new ConnectionListener(connection, myConnectionId);
-        }
-
-        @Override
-        public void serverStoppedListeningIndication(IOException e) {
-            log("Server has stopped listening for new connections : \"", e.getMessage(), "\". Will quit.");
-        }
-
-        @Override
-        public void connectionAttemptFailed(IOException e) {
-            log("Connection attempt failed: ", e.getMessage());
-        }
-
-        public class ConnectionListener implements ConnectionEventListener {
-
-            private final Connection connection;
-            private final int connectionId;
-            private boolean selected = false;
-
-            public ConnectionListener(Connection connection, int connectionId) {
-                this.connection = connection;
-                this.connectionId = connectionId;
-            }
-
-            @Override
-            public void newASdu(Connection connection, ASdu aSdu) {
-                log("Got new ASdu:");
-                println(aSdu.toString(), "\n");
-                InformationObject informationObject = null;
-                try {
-                    switch (aSdu.getTypeIdentification()) {
-                        // interrogation command
-                        case C_IC_NA_1:
-                            log("Got interrogation command (100). Will send scaled measured values.");
-                            connection.sendConfirmation(aSdu);
-                            // example GI response values
-                            connection.send(new ASdu(ASduType.M_ME_NB_1, true, CauseOfTransmission.INTERROGATED_BY_STATION,
-                                    false, false, 0, aSdu.getCommonAddress(),
-                                    new InformationObject(1, new InformationElement[][]{
-                                            {new IeScaledValue(-32768), new IeQuality(false, false, false, false, false)},
-                                            {new IeScaledValue(10), new IeQuality(false, false, false, false, false)},
-                                            {new IeScaledValue(-5),
-                                                    new IeQuality(false, false, false, false, false)}})));
-                            connection.sendActivationTermination(aSdu);
-                            break;
-                        case C_SC_NA_1:
-                            informationObject = aSdu.getInformationObjects()[0];
-                            IeSingleCommand singleCommand = (IeSingleCommand) informationObject
-                                    .getInformationElements()[0][0];
-
-                            if (informationObject.getInformationObjectAddress() != 5000) {
-                                break;
-                            }
-                            if (singleCommand.isSelect()) {
-                                log("Got single command (45) with select true. Select command.");
-                                selected = true;
-                                connection.sendConfirmation(aSdu);
-                            } else if (!singleCommand.isSelect() && selected) {
-                                log("Got single command (45) with select false. Execute selected command.");
-                                selected = false;
-                                connection.sendConfirmation(aSdu);
-                            } else {
-                                log("Got single command (45) with select false. But no command is selected, no execution.");
-                            }
-                            break;
-                        case C_CS_NA_1:
-                            IeTime56 ieTime56 = new IeTime56(System.currentTimeMillis());
-                            log("Got Clock synchronization command (103). Send current time: \n", ieTime56.toString());
-                            connection.synchronizeClocks(aSdu.getCommonAddress(), ieTime56);
-                            break;
-                        case C_SE_NB_1:
-                            log("Got Set point command, scaled value (49)");
-                            break;
-                        default:
-                            log("Got unknown request: ", aSdu.toString(),
-                                    ". Send negative confirm with CoT UNKNOWN_TYPE_ID(44)\n");
-                            connection.sendConfirmation(aSdu, aSdu.getCommonAddress(), true,
-                                    CauseOfTransmission.UNKNOWN_TYPE_ID);
-                    }
-
-                } catch (EOFException e) {
-                    log("Will quit listening for commands on connection (" + connectionId,
-                            ") because socket was closed.");
-                } catch (IOException e) {
-                    log("Will quit listening for commands on connection (" + connectionId, ") because of error: \"",
-                            e.getMessage(), "\".");
-                }
-
-            }
-
-            @Override
-            public void connectionClosed(Connection connection, IOException e) {
-                log("Connection (" + connectionId, ") was closed. ", e.getMessage());
-            }
-
-            @Override
-            public void dataTransferStateChanged(Connection connection, boolean stopped) {
-                String dtState = "started";
-                if (stopped) {
-                    dtState = "stopped";
-                }
-                log("Data transfer of connection (" + connectionId + ") was ", dtState, ".");
-            }
-
-        }
-
     }
 
 }

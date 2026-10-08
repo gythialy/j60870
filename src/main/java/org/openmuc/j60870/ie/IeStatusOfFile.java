@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 Fraunhofer ISE
+ * Copyright 2014-2026 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -26,11 +26,36 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-/** Represents a status of file (SOF) information element. */
+/**
+ * Represents a status of file (SOF) information element.
+ */
 public class IeStatusOfFile extends InformationElement {
 
     private final int status;
     private final Set<Flag> flags;
+
+    public enum Flag {
+        LAST_FILE_OF_DIRECTORY(0x20),
+        NAME_DEFINES_DIRECTORY(0x40),
+        TRANSFER_IS_ACTIVE(0x80);
+
+        private int mask;
+
+        private Flag(int mask) {
+            this.mask = mask;
+        }
+
+        private static Set<Flag> flagsFor(int b) {
+            HashSet<Flag> res = new HashSet<>();
+            for (Flag v : values()) {
+                if ((v.mask & b) != v.mask) {
+                    continue;
+                }
+                res.add(v);
+            }
+            return res;
+        }
+    }
 
     public IeStatusOfFile(int status, Flag... flags) {
         this(status, new HashSet<>(Arrays.asList(flags)));
@@ -69,36 +94,8 @@ public class IeStatusOfFile extends InformationElement {
 
     @Override
     public String toString() {
-        return "Status of file: "
-                + status
-                + ", last file of directory: "
-                + flags.contains(Flag.LAST_FILE_OF_DIRECTORY)
-                + ", name defines directory: "
-                + flags.contains(Flag.NAME_DEFINES_DIRECTORY)
-                + ", transfer is active: "
+        return "Status of file: " + status + ", last file of directory: " + flags.contains(Flag.LAST_FILE_OF_DIRECTORY)
+                + ", name defines directory: " + flags.contains(Flag.NAME_DEFINES_DIRECTORY) + ", transfer is active: "
                 + flags.contains(Flag.TRANSFER_IS_ACTIVE);
-    }
-
-    public enum Flag {
-        LAST_FILE_OF_DIRECTORY(0x20),
-        NAME_DEFINES_DIRECTORY(0x40),
-        TRANSFER_IS_ACTIVE(0x80);
-
-        private int mask;
-
-        private Flag(int mask) {
-            this.mask = mask;
-        }
-
-        private static Set<Flag> flagsFor(int b) {
-            HashSet<Flag> res = new HashSet<>();
-            for (Flag v : values()) {
-                if ((v.mask & b) != v.mask) {
-                    continue;
-                }
-                res.add(v);
-            }
-            return res;
-        }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 Fraunhofer ISE
+ * Copyright 2014-2026 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -24,10 +24,6 @@ public class HexUtils {
 
     private static final String HEXES = "0123456789ABCDEF";
 
-    private HexUtils() {
-        // hide it
-    }
-
     public static String bytesToHex(byte[] bytes) {
         if (bytes == null) {
             return null;
@@ -48,5 +44,9 @@ public class HexUtils {
             bytes[i] = (byte) Integer.parseInt(hexString.substring(index, index + 2), 16);
         }
         return bytes;
+    }
+
+    private HexUtils() {
+        // hide it
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 Fraunhofer ISE
+ * Copyright 2014-2026 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -27,11 +27,23 @@ import java.util.Set;
 
 public class CliParser {
 
-    private static final String HELP = "--help";
     private final String name;
     private final String description;
-    private final List<ParameterGroup> commandLineParameterGroups = new ArrayList<>();
     private String selectedGroup = "";
+
+    private static final String HELP = "--help";
+
+    private static class ParameterGroup {
+        private final String name;
+        private final List<CliParameter> parameters;
+
+        public ParameterGroup(String name, List<CliParameter> parameters) {
+            this.name = name;
+            this.parameters = parameters;
+        }
+    }
+
+    private final List<ParameterGroup> commandLineParameterGroups = new ArrayList<>();
 
     public CliParser(String name, String description) {
         this.name = name;
@@ -58,10 +70,12 @@ public class CliParser {
         int i = 0;
         if (commandLineParameterGroups.get(0).name.isEmpty()) {
             parameters = commandLineParameterGroups.get(0).parameters;
-        } else {
+        }
+        else {
             if (args.length == 0) {
                 throw new CliParseException("No parameters found.");
-            } else if (HELP.equals(args[0])) {
+            }
+            else if (HELP.equals(args[0])) {
                 System.out.println(getUsageString());
                 System.exit(0);
             }
@@ -136,16 +150,6 @@ public class CliParser {
         sb.append("\t--help display this help and exit");
 
         return sb.toString();
-    }
-
-    private static class ParameterGroup {
-        private final String name;
-        private final List<CliParameter> parameters;
-
-        public ParameterGroup(String name, List<CliParameter> parameters) {
-            this.name = name;
-            this.parameters = parameters;
-        }
     }
 
 }

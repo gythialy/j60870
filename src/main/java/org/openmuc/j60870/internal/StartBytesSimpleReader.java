@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 Fraunhofer ISE
+ * Copyright 2014-2026 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -31,8 +31,10 @@ public final class StartBytesSimpleReader {
     /**
      * Creates a StartBytesSimpleReader.
      *
-     * @param startBytes the start bytes to read
-     * @param is the input stream to read the start bytes from
+     * @param startBytes
+     *            the start bytes to read
+     * @param is
+     *            the input stream to read the start bytes from
      */
     public StartBytesSimpleReader(byte[] startBytes, DataInputStream is) {
         this.startBytes = startBytes;
@@ -41,10 +43,11 @@ public final class StartBytesSimpleReader {
 
     /**
      * Reads from the input stream until the start bytes are received. The start bytes are put in the
-     * {@code destBuffer}. Any bytes that do not match the start byte sequence are discarded. If
-     * reading from the input stream causes an IOException it is propagated.
+     * {@code destBuffer}. Any bytes that do not match the start byte sequence are discarded. If reading from the input
+     * stream causes an IOException it is propagated.
      *
-     * @throws IOException if an IOException is thrown reading from the input stream
+     * @throws IOException
+     *             if an IOException is thrown reading from the input stream
      */
     public void readStartBytes() throws IOException {
         byte b = is.readByte();

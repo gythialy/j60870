@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 Fraunhofer ISE
+ * Copyright 2014-2026 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -23,7 +23,9 @@ package org.openmuc.j60870.ie;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-/** Represents a start events of protection equipment (SPE) information element. */
+/**
+ * Represents a start events of protection equipment (SPE) information element.
+ */
 public class IeProtectionStartEvent extends InformationElement {
 
     private int value;
@@ -94,17 +96,9 @@ public class IeProtectionStartEvent extends InformationElement {
 
     @Override
     public String toString() {
-        return "Protection start event, general start of operation: "
-                + isGeneralStart()
-                + ", start of operation L1: "
-                + isStartOperationL1()
-                + ", start of operation L2: "
-                + isStartOperationL2()
-                + ", start of operation L3: "
-                + isStartOperationL3()
-                + ", start of operation IE(earth current): "
-                + isStartOperationIe()
-                + ", start of operation in reverse direction: "
-                + isStartReverseOperation();
+        return "Protection start event, general start of operation: " + isGeneralStart() + ", start of operation L1: "
+                + isStartOperationL1() + ", start of operation L2: " + isStartOperationL2()
+                + ", start of operation L3: " + isStartOperationL3() + ", start of operation IE(earth current): "
+                + isStartOperationIe() + ", start of operation in reverse direction: " + isStartReverseOperation();
     }
 }

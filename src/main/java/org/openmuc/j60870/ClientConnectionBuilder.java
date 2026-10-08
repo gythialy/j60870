@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 Fraunhofer ISE
+ * Copyright 2014-2026 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -29,17 +29,18 @@ import javax.net.SocketFactory;
 import javax.net.ssl.SSLSocketFactory;
 
 /**
- * The client connection builder is used to connect to IEC 60870-5-104 servers. A client application
- * that wants to connect to a server should first create an instance of {@link
- * ClientConnectionBuilder}. Next all the necessary configuration parameters can be set. Finally the
- * {@link ClientConnectionBuilder#build()} function is called to connect to the server. An instance
- * of {@link ClientConnectionBuilder} can be used to create an unlimited number of connections.
- * Changing the parameters of a {@link ClientConnectionBuilder} has no affect on connections that
- * have already been created.
+ * The client connection builder is used to connect to IEC 60870-5-104 servers. A client application that wants to
+ * connect to a server should first create an instance of {@link ClientConnectionBuilder}. Next all the necessary
+ * configuration parameters can be set. Finally the {@link ClientConnectionBuilder#build()} function is called to
+ * connect to the server. An instance of {@link ClientConnectionBuilder} can be used to create an unlimited number of
+ * connections. Changing the parameters of a {@link ClientConnectionBuilder} has no affect on connections that have
+ * already been created.
  *
- * <p>Note that the configured lengths of the fields COT, CA and IOA have to be the same for all
- * communicating nodes in a network. The default values used by {@link ClientConnectionBuilder} are
- * those most commonly used in IEC 60870-5-104 communication.
+ * <p>
+ * Note that the configured lengths of the fields COT, CA and IOA have to be the same for all communicating nodes in a
+ * network. The default values used by {@link ClientConnectionBuilder} are those most commonly used in IEC 60870-5-104
+ * communication.
+ * </p>
  */
 public class ClientConnectionBuilder extends CommonBuilder<ClientConnectionBuilder, Connection> {
 
@@ -54,7 +55,8 @@ public class ClientConnectionBuilder extends CommonBuilder<ClientConnectionBuild
     /**
      * Creates a client connection builder that can be used to connect to the given address.
      *
-     * @param address the address to connect to
+     * @param address
+     *            the address to connect to
      */
     public ClientConnectionBuilder(InetAddress address) {
         this.address = address;
@@ -70,10 +72,11 @@ public class ClientConnectionBuilder extends CommonBuilder<ClientConnectionBuild
     }
 
     /**
-     * Set the socket factory to used to create the socket for the connection. The default is {@link
-     * SocketFactory#getDefault()}. You could pass an {@link SSLSocketFactory} to enable SSL.
+     * Set the socket factory to used to create the socket for the connection. The default is
+     * {@link SocketFactory#getDefault()}. You could pass an {@link SSLSocketFactory} to enable SSL.
      *
-     * @param socketFactory the socket factory
+     * @param socketFactory
+     *            the socket factory
      * @return this builder
      */
     public ClientConnectionBuilder setSocketFactory(SocketFactory socketFactory) {
@@ -84,7 +87,9 @@ public class ClientConnectionBuilder extends CommonBuilder<ClientConnectionBuild
     /**
      * Sets an implementation of the ReservedASduTypeDecoder to define supported reserved ASdus
      *
-     * @param reservedASduTypeDecoder implementation of the ReservedASduTypeDecoder
+     * @param reservedASduTypeDecoder
+     *            implementation of the ReservedASduTypeDecoder
+     * @return this builder
      */
     public ClientConnectionBuilder setReservedASduTypeDecoder(ReservedASduTypeDecoder reservedASduTypeDecoder) {
         this.settings.setReservedASduTypeDecoder(reservedASduTypeDecoder);
@@ -94,7 +99,8 @@ public class ClientConnectionBuilder extends CommonBuilder<ClientConnectionBuild
     /**
      * Sets the port to connect to. The default port is 2404.
      *
-     * @param port the port to connect to.
+     * @param port
+     *            the port to connect to.
      * @return this builder
      */
     public ClientConnectionBuilder setPort(int port) {
@@ -105,7 +111,8 @@ public class ClientConnectionBuilder extends CommonBuilder<ClientConnectionBuild
     /**
      * Sets the address to connect to.
      *
-     * @param address the address to connect to.
+     * @param address
+     *            the address to connect to.
      * @return this builder
      */
     public ClientConnectionBuilder setAddress(InetAddress address) {
@@ -116,8 +123,10 @@ public class ClientConnectionBuilder extends CommonBuilder<ClientConnectionBuild
     /**
      * Sets the local (client) address and port the socket will connect to.
      *
-     * @param address the local address the socket is bound to, or null for any local address.
-     * @param port the local port the socket is bound to or zero for a system selected free port.
+     * @param address
+     *            the local address the socket is bound to, or null for any local address.
+     * @param port
+     *            the local port the socket is bound to or zero for a system selected free port.
      * @return this builder
      */
     public ClientConnectionBuilder setLocalAddress(InetAddress address, int port) {
@@ -130,7 +139,8 @@ public class ClientConnectionBuilder extends CommonBuilder<ClientConnectionBuild
      * Sets connection time out t0, in milliseconds.<br>
      * t0 (connectionTimeout) must be between 1000ms and 255000ms.
      *
-     * @param time_t0 the timeout in milliseconds. Default is 20 s
+     * @param time_t0
+     *            the timeout in milliseconds. Default is 20 s
      * @return this builder
      */
     public ClientConnectionBuilder setConnectionTimeout(int time_t0) {
@@ -148,11 +158,12 @@ public class ClientConnectionBuilder extends CommonBuilder<ClientConnectionBuild
     }
 
     /**
-     * Connects to the server. The TCP/IP connection is build up and a {@link Connection} object is
-     * returned that can be used to communicate with the server.
+     * Connects to the server. The TCP/IP connection is build up and a {@link Connection} object is returned that can be
+     * used to communicate with the server.
      *
      * @return the {@link Connection} object that can be used to communicate with the server.
-     * @throws IOException if any kind of error occurs during connection build up.
+     * @throws IOException
+     *             if any kind of error occurs during connection build up.
      */
     @Override
     public Connection build() throws IOException {

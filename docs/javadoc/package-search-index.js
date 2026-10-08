@@ -1,1 +1,1 @@
-packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"org.openmuc.j60870"},{"l":"org.openmuc.j60870.ie"},{"l":"org.openmuc.j60870.internal"}];updateSearchResults();
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"org.openmuc.j60870"},{"l":"org.openmuc.j60870.ie"},{"l":"org.openmuc.j60870.internal"},{"l":"org.openmuc.j60870.logging"}];updateSearchResults();

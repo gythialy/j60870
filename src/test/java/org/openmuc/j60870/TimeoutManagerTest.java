@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 Fraunhofer ISE
+ * Copyright 2014-2026 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -20,20 +20,22 @@
  */
 package org.openmuc.j60870;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.*;
-import static org.powermock.reflect.Whitebox.setInternalState;
 
+import java.lang.reflect.Field;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.awaitility.Awaitility;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.powermock.api.mockito.PowerMockito;
 
 public class TimeoutManagerTest {
 
@@ -41,9 +43,13 @@ public class TimeoutManagerTest {
     public void test1() throws Exception {
         final long timeout = 200;
 
-        TimeoutManager tm = PowerMockito.spy(new TimeoutManager());
+        TimeoutManager tm = spy(new TimeoutManager());
         final TimeoutTask task = mock(TimeoutTask.class);
-        setInternalState(task, "timeout", timeout);
+
+        // Replace PowerMock's setInternalState with reflection
+        Field timeoutField = TimeoutTask.class.getDeclaredField("timeout");
+        timeoutField.setAccessible(true);
+        timeoutField.set(task, timeout);
 
         doCallRealMethod().when(task).updateDueTime();
         doCallRealMethod().when(task).sleepTimeFromDueTime();

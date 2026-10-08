@@ -1,9 +1,6 @@
-= j60870 User Guide
-include::common-settings.txt[]
+# j60870 User Guide
 
-:numbered:
-
-== Intro
+## Intro
 
 j60870 is an implementation of the IEC 60870-5-104 protocol standard
 for client (i.e. master or controlling station) and server (i.e. slave
@@ -13,24 +10,24 @@ You can use j60870 to program your individual client or server
 applications. A simple console client is part of the library. You can
 execute it using the scripts found in the folder "run-scripts".
 
-== Distribution
+## Distribution
 
 After extracting the distribution tar file the j60870 library can be
-found in the folder /build/libs.
+found in the folder `/build/libs`.
 
-== Getting Started
+## Getting Started
 
 The easiest way to get started is by taking a look at the code of the
 console client and the sample server which can be found here:
-cli-app/src/main/java/org/openmuc/j60870/app/ . These applications in
+`cli-app/src/main/java/org/openmuc/j60870/app/` . These applications in
 combination with the javadoc should satisfy most of your documentation
 needs.
 
 Here is a short summary of the steps to get a client running:
 
-* Create and configure an instance of ClientConnectionBuilder.
+* Create and configure an instance of `ClientConnectionBuilder`.
 
-* Connect to the server using ClientConnectionBuilder.build() which
+* Connect to the server using `ClientConnectionBuilder.build()` which
   returns the connection. The client is now connected to the server
   via TCP/IP.
 
@@ -49,62 +46,60 @@ Here is a short summary of the steps to get a client running:
 
 * You can use the Connection instance to send commands.
 
-== Terminology
+## Terminology
 
-* *OA* - Originator Address 
+* **OA** - Originator Address 
 
-* *Monitor direction* - direction from server to client
+* **Monitor direction** - direction from server to client
 
-* *Control direction* - direction from client to server
+* **Control direction** - direction from client to server
 
-* *CON* - confirmation message
+* **CON** - confirmation message
 
-* *COT* - Cause of transmission
+* **COT** - Cause of transmission
 
-* *STARTDT ACT* - Start data tranfer message. Needs to be sent by the
+* **STARTDT ACT** - Start data transfer message. Needs to be sent by the
    client before information messages may be exchanged between client
    and server.
 
-== Features
+## Features
 
 * Server implementation
 * Client implementation
 
-The usage and description can be seen in the j60870 javadoc.
+The usage and description can be seen in the j60870 Javadoc.
 
-=== Supported information Elements
+### Supported information Elements
 
-[grid="none", frame="none"]
-|===
-|Abstract Qualifier of Command         |Qualifier of Interrogation
-|Abstract Quality                      |Qualifier of Parameter Activation
-|Ack File or Section Qualifier         |Qualifier of Parameter of Measured Values
-|Binary Counter Reading                |Qualifier of Reset Process Command
-|Binary State Information              |Qualifier of Set Point Command
-|Cause of Initialization               |Quality
-|Checksum                              |Regulating Step Command
-|Double Command                        |Scaled Value
-|Double Point with Quality             |Section Ready Qualifier
-|File Ready Qualifier                  |Select and Call Qualifier
-|File Segment                          |Short Float
-|Fixed Test Bit Pattern                |Single Command
-|Last Section or Segment Qualifier     |Single Point with Quality
-|Length of File or Section             |Single Protection Event
-|Name of File                          |Status and Status Changes
-|Name of Section                       |Status of File
-|Normalized Value                      |Test Sequence Counter
-|Protection Output Circuit Information |Time16
-|Protection Quality                    |Time24
-|Protection Start Event                |Time56
-|Qualifier of Counter Interrogation    |Value with Transient State
-|===
+| | |
+|--|--|
+|Abstract Qualifier of Command         |Qualifier of Interrogation|
+|Abstract Quality                      |Qualifier of Parameter Activation|
+|Ack File or Section Qualifier         |Qualifier of Parameter of Measured Values|
+|Binary Counter Reading                |Qualifier of Reset Process Command|
+|Binary State Information              |Qualifier of Set Point Command|
+|Cause of Initialization               |Quality|
+|Checksum                              |Regulating Step Command|
+|Double Command                        |Scaled Value|
+|Double Point with Quality             |Section Ready Qualifier|
+|File Ready Qualifier                  |Select and Call Qualifier|
+|File Segment                          |Short Float|
+|Fixed Test Bit Pattern                |Single Command|
+|Last Section or Segment Qualifier     |Single Point with Quality|
+|Length of File or Section             |Single Protection Event|
+|Name of File                          |Status and Status Changes|
+|Name of Section                       |Status of File|
+|Normalized Value                      |Test Sequence Counter|
+|Protection Output Circuit Information |Time16|
+|Protection Quality                    |Time24|
+|Protection Start Event                |Time56|
+|Qualifier of Counter Interrogation    |Value with Transient State|
 
-=== Supported ASDu types (Client and Server)
 
-[width="100%",cols="3,2,16",options="header"]
-|===============================================================================================
+### Supported ASDu types (Client and Server)
+
 |ASDu|Number|Description
-
+| -- | -- | -- |
 |C_BO_NA_1| 51|Bitstring of 32 bits 
 |C_BO_TA_1| 64|Bitstring of 32 bit with time tag CP56Time2a 
 |C_CD_NA_1|106|Delay acquisition command
@@ -172,43 +167,43 @@ The usage and description can be seen in the j60870 javadoc.
 |P_ME_NA_1|110|Parameter of measured value, normalized value
 |P_ME_NB_1|111|Parameter of measured value, scaled value
 |P_ME_NC_1|112|Parameter of measured value, short floating point number 
-|===============================================================================================
 
-=== In client connection implemented commands
 
-[grid="none", frame="none"]
-|===
-|Confirmation                                |clock synchronization command
-|single Command                              |test command
-|single Command with Time Tag                |process command
-|double Command                              |delay acquisition command
-|double Command with Time Tag                |test command with time tag CP56Time2a
-|regulating Step Command                     |parameter of measured values, normalized value 
-|regulating Step Command with Time Tag       |parameter of measured values, scaled value
+### In client connection implemented commands
+
+| | |
+|--|--|
+|Confirmation                                |clock synchronization command|
+|single Command                              |test command|
+|single Command with Time Tag                |process command|
+|double Command                              |delay acquisition command|
+|double Command with Time Tag                |test command with time tag CP56Time2a|
+|regulating Step Command                     |parameter of measured values, normalized value |
+|regulating Step Command with Time Tag       |parameter of measured values, scaled value|
 |Normalized Value Command                    |parameter of measured values, short floating point number
-|set Normalized Value Command with Time Tag  |parameter activation
-|set Scaled Value Command                    |file Ready
-|set Scaled Value Command with Time Tag      |section Ready
-|set Short Float Command                     |call or Select Files
-|set Short Float Command with Time Tag       |last Section or Segment
-|bit String Command                          |ack File or Section
-|bit String Command with Time Tag            |Segment
-|interrogation command                       |Directory
-|counter interrogation command               |query Log
+|set Normalized Value Command with Time Tag  |parameter activation|
+|set Scaled Value Command                    |file Ready|
+|set Scaled Value Command with Time Tag      |section Ready|
+|set Short Float Command                     |call or Select Files|
+|set Short Float Command with Time Tag       |last Section or Segment|
+|bit String Command                          |ack File or Section|
+|bit String Command with Time Tag            |Segment |
+|interrogation command                       |Directory|
+|counter interrogation command               |query Log|
 |read command                                |
-|===
 
-== Develop j60870
+
+## Develop j60870
 
 We use the Gradle build automation tool. The distribution contains a
-fully functional gradle build file ("build.gradle"). Thus if you
+fully functional gradle build file (`build.gradle`). Thus, if you
 changed code and want to rebuild a library you can do it easily with
-Gradle. Also if you want to import our software into Eclipse you can
+Gradle. Also, if you want to import our software into Eclipse you can
 easily create Eclipse project files using Gradle. Just follow the
 instructions on our FAQ site:
 https://www.openmuc.org/faq/
 
-== Authors
+## Authors
 
 Developers:
 
@@ -218,4 +213,3 @@ Former Developers:
 
 * Stefan Feuerhahn
 * Albrecht Schall
-

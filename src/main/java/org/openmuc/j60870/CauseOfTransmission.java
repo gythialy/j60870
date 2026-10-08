@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 Fraunhofer ISE
+ * Copyright 2014-2026 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -24,10 +24,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Every ASDU contains a single Cause Of Transmission field so the recipient knows why the message
- * it received was sent. Parts IEC 60870-5-101 and IEC 60870-5-104 define what CauseOfTransmissions
- * are allowed for the different ASDU types. CauseOfTransmissions 44 to 47 are meant for replies to
- * commands with undefined values.
+ * Every ASDU contains a single Cause Of Transmission field so the recipient knows why the message it received was sent.
+ * Parts IEC 60870-5-101 and IEC 60870-5-104 define what CauseOfTransmissions are allowed for the different ASDU types.
+ * CauseOfTransmissions 44 to 47 are meant for replies to commands with undefined values.
  */
 public enum CauseOfTransmission {
     /** PERIODIC(1) */
@@ -109,6 +108,8 @@ public enum CauseOfTransmission {
     /** UNKNOWN_INFORMATION_OBJECT_ADDRESS(47) */
     UNKNOWN_INFORMATION_OBJECT_ADDRESS(47);
 
+    private final int id;
+
     private static final Map<Integer, CauseOfTransmission> idMap = new HashMap<>();
 
     static {
@@ -119,21 +120,8 @@ public enum CauseOfTransmission {
         }
     }
 
-    private final int id;
-
     private CauseOfTransmission(int id) {
         this.id = id;
-    }
-
-    /**
-     * Returns the CauseOfTransmission that corresponds to the given ID. Returns <code>null</code> if
-     * no CauseOfTransmission with the given ID exists.
-     *
-     * @param id the ID.
-     * @return the CauseOfTransmission that corresponds to the given ID.
-     */
-    public static CauseOfTransmission causeFor(int id) {
-        return idMap.get(id);
     }
 
     /**
@@ -143,5 +131,17 @@ public enum CauseOfTransmission {
      */
     public int getId() {
         return id;
+    }
+
+    /**
+     * Returns the CauseOfTransmission that corresponds to the given ID. Returns <code>null</code> if no
+     * CauseOfTransmission with the given ID exists.
+     *
+     * @param id
+     *            the ID.
+     * @return the CauseOfTransmission that corresponds to the given ID.
+     */
+    public static CauseOfTransmission causeFor(int id) {
+        return idMap.get(id);
     }
 }

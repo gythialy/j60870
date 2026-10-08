@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 Fraunhofer ISE
+ * Copyright 2014-2026 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -23,8 +23,17 @@ package org.openmuc.j60870.ie;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-/** Represents a double-point information with quality descriptor (DIQ) information element. */
+/**
+ * Represents a double-point information with quality descriptor (DIQ) information element.
+ */
 public class IeDoublePointWithQuality extends IeAbstractQuality {
+
+    public enum DoublePointInformation {
+        INDETERMINATE_OR_INTERMEDIATE,
+        OFF,
+        ON,
+        INDETERMINATE;
+    }
 
     public IeDoublePointWithQuality(
             DoublePointInformation dpi, boolean blocked, boolean substituted, boolean notTopical, boolean invalid) {
@@ -65,12 +74,5 @@ public class IeDoublePointWithQuality extends IeAbstractQuality {
     @Override
     public String toString() {
         return "Double Point: " + getDoublePointInformation() + ", " + super.toString();
-    }
-
-    public enum DoublePointInformation {
-        INDETERMINATE_OR_INTERMEDIATE,
-        OFF,
-        ON,
-        INDETERMINATE;
     }
 }

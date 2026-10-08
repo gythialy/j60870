@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 Fraunhofer ISE
+ * Copyright 2014-2026 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -26,8 +26,8 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.openmuc.j60870.internal.ByteStreamHelper;
 import org.openmuc.j60870.internal.HexUtils;
 
@@ -57,7 +57,7 @@ public class WrongTypeIdITest {
 
                 byte[] startdtCon = new byte[6];
                 ByteStreamHelper.readFully(is, startdtCon);
-                Assert.assertArrayEquals(HexUtils.hexToBytes("68040B000000"), startdtCon);
+                Assertions.assertArrayEquals(HexUtils.hexToBytes("68040B000000"), startdtCon);
 
                 byte[] malformedUnsupportedTypeApdu =
                         HexUtils.hexToBytes("6816000000002D01060039000000008D670A99130D190118");
@@ -70,7 +70,7 @@ public class WrongTypeIdITest {
                         Arrays.copyOf(malformedUnsupportedTypeApdu, malformedUnsupportedTypeApdu.length);
                 expectedResponse[4] = 0x02;
                 expectedResponse[8] = (byte) (0x40 | CauseOfTransmission.UNKNOWN_TYPE_ID.getId());
-                Assert.assertArrayEquals(expectedResponse, response);
+                Assertions.assertArrayEquals(expectedResponse, response);
             } finally {
                 socket.close();
             }

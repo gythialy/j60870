@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 Fraunhofer ISE
+ * Copyright 2014-2026 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -23,7 +23,9 @@ package org.openmuc.j60870.ie;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-/** Represents an output circuit information of protection equipment (OCI) information element. */
+/**
+ * Represents an output circuit information of protection equipment (OCI) information element.
+ */
 public class IeProtectionOutputCircuitInformation extends InformationElement {
 
     private int value;
@@ -75,13 +77,7 @@ public class IeProtectionOutputCircuitInformation extends InformationElement {
 
     @Override
     public String toString() {
-        return "Protection output circuit information, general command: "
-                + isGeneralCommand()
-                + ", command to L1: "
-                + isCommandToL1()
-                + ", command to L2: "
-                + isCommandToL2()
-                + ", command to L3: "
-                + isCommandToL3();
+        return "Protection output circuit information, general command: " + isGeneralCommand() + ", command to L1: "
+                + isCommandToL1() + ", command to L2: " + isCommandToL2() + ", command to L3: " + isCommandToL3();
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 Fraunhofer ISE
+ * Copyright 2014-2026 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -21,10 +21,14 @@
 package org.openmuc.j60870;
 
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import org.openmuc.j60870.logging.LoggerFactory;
+import org.openmuc.j60870.logging.LoggerInterface;
 
 class ServerThread implements Runnable {
 
@@ -33,9 +37,13 @@ class ServerThread implements Runnable {
     private final int maxConnections;
     private final ServerEventListener serverSapListener;
     private final List<String> allowedClientIps;
-    private final ExecutorService executor;
+
     private volatile boolean stopServer = false;
     private int numConnections = 0;
+    private final ExecutorService executor;
+
+    private static final LoggerInterface log =
+            LoggerFactory.getLogger(MethodHandles.lookup().lookupClass().getName());
 
     ServerThread(
             ServerSocket serverSocket,
@@ -50,72 +58,6 @@ class ServerThread implements Runnable {
         this.serverSapListener = serverSapListener;
         this.executor = exec;
         this.allowedClientIps = allowedClientIps;
-    }
-
-    @Override
-    public void run() {
-        Thread.currentThread().setName("ServerThread");
-        Socket clientSocket = null;
-
-        while (!stopServer) {
-            try {
-                clientSocket = serverSocket.accept();
-            } catch (IOException e) {
-                if (!stopServer) {
-                    serverSapListener.serverStoppedListeningIndication(e);
-                }
-                return;
-            }
-            if (allowedClientIps != null
-                    && !allowedClientIps.contains(clientSocket.getInetAddress().getHostAddress())) {
-                try {
-                    clientSocket.close();
-                } catch (IOException ignored) {
-                    // nothing to be done if closing causes error
-                }
-                continue;
-            }
-
-            boolean startConnection = false;
-
-            synchronized (this) {
-                if (numConnections < maxConnections) {
-                    numConnections++;
-                    startConnection = true;
-                }
-            }
-
-            if (startConnection) {
-                ConnectionHandler connectionHandler = new ConnectionHandler(clientSocket, this);
-                executor.execute(connectionHandler);
-            } else {
-                serverSapListener.connectionAttemptFailed(new IOException(
-                        "Maximum number of connections reached. Ignoring connection request. Maximum number of connections: "
-                                + maxConnections));
-                try {
-                    clientSocket.close();
-                } catch (IOException e) {
-                }
-            }
-        }
-    }
-
-    void connectionClosedSignal() {
-        synchronized (this) {
-            numConnections--;
-        }
-    }
-
-    /** Stops listening for new connections. Existing connections are not touched. */
-    void stopServer() {
-        stopServer = true;
-        if (serverSocket.isBound()) {
-            try {
-                serverSocket.close();
-            } catch (IOException e) {
-                // ignore any errors.
-            }
-        }
     }
 
     private class ConnectionHandler implements Runnable {
@@ -143,6 +85,96 @@ class ServerThread implements Runnable {
             }
             ConnectionEventListener listener = serverSapListener.connectionIndication(serverConnection);
             serverConnection.start(listener);
+        }
+    }
+
+    @Override
+    public void run() {
+        Thread.currentThread().setName("ServerThread");
+        Socket clientSocket = null;
+
+        while (!stopServer) {
+            try {
+                clientSocket = serverSocket.accept();
+            } catch (IOException e) {
+                if (!stopServer) {
+                    serverSapListener.serverStoppedListeningIndication(e);
+                }
+                return;
+            }
+            if (!isClientAllowed(clientSocket)) {
+                log.trace(
+                        "Not allowed IP tried to connect, closing socket. Client IP: " + clientSocket.getInetAddress());
+                closeQuietly(clientSocket);
+                continue;
+            }
+
+            boolean startConnection = false;
+
+            synchronized (this) {
+                if (numConnections < maxConnections) {
+                    numConnections++;
+                    startConnection = true;
+                }
+            }
+
+            if (startConnection) {
+                ConnectionHandler connectionHandler = new ConnectionHandler(clientSocket, this);
+                executor.execute(connectionHandler);
+            } else {
+                serverSapListener.connectionAttemptFailed(new IOException(
+                        "Maximum number of connections reached. Ignoring connection request. Maximum number of connections: "
+                                + maxConnections));
+                try {
+                    clientSocket.close();
+                } catch (IOException e) {
+                }
+            }
+        }
+    }
+
+    private boolean isClientAllowed(Socket clientSocket) {
+        if (allowedClientIps == null) {
+            return true;
+        }
+        InetAddress clientAddr = clientSocket.getInetAddress();
+        for (String allowedIp : allowedClientIps) {
+            try {
+                InetAddress allowedAddr = InetAddress.getByName(allowedIp);
+                if (allowedAddr.equals(clientAddr)) {
+                    return true;
+                }
+            } catch (java.net.UnknownHostException e) {
+                // Skip invalid entries
+            }
+        }
+        return false;
+    }
+
+    private void closeQuietly(Socket socket) {
+        try {
+            socket.close();
+        } catch (IOException ignored) {
+        }
+    }
+
+    void connectionClosedSignal() {
+        synchronized (this) {
+            numConnections--;
+        }
+    }
+
+    /**
+     * Stops listening for new connections. Existing connections are not touched.
+     */
+    void stopServer() {
+        stopServer = true;
+        if (serverSocket.isBound()) {
+            try {
+                serverSocket.close();
+            } catch (IOException e) {
+                // ignore any errors.
+            }
         }
     }
 }

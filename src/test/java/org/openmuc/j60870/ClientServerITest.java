@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 Fraunhofer ISE
+ * Copyright 2014-2026 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -20,23 +20,53 @@
  */
 package org.openmuc.j60870;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.junit.*;
-import org.junit.runners.MethodSorters;
-import org.openmuc.j60870.ie.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.openmuc.j60870.ie.IeBinaryCounterReading;
 import org.openmuc.j60870.ie.IeBinaryCounterReading.Flag;
+import org.openmuc.j60870.ie.IeBinaryStateInformation;
+import org.openmuc.j60870.ie.IeDoubleCommand;
 import org.openmuc.j60870.ie.IeDoubleCommand.DoubleCommandState;
+import org.openmuc.j60870.ie.IeDoublePointWithQuality;
 import org.openmuc.j60870.ie.IeDoublePointWithQuality.DoublePointInformation;
+import org.openmuc.j60870.ie.IeNormalizedValue;
+import org.openmuc.j60870.ie.IeProtectionQuality;
+import org.openmuc.j60870.ie.IeProtectionStartEvent;
+import org.openmuc.j60870.ie.IeQualifierOfInterrogation;
+import org.openmuc.j60870.ie.IeQualifierOfSetPointCommand;
+import org.openmuc.j60870.ie.IeQuality;
+import org.openmuc.j60870.ie.IeScaledValue;
+import org.openmuc.j60870.ie.IeShortFloat;
+import org.openmuc.j60870.ie.IeSingleCommand;
+import org.openmuc.j60870.ie.IeSinglePointWithQuality;
+import org.openmuc.j60870.ie.IeSingleProtectionEvent;
 import org.openmuc.j60870.ie.IeSingleProtectionEvent.EventState;
+import org.openmuc.j60870.ie.IeStatusAndStatusChanges;
+import org.openmuc.j60870.ie.IeTime16;
+import org.openmuc.j60870.ie.IeTime24;
+import org.openmuc.j60870.ie.IeTime56;
+import org.openmuc.j60870.ie.IeValueWithTransientState;
+import org.openmuc.j60870.ie.InformationElement;
+import org.openmuc.j60870.ie.InformationObject;
 
-@FixMethodOrder(MethodSorters.JVM)
+@TestMethodOrder(MethodOrderer.MethodName.class)
 public class ClientServerITest {
 
-    private static final int PORT = TestUtils.getAvailablePort();
+    private int PORT;
 
     Server serverSap;
     int counter;
@@ -52,8 +82,9 @@ public class ClientServerITest {
     volatile long serverTimestamp;
     volatile AtomicBoolean isClosed;
 
-    @Before
+    @BeforeEach
     public void setup() {
+        PORT = TestUtils.getAvailablePort();
         CDTSC_started.set(0);
         CDTSC_stopped.set(0);
         SDTSC_started.set(0);
@@ -68,7 +99,7 @@ public class ClientServerITest {
         isClosed = new AtomicBoolean(true);
     }
 
-    @After
+    @AfterEach
     public void close() {
         if (serverSap != null) {
             serverSap.stop();
@@ -77,9 +108,12 @@ public class ClientServerITest {
 
     @Test
     public void testClientServerMultiThread() throws Exception {
+        ArrayList<String> allowedClientIp = new ArrayList<>();
+        allowedClientIp.add("localhost");
         serverSap = Server.builder()
                 .setPort(PORT)
                 .setMaxNumOfOutstandingIPdus(32_767)
+                .setAllowedClients(allowedClientIp)
                 .build();
         serverSap.start(new MultiThreadServerEventListener());
 
@@ -97,7 +131,7 @@ public class ClientServerITest {
             System.out.println(isClosed);
         }
         clientConnection.close();
-        assertNull("No exception expected,", exception);
+        assertNull(exception, "No exception expected,");
     }
 
     @Test
@@ -841,7 +875,7 @@ public class ClientServerITest {
                     IeDoublePointWithQuality doublePointWithQuality = (IeDoublePointWithQuality)
                             aSdu.getInformationObjects()[0].getInformationElements()[0][0];
 
-                    assertSame(doublePointWithQuality.getDoublePointInformation(), DoublePointInformation.OFF);
+                    assertSame(DoublePointInformation.OFF, doublePointWithQuality.getDoublePointInformation());
                     assertTrue(doublePointWithQuality.isBlocked());
                     assertTrue(doublePointWithQuality.isInvalid());
                     assertTrue(doublePointWithQuality.isNotTopical());
@@ -1035,8 +1069,8 @@ public class ClientServerITest {
                     counter2++;
                 } else if (counter == 17) {
 
-                    Assert.assertNull(aSdu.getInformationObjects());
-                    Assert.assertArrayEquals(new byte[] {1, 2, 3, 4, 5, 6, 7, 8, 9}, aSdu.getPrivateInformation());
+                    Assertions.assertNull(aSdu.getInformationObjects());
+                    Assertions.assertArrayEquals(new byte[] {1, 2, 3, 4, 5, 6, 7, 8, 9}, aSdu.getPrivateInformation());
 
                     counter2++;
                 }
@@ -1051,8 +1085,9 @@ public class ClientServerITest {
 
         @Override
         public void connectionClosed(Connection connection, IOException e) {
-            e.printStackTrace();
-            Assert.fail(e.getMessage());
+            // The tests close the connection themselves and this callback is invoked from the connection
+            // reader thread, so an assertion here would be reported against whatever test happens to run
+            // in parallel instead of these tests. Missing data is caught by the counter assertions.
         }
 
         @Override

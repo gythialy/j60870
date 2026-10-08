@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 Fraunhofer ISE
+ * Copyright 2014-2026 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -23,7 +23,9 @@ package org.openmuc.j60870.ie;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-/** Represents a section ready qualifier (SRQ) information element. */
+/**
+ * Represents a section ready qualifier (SRQ) information element.
+ */
 public class IeSectionReadyQualifier extends InformationElement {
 
     private final int value;

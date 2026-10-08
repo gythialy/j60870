@@ -1,9 +1,9 @@
 #!/bin/bash
 
 JARS_LOCATION_APP="../cli-app/build/libs"
-JARS_LOCATION_LIB="../build/libs-all"
+JARS_LOCATION_LIB="../build/libs"
 MAIN_CLASS="org.openmuc.j60870.app.SampleServer"
-SYSPROPS=""
+SYSPROPS="-Dorg.openmuc.j60870.log.level=DEBUG"
 PARAMS=""
 
 SCRIPT_HOME=`dirname $0`

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 Fraunhofer ISE
+ * Copyright 2014-2026 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -28,13 +28,42 @@ import java.util.Iterator;
 import java.util.Set;
 import org.openmuc.j60870.internal.ExtendedDataInputStream;
 
-/** Represents a binary counter reading (BCR) information element. */
+/**
+ * Represents a binary counter reading (BCR) information element.
+ */
 public class IeBinaryCounterReading extends InformationElement {
 
     private final int counterReading;
     private final int sequenceNumber;
 
     private final Set<Flag> flags;
+
+    public enum Flag {
+        CARRY(0x20),
+        COUNTER_ADJUSTED(0x40),
+        INVALID(0x80);
+
+        private int mask;
+
+        private Flag(int mask) {
+            this.mask = mask;
+        }
+
+        private static Set<Flag> flagsFor(byte b) {
+            EnumSet<Flag> s = EnumSet.allOf(Flag.class);
+
+            Iterator<Flag> iter = s.iterator();
+
+            while (iter.hasNext()) {
+                int mask2 = iter.next().mask;
+                if ((mask2 & b) != mask2) {
+                    iter.remove();
+                }
+            }
+
+            return s;
+        }
+    }
 
     public IeBinaryCounterReading(int counterReading, int sequenceNumber, Set<Flag> flags) {
         this.counterReading = counterReading;
@@ -96,32 +125,5 @@ public class IeBinaryCounterReading extends InformationElement {
     @Override
     public String toString() {
         return "Binary counter reading: " + counterReading + ", seq num: " + sequenceNumber + ", flags: " + flags;
-    }
-
-    public enum Flag {
-        CARRY(0x20),
-        COUNTER_ADJUSTED(0x40),
-        INVALID(0x80);
-
-        private int mask;
-
-        private Flag(int mask) {
-            this.mask = mask;
-        }
-
-        private static Set<Flag> flagsFor(byte b) {
-            EnumSet<Flag> s = EnumSet.allOf(Flag.class);
-
-            Iterator<Flag> iter = s.iterator();
-
-            while (iter.hasNext()) {
-                int mask2 = iter.next().mask;
-                if ((mask2 & b) != mask2) {
-                    iter.remove();
-                }
-            }
-
-            return s;
-        }
     }
 }

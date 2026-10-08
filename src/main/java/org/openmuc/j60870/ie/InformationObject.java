@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 Fraunhofer ISE
+ * Copyright 2014-2026 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -28,15 +28,13 @@ import org.openmuc.j60870.internal.ExtendedDataInputStream;
 
 /**
  * Every Information Object contains:
- *
  * <ul>
- *   <li>The Information Object Address (IOA) that is 1, 2 or 3 bytes long.
- *   <li>A set of Information Elements or a sequence of information element sets. The type of
- *       information elements in the set and their order depend on the ASDU's TypeId and is the same
- *       for all information objects within one ASDU. If the sequence bit is set in the ASDU then
- *       the ASDU contains a single Information Object containing a sequence of information element
- *       sets. If the sequence bit is not set the ASDU contains a sequence of information objects
- *       each containing only single information elements sets.
+ * <li>The Information Object Address (IOA) that is 1, 2 or 3 bytes long.</li>
+ * <li>A set of Information Elements or a sequence of information element sets. The type of information elements in the
+ * set and their order depend on the ASDU's TypeId and is the same for all information objects within one ASDU. If the
+ * sequence bit is set in the ASDU then the ASDU contains a single Information Object containing a sequence of
+ * information element sets. If the sequence bit is not set the ASDU contains a sequence of information objects each
+ * containing only single information elements sets.</li>
  * </ul>
  */
 public class InformationObject {
@@ -510,12 +508,11 @@ public class InformationObject {
     }
 
     /**
-     * Returns the information elements as a two dimensional array. The first dimension of the array
-     * is the index of the sequence of information element sets. The second dimension is the index of
-     * the information element set. For example an information object containing a single set of three
-     * information elements will have the dimension [1][3]. Note that you will have to cast the
-     * returned <code>InformationElement</code>s to a concrete implementation in order to access the
-     * data inside them.
+     * Returns the information elements as a two dimensional array. The first dimension of the array is the index of the
+     * sequence of information element sets. The second dimension is the index of the information element set. For
+     * example an information object containing a single set of three information elements will have the dimension
+     * [1][3]. Note that you will have to cast the returned <code>InformationElement</code>s to a concrete
+     * implementation in order to access the data inside them.
      *
      * @return the information elements as a two dimensional array.
      */

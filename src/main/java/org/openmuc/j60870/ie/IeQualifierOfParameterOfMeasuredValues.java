@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 Fraunhofer ISE
+ * Copyright 2014-2026 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -23,7 +23,9 @@ package org.openmuc.j60870.ie;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-/** Represents a qualifier of parameter of measured values (QPM) information element. */
+/**
+ * Represents a qualifier of parameter of measured values (QPM) information element.
+ */
 public class IeQualifierOfParameterOfMeasuredValues extends InformationElement {
 
     private final int kindOfParameter;
@@ -69,11 +71,7 @@ public class IeQualifierOfParameterOfMeasuredValues extends InformationElement {
 
     @Override
     public String toString() {
-        return "Qualifier of parameter of measured values, kind of parameter: "
-                + kindOfParameter
-                + ", change: "
-                + change
-                + ", not in operation: "
-                + notInOperation;
+        return "Qualifier of parameter of measured values, kind of parameter: " + kindOfParameter + ", change: "
+                + change + ", not in operation: " + notInOperation;
     }
 }

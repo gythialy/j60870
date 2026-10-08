@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 Fraunhofer ISE
+ * Copyright 2014-2026 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -42,7 +42,8 @@ abstract class CommonBuilder<T extends CommonBuilder<T, C>, C> {
      * Allowed values are 1 or 2.<br>
      * Default is 2.
      *
-     * @param length the length of the Cause Of Transmission field
+     * @param length
+     *            the length of the Cause Of Transmission field
      * @return this builder
      */
     public T setCotFieldLength(int length) {
@@ -58,7 +59,8 @@ abstract class CommonBuilder<T extends CommonBuilder<T, C>, C> {
      * Allowed values are 1 or 2.<br>
      * Default is 2.
      *
-     * @param length the length of the Common Address (CA) field
+     * @param length
+     *            the length of the Common Address (CA) field
      * @return this builder
      */
     public T setCommonAddressFieldLength(int length) {
@@ -74,7 +76,8 @@ abstract class CommonBuilder<T extends CommonBuilder<T, C>, C> {
      * Allowed values are 1, 2 or 3.<br>
      * Default is 3.
      *
-     * @param length the length of the Information Object Address field
+     * @param length
+     *            the length of the Information Object Address field
      * @return this builder
      */
     public T setIoaFieldLength(int length) {
@@ -86,15 +89,15 @@ abstract class CommonBuilder<T extends CommonBuilder<T, C>, C> {
     }
 
     /**
-     * Sets the maximum time in ms that no acknowledgement has been received (for I-Frames or
-     * Test-Frames) before actively closing the connection. This timeout is called t1 by the standard.
-     * <br>
+     * Sets the maximum time in ms that no acknowledgement has been received (for I-Frames or Test-Frames) before
+     * actively closing the connection. This timeout is called t1 by the standard.<br>
      * Default is 15s, minimum is 1s, maximum is 255s.<br>
-     * t1 (maxTimeNoAckReceived) has to be greater then t2 (maxTimeNoAckSent) and t1 has to be smaller
-     * then t3 (maxIdleTime) (t1 &gt; t2 and t1 &lt; t3)
+     * t1 (maxTimeNoAckReceived) has to be greater than t2 (maxTimeNoAckSent) and t1 has to be smaller than t3
+     * (maxIdleTime) (t1 &gt; t2 and t1 &lt; t3)
      *
-     * @param time_t1 the maximum time in ms that no acknowledgement has been received before actively
-     *     closing the connection.
+     * @param time_t1
+     *            the maximum time in ms that no acknowledgement has been received before actively closing the
+     *            connection.
      * @return this builder
      */
     public T setMaxTimeNoAckReceived(int time_t1) {
@@ -104,13 +107,14 @@ abstract class CommonBuilder<T extends CommonBuilder<T, C>, C> {
     }
 
     /**
-     * Sets the maximum time in ms before confirming received messages that have not yet been
-     * acknowledged using an S format APDU. This timeout is called t2 by the standard.<br>
+     * Sets the maximum time in ms before confirming received messages that have not yet been acknowledged using an S
+     * format APDU. This timeout is called t2 by the standard.<br>
      * Default is 10s, minimum is 1s, maximum is 255s.<br>
-     * t2 (maxTimeNoAckSent) has to be smaller then t1 (maxTimeNoAckReceived), t3 &gt; t1.
+     * t2 (maxTimeNoAckSent) has to be smaller than t1 (maxTimeNoAckReceived), t3 &gt; t1.
      *
-     * @param time_t2 the maximum time in ms before confirming received messages that have not yet
-     *     been acknowledged using an S format APDU.
+     * @param time_t2
+     *            the maximum time in ms before confirming received messages that have not yet been acknowledged using
+     *            an S format APDU.
      * @return this builder
      */
     public T setMaxTimeNoAckSent(int time_t2) {
@@ -119,10 +123,7 @@ abstract class CommonBuilder<T extends CommonBuilder<T, C>, C> {
         if (time_t2 > t1) {
             throw new IllegalArgumentException(
                     "invalid timeout: t2 (maxTimeNoAckSent) has to be smaller then t1 (maxTimeNoAckReceived), t2 < t1. Current values are: t1="
-                            + t1
-                            + " ms, t2="
-                            + time_t2
-                            + "ms");
+                            + t1 + " ms, t2=" + time_t2 + "ms");
         }
         settings.setMaxTimeNoAckSent(time_t2);
         return self();
@@ -136,13 +137,13 @@ abstract class CommonBuilder<T extends CommonBuilder<T, C>, C> {
     }
 
     /**
-     * Sets the maximum time in ms that the connection may be idle before sending a test frame. This
-     * timeout is called t3 by the standard.<br>
+     * Sets the maximum time in ms that the connection may be idle before sending a test frame. This timeout is called
+     * t3 by the standard.<br>
      * Default is 20s, minimum is 1s, maximum is 172800s (48h).<br>
      * t3 (maxIdleTime) has to be bigger then t1 (maxTimeNoAckReceived), t3 &gt; t1.
      *
-     * @param time_t3 the maximum time in ms that the connection may be idle before sending a test
-     *     frame.
+     * @param time_t3
+     *            the maximum time in ms that the connection may be idle before sending a test frame.
      * @return this builder
      */
     public T setMaxIdleTime(int time_t3) {
@@ -154,22 +155,19 @@ abstract class CommonBuilder<T extends CommonBuilder<T, C>, C> {
         if (time_t3 < t1) {
             throw new IllegalArgumentException(
                     "invalid timeout: t3 (maxIdleTime) has to be greater then t1 (maxTimeNoAckReceived), t3 > t1. Current values are: t1="
-                            + t1
-                            + " ms, t3="
-                            + time_t3
-                            + "ms");
+                            + t1 + " ms, t3=" + time_t3 + "ms");
         }
         settings.setMaxIdleTime(time_t3);
         return self();
     }
 
     /**
-     * Sets the number of maximum difference send sequence number to send acknowledge variable before
-     * Connection.send will block. This parameter is called k by the standard.<br>
+     * Sets the number of maximum difference send sequence number to send acknowledge variable before Connection.send
+     * will block. This parameter is called k by the standard.<br>
      * Default is 12, minimum is 1, maximum is 32767.
      *
-     * @param maxNum the maximum number of sequentially numbered I format APDUs that the DTE may have
-     *     outstanding
+     * @param maxNum
+     *            the maximum number of sequentially numbered I format APDUs that the DTE may have outstanding
      * @return this builder
      */
     public T setMaxNumOfOutstandingIPdus(int maxNum) {
@@ -181,12 +179,13 @@ abstract class CommonBuilder<T extends CommonBuilder<T, C>, C> {
     }
 
     /**
-     * Sets the number of unacknowledged I format APDUs received before the connection will
-     * automatically send an S format APDU to confirm them. This parameter is called w by the
-     * standard. Default is 8, minimum is 1, maximum is 32767.
+     * Sets the number of unacknowledged I format APDUs received before the connection will automatically send an S
+     * format APDU to confirm them. This parameter is called w by the standard. Default is 8, minimum is 1, maximum is
+     * 32767.
      *
-     * @param maxNum the number of unacknowledged I format APDUs received before the connection will
-     *     automatically send an S format APDU to confirm them.
+     * @param maxNum
+     *            the number of unacknowledged I format APDUs received before the connection will automatically send an
+     *            S format APDU to confirm them.
      * @return this builder
      */
     public T setMaxUnconfirmedIPdusReceived(int maxNum) {
@@ -200,7 +199,8 @@ abstract class CommonBuilder<T extends CommonBuilder<T, C>, C> {
     /**
      * Sets SO_TIMEOUT with the specified timeout, in milliseconds.
      *
-     * @param time the timeout in milliseconds. Default is 5 s, minimum 100 ms.
+     * @param time
+     *            the timeout in milliseconds. Default is 5 s, minimum 100 ms.
      * @return this builder
      */
     public T setMessageFragmentTimeout(int time) {

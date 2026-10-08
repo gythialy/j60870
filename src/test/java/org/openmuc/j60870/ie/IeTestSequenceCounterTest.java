@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 Fraunhofer ISE
+ * Copyright 2014-2026 Fraunhofer ISE
  *
  * This file is part of j60870.
  * For more information visit http://www.openmuc.org
@@ -20,17 +20,24 @@
  */
 package org.openmuc.j60870.ie;
 
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@RunWith(JUnitParamsRunner.class)
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
 public class IeTestSequenceCounterTest {
 
-    @Test(expected = IllegalArgumentException.class)
-    @Parameters({"-1", "65536"})
-    public void testConstrcutorRange(int i) throws Exception {
+    @ParameterizedTest
+    @ValueSource(ints = {-1, 65536})
+    public void testConstructorRangeWrongParameter(int i) throws Exception {
+        assertThrows(IllegalArgumentException.class, () -> {
+            new IeTestSequenceCounter(i);
+        });
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {0, 65535})
+    public void testConstructorRangeCorrect(int i) throws Exception {
         new IeTestSequenceCounter(i);
     }
 }
