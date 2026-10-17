@@ -11,24 +11,47 @@ permissions:
 
 jobs:
   build:
+    name: JDK ${{ matrix.target }}
     runs-on: ubuntu-latest
+
+    strategy:
+      # One failing JDK should not hide the results of the others.
+      fail-fast: false
+      matrix:
+        # 11 = lowest supported bytecode target, 17 = current baseline,
+        # 25 = latest LTS. Add "21" here to also cover the previous LTS.
+        target: [ "11", "17", "25" ]
 
     steps:
       - uses: actions/checkout@v7
-      - name: Set up JDK 17
+
+      # Gradle 9.8 itself can only run on JVM 17..27, so the JDK that builds is
+      # pinned to 17. The matrix value is the JDK that compiles and runs the tests,
+      # selected below through -PuseJavaToolchain (see build.gradle.kts).
+      - name: Set up build JDK 17
         uses: actions/setup-java@v6.0.1
         with:
-          java-version: "17"
           distribution: "temurin"
+          java-version: "17"
+
+      # Installed without becoming the default JAVA_HOME, so Gradle keeps running
+      # on 17 while JAVA_HOME_<version>_X64 advertises the target JDK to Gradle.
+      - name: Set up target JDK ${{ matrix.target }}
+        if: matrix.target != '17'
+        uses: actions/setup-java@v6.0.1
+        with:
+          distribution: "temurin"
+          java-version: ${{ matrix.target }}
+          set-default: false
+
+      # setup-gradle already restores ~/.gradle (home state, dependencies,
+      # wrapper and transforms), so no extra actions/cache step is needed here.
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6.4.0
-      - uses: actions/cache@v6
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-      - name: Build with Gradle
-        run: ./gradlew build
+
+      - name: Build with target Java ${{ matrix.target }}
+        run: >
+          ./gradlew build
+          -PjavaVersion=${{ matrix.target }}
+          -PuseJavaToolchain=true
+          -Dorg.gradle.java.installations.fromEnv=JAVA_HOME_${{ matrix.target }}_X64,JAVA_HOME_17_X64

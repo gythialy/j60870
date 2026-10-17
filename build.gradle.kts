@@ -24,9 +24,24 @@ val cfgCopyDependencies: Boolean =
 val cfgCopyToRoot: Boolean =
     providers.gradleProperty("cfgCopyToRoot").getOrElse("false").toBoolean()
 
-java {
-    sourceCompatibility = JavaVersion.toVersion(javaVersion)
-    targetCompatibility = JavaVersion.toVersion(javaVersion)
+// --release keeps both the bytecode level and the visible API surface at the level
+// declared in gradle.properties, whichever JDK happens to run Gradle. Plain
+// source/target compatibility would still expose the platform classes of the
+// running JDK, so newer APIs could leak in unnoticed.
+tasks.withType<JavaCompile>().configureEach {
+    options.release.set(javaVersion.toInt())
+}
+
+// CI passes -PuseJavaToolchain=true so that the code is really compiled and tested
+// on a JDK matching javaVersion, instead of the JDK that runs Gradle. Gradle itself
+// needs Java 17+, so the Java 11 CI leg depends on this. Local builds omit the flag
+// and keep using the JDK that runs Gradle, so no extra JDK has to be installed.
+if (providers.gradleProperty("useJavaToolchain").isPresent) {
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(javaVersion.toInt())
+        }
+    }
 }
 
 spotless {

@@ -13,3 +13,10 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    ignore:
+      # JUnit 6 requires a Java 17 runtime baseline, but this fork still builds
+      # against Java 11 (see javaVersion in gradle.properties). Upgrading the
+      # BOM to 6.x fails :compileTestJava with
+      # "junit-jupiter-api:6.x is only compatible with JVM runtime version 17 or newer".
+      - dependency-name: "org.junit:junit-bom"
+        update-types: [ "version-update:semver-major" ]
