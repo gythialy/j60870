@@ -28,18 +28,28 @@ val cfgCopyToRoot: Boolean =
 // declared in gradle.properties, whichever JDK happens to run Gradle. Plain
 // source/target compatibility would still expose the platform classes of the
 // running JDK, so newer APIs could leak in unnoticed.
-tasks.withType<JavaCompile>().configureEach {
-    options.release.set(javaVersion.toInt())
-}
+//
+// CI passes -PuseJavaToolchain=true so that code is really compiled and tested on a
+// JDK matching javaVersion instead of the JDK that runs Gradle. Gradle itself needs
+// Java 17+, so the Java 11 CI leg depends on this. Local builds omit the flag and
+// keep using the JDK that runs Gradle, so no extra JDK has to be installed.
+//
+// Applied to every module of the distribution, not just the root project: :cli-app
+// would otherwise keep the default target (the JDK running Gradle) and fail to
+// consume the root project's classes as soon as the toolchain raises them above it.
+val useJavaToolchain: Boolean = providers.gradleProperty("useJavaToolchain").isPresent
 
-// CI passes -PuseJavaToolchain=true so that the code is really compiled and tested
-// on a JDK matching javaVersion, instead of the JDK that runs Gradle. Gradle itself
-// needs Java 17+, so the Java 11 CI leg depends on this. Local builds omit the flag
-// and keep using the JDK that runs Gradle, so no extra JDK has to be installed.
-if (providers.gradleProperty("useJavaToolchain").isPresent) {
-    java {
-        toolchain {
-            languageVersion = JavaLanguageVersion.of(javaVersion.toInt())
+allprojects {
+    pluginManager.withPlugin("java") {
+        tasks.withType<JavaCompile>().configureEach {
+            options.release.set(javaVersion.toInt())
+        }
+        if (useJavaToolchain) {
+            extensions.configure<JavaPluginExtension> {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(javaVersion.toInt())
+                }
+            }
         }
     }
 }

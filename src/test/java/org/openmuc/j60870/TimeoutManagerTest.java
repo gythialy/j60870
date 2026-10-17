@@ -32,6 +32,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
@@ -57,15 +58,18 @@ public class TimeoutManagerTest {
         doCallRealMethod().when(task).isDone();
 
         ExecutorService exec = Executors.newSingleThreadExecutor();
-        exec.execute(tm);
-        tm.addTimerTask(task);
+        final AtomicLong t0 = new AtomicLong();
 
-        final long t0 = System.currentTimeMillis();
+        // The stub below must be installed before the timer thread can reach
+        // execute(): stubbing a mock that another thread is already invoking leaves
+        // Mockito's stubbing state unfinished (UnfinishedStubbingException), which is
+        // what happened once CI started running this test on Java 11 as well. The
+        // reference time is therefore recorded separately, when the task is queued.
         doAnswer(new Answer<Void>() {
 
                     @Override
                     public Void answer(InvocationOnMock invocation) throws Throwable {
-                        long sleepTime = System.currentTimeMillis() - t0;
+                        long sleepTime = System.currentTimeMillis() - t0.get();
 
                         assertEquals(timeout, sleepTime, 40D);
                         return null;
@@ -73,6 +77,10 @@ public class TimeoutManagerTest {
                 })
                 .when(task)
                 .execute();
+
+        exec.execute(tm);
+        t0.set(System.currentTimeMillis());
+        tm.addTimerTask(task);
 
         Awaitility.await().atMost(1, TimeUnit.SECONDS).until(new Callable<Boolean>() {
 
