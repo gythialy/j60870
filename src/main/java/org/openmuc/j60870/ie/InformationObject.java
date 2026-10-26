@@ -349,7 +349,9 @@ public class InformationObject {
                 break;
             // 102
             case C_RD_NA_1:
-                informationElements = new InformationElement[0][0];
+                // No information elements, but still one (empty) set: an ASDU with SQ=0 requires exactly one set
+                // per information object, and this is what new InformationObject(ioa) builds for sending.
+                informationElements = new InformationElement[][] {{}};
                 break;
             // 103
             case C_CS_NA_1:
