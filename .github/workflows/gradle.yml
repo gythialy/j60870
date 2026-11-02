@@ -47,7 +47,7 @@ jobs:
       # setup-gradle already restores ~/.gradle (home state, dependencies,
       # wrapper and transforms), so no extra actions/cache step is needed here.
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6.4.0
+        uses: gradle/actions/setup-gradle@v6.4.1
 
       - name: Build with target Java ${{ matrix.target }}
         run: >
